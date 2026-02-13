@@ -114,18 +114,84 @@ fn install_skill(args: &InstallArgs) -> Result<()> {
     Ok(())
 }
 
-fn list_skills() -> Result<()> {
-    println!("{}", "📚 Installed Skills".bright_cyan().bold());
-    println!();
+// Public API for use by other commands (e.g., init)
+pub fn install_skill_from_path(source: &str, silent: bool) -> Result<String> {
+    let current_dir = std::env::current_dir()?;
+    let skills_dir = current_dir.join("skills");
 
+    // Create skills directory if it doesn't exist
+    if !skills_dir.exists() {
+        fs::create_dir_all(&skills_dir)
+            .context("Failed to create skills directory")?;
+    }
+
+    // Determine source type and download/load
+    let skill_content = if source.starts_with("http://") || source.starts_with("https://") {
+        download_skill(source)?
+    } else if Path::new(source).exists() {
+        fs::read_to_string(source)
+            .context("Failed to read skill file")?
+    } else {
+        // Try from local skills/ directory first (for bundled skills)
+        let local_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .join("skills")
+            .join(source)
+            .join("SKILL.md");
+        
+        if local_path.exists() {
+            fs::read_to_string(&local_path)
+                .context("Failed to read local skill")?
+        } else {
+            // Try agentskills.io
+            let url = format!("https://raw.githubusercontent.com/agentskills/skills/main/{}/SKILL.md", source);
+            download_skill(&url)?
+        }
+    };
+
+    // Parse metadata
+    let metadata = parse_skill_metadata(&skill_content)?;
+    let skill_dir = skills_dir.join(&metadata.name);
+    
+    // Skip if already exists
+    if skill_dir.exists() {
+        if !silent {
+            println!("{}", format!("  ⚠ Skill '{}' already exists, skipping", metadata.name).yellow());
+        }
+        return Ok(metadata.name);
+    }
+
+    // Create skill directory and write SKILL.md
+    fs::create_dir_all(&skill_dir)
+        .context("Failed to create skill directory")?;
+    
+    let skill_file = skill_dir.join("SKILL.md");
+    fs::write(&skill_file, &skill_content)
+        .context("Failed to write SKILL.md")?;
+
+    if !silent {
+        println!("{}", format!("  ✓ Installed {}", metadata.name).green());
+    }
+
+    // Update kn.toml
+    let _ = update_config_with_skill(&current_dir, &metadata.name);
+
+    Ok(metadata.name)
+}
+
+fn list_skills() -> Result<()> {
     let current_dir = std::env::current_dir()?;
     let skills_dir = current_dir.join("skills");
 
     if !skills_dir.exists() {
-        println!("{}", "  No skills directory found.".yellow());
-        println!("  Run 'kn skills install <name>' to install your first skill.");
+        println!("{}", "No skills directory found.".yellow());
+        println!("Run 'kn skills install <skill-name>' to install your first skill.");
         return Ok(());
     }
+
+    println!("{}", "Installed Skills:".bright_white().bold());
+    println!();
 
     let mut found_skills = false;
 

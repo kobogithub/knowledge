@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use super::skills::install_skill_from_path;
+
 #[derive(Args)]
 pub struct InitCommand {
     /// Project type (auto-detected if not specified)
@@ -14,6 +16,10 @@ pub struct InitCommand {
     /// Skip interactive prompts
     #[arg(short = 'y', long)]
     yes: bool,
+
+    /// Skip auto-installation of recommended skills
+    #[arg(long)]
+    no_skills: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -61,6 +67,11 @@ impl InitCommand {
         // Create kn.toml
         self.create_config_file(&project_info)?;
 
+        // Auto-install recommended skills (unless --no-skills is specified)
+        if !self.no_skills {
+            self.install_recommended_skills(&project_info)?;
+        }
+
         // Initialize beads if not present
         self.init_beads(&project_info)?;
 
@@ -68,7 +79,11 @@ impl InitCommand {
         println!("\n{}", "Next steps:".bright_white().bold());
         println!("  1. Review and customize AGENTS.md");
         println!("  2. Run: bd init (if not already initialized)");
-        println!("  3. Run: kn skills install <skill-name>");
+        if !self.no_skills {
+            println!("  3. Review installed skills: kn skills list");
+        } else {
+            println!("  3. Install skills: kn skills install <skill-name>");
+        }
 
         Ok(())
     }
@@ -247,6 +262,73 @@ templates_dir = ".beads/templates"
         }
 
         println!("{}", "  ℹ Run 'bd init' to initialize beads issue tracking".bright_blue());
+        Ok(())
+    }
+
+    fn install_recommended_skills(&self, project: &ProjectInfo) -> Result<()> {
+        println!("\n{}", "📦 Installing recommended skills...".bright_cyan().bold());
+        
+        // Map project type to recommended skills
+        let skills: Vec<&str> = match project.project_type {
+            ProjectType::Rust => vec![
+                "rust-best-practices",
+                "docker-best-practices",
+                "bash-best-practices",
+            ],
+            ProjectType::Node => vec![
+                "docker-best-practices",
+                "bash-best-practices",
+            ],
+            ProjectType::Python => vec![
+                "python-best-practices",
+                "docker-best-practices",
+                "bash-best-practices",
+            ],
+            ProjectType::Go => vec![
+                "docker-best-practices",
+                "bash-best-practices",
+            ],
+            ProjectType::Monorepo => vec![
+                "docker-best-practices",
+                "bash-best-practices",
+            ],
+            ProjectType::Unknown => vec![
+                "bash-best-practices",
+            ],
+        };
+
+        if skills.is_empty() {
+            println!("{}", "  ℹ No skills to install for this project type".bright_blue());
+            return Ok(());
+        }
+
+        let mut installed_count = 0;
+        let mut skipped_count = 0;
+
+        for skill_name in skills {
+            // Check if skill already exists
+            let skill_dir = project.root_dir.join("skills").join(skill_name);
+            
+            if skill_dir.exists() {
+                skipped_count += 1;
+                continue;
+            }
+            
+            // Install from bundled skills - just pass the skill name
+            match install_skill_from_path(skill_name, true) {
+                Ok(_) => {
+                    println!("{}", format!("  ✓ Installed {}", skill_name).green());
+                    installed_count += 1;
+                }
+                Err(e) => {
+                    println!("{}", format!("  ⚠ Failed to install {}: {}", skill_name, e).yellow());
+                }
+            }
+        }
+
+        println!("\n{}", format!("✓ Skills: {} installed, {} already present", 
+            installed_count, skipped_count).bright_green());
+        
         Ok(())
     }
 }
