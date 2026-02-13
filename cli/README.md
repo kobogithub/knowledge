@@ -172,18 +172,31 @@ kn mcp remove postgres
 
 ### Supported Project Types
 
+**Base Languages:**
 - **Rust** - Detects `Cargo.toml`
 - **Node** - Detects `package.json`
 - **Python** - Detects `pyproject.toml` or `setup.py`
 - **Go** - Detects `go.mod`
-- **Monorepo** - Detects `pnpm-workspace.yaml` or `lerna.json`
+
+**Framework Detection:**
+- **Rust**: Actix, Axum, Tauri, CLI tools (clap)
+- **Node**: Next.js, Astro, React, Express, NestJS
+- **Python**: FastAPI, Django, Flask
+
+**Workspace/Monorepo Detection:**
+- **Cargo workspaces** - Detects `[workspace]` in `Cargo.toml`
+- **pnpm workspaces** - Detects `pnpm-workspace.yaml`
+- **npm/yarn workspaces** - Detects `"workspaces"` in `package.json`
+- **Lerna** - Detects `lerna.json`
+
+The detected information is displayed during `kn init` and written to `kn.toml` and `AGENTS.md`.
 
 ## Configuration (kn.toml)
 
 ```toml
 [project]
 name = "my-project"
-type = "Node"
+type = "Python (FastAPI)"
 
 [agents]
 planner = "project-x6e"

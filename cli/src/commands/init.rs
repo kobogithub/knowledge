@@ -25,18 +25,40 @@ pub struct InitCommand {
 #[derive(Debug, Serialize, Deserialize)]
 struct ProjectInfo {
     name: String,
-    project_type: ProjectType,
+    language: Language,
+    framework: Option<Framework>,
+    is_workspace: bool,
     root_dir: PathBuf,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-enum ProjectType {
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+enum Language {
     Rust,
     Node,
     Python,
     Go,
-    Monorepo,
     Unknown,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+enum Framework {
+    // Rust frameworks
+    Actix,
+    Axum,
+    Tauri,
+    RustCli,
+    
+    // Node frameworks
+    NextJs,
+    Astro,
+    React,
+    Express,
+    NestJs,
+    
+    // Python frameworks
+    FastAPI,
+    Django,
+    Flask,
 }
 
 impl InitCommand {
@@ -48,7 +70,13 @@ impl InitCommand {
 
         println!("\n{}", "Detected project:".bright_white().bold());
         println!("  Name: {}", project_info.name.bright_yellow());
-        println!("  Type: {:?}", project_info.project_type);
+        println!("  Language: {:?}", project_info.language);
+        if let Some(ref framework) = project_info.framework {
+            println!("  Framework: {:?}", framework);
+        }
+        if project_info.is_workspace {
+            println!("  Type: Workspace/Monorepo");
+        }
         println!("  Root: {}", project_info.root_dir.display());
 
         if !self.yes {
@@ -95,37 +123,186 @@ impl InitCommand {
             .unwrap_or("project")
             .to_string();
 
-        let project_type = if let Some(ref pt) = self.project_type {
-            match pt.as_str() {
-                "rust" => ProjectType::Rust,
-                "node" => ProjectType::Node,
-                "python" => ProjectType::Python,
-                "go" => ProjectType::Go,
-                "monorepo" => ProjectType::Monorepo,
-                _ => ProjectType::Unknown,
-            }
+        // Manual override if specified
+        if let Some(ref pt) = self.project_type {
+            let language = match pt.as_str() {
+                "rust" => Language::Rust,
+                "node" => Language::Node,
+                "python" => Language::Python,
+                "go" => Language::Go,
+                _ => Language::Unknown,
+            };
+            
+            return Ok(ProjectInfo {
+                name,
+                language,
+                framework: None,
+                is_workspace: false,
+                root_dir: dir.to_path_buf(),
+            });
+        }
+
+        // Auto-detect language
+        let language = if dir.join("Cargo.toml").exists() {
+            Language::Rust
+        } else if dir.join("package.json").exists() {
+            Language::Node
+        } else if dir.join("pyproject.toml").exists() || dir.join("setup.py").exists() {
+            Language::Python
+        } else if dir.join("go.mod").exists() {
+            Language::Go
         } else {
-            // Auto-detect
-            if dir.join("Cargo.toml").exists() {
-                ProjectType::Rust
-            } else if dir.join("package.json").exists() {
-                ProjectType::Node
-            } else if dir.join("pyproject.toml").exists() || dir.join("setup.py").exists() {
-                ProjectType::Python
-            } else if dir.join("go.mod").exists() {
-                ProjectType::Go
-            } else if dir.join("pnpm-workspace.yaml").exists() || dir.join("lerna.json").exists() {
-                ProjectType::Monorepo
-            } else {
-                ProjectType::Unknown
-            }
+            Language::Unknown
+        };
+
+        // Detect framework based on language
+        let framework = match language {
+            Language::Rust => self.detect_rust_framework(dir),
+            Language::Node => self.detect_node_framework(dir),
+            Language::Python => self.detect_python_framework(dir),
+            _ => None,
+        };
+
+        // Detect workspace/monorepo
+        let is_workspace = match language {
+            Language::Rust => self.is_cargo_workspace(dir),
+            Language::Node => self.is_npm_workspace(dir),
+            _ => false,
         };
 
         Ok(ProjectInfo {
             name,
-            project_type,
+            language,
+            framework,
+            is_workspace,
             root_dir: dir.to_path_buf(),
         })
+    }
+
+    fn detect_rust_framework(&self, dir: &Path) -> Option<Framework> {
+        let cargo_toml_path = dir.join("Cargo.toml");
+        if !cargo_toml_path.exists() {
+            return None;
+        }
+
+        if let Ok(content) = fs::read_to_string(&cargo_toml_path) {
+            // Check dependencies for frameworks
+            if content.contains("actix-web") {
+                return Some(Framework::Actix);
+            }
+            if content.contains("axum") {
+                return Some(Framework::Axum);
+            }
+            if content.contains("tauri") {
+                return Some(Framework::Tauri);
+            }
+            // Check if it's a CLI tool
+            if content.contains("[[bin]]") || content.contains("[package]") && content.contains("clap") {
+                return Some(Framework::RustCli);
+            }
+        }
+        None
+    }
+
+    fn detect_node_framework(&self, dir: &Path) -> Option<Framework> {
+        let package_json_path = dir.join("package.json");
+        if !package_json_path.exists() {
+            return None;
+        }
+
+        if let Ok(content) = fs::read_to_string(&package_json_path) {
+            // Check for Next.js
+            if content.contains("\"next\"") {
+                return Some(Framework::NextJs);
+            }
+            // Check for Astro
+            if content.contains("\"astro\"") || dir.join("astro.config.mjs").exists() {
+                return Some(Framework::Astro);
+            }
+            // Check for NestJS
+            if content.contains("\"@nestjs/core\"") {
+                return Some(Framework::NestJs);
+            }
+            // Check for Express
+            if content.contains("\"express\"") {
+                return Some(Framework::Express);
+            }
+            // Check for React (not Next.js)
+            if content.contains("\"react\"") && !content.contains("\"next\"") {
+                return Some(Framework::React);
+            }
+        }
+        None
+    }
+
+    fn detect_python_framework(&self, dir: &Path) -> Option<Framework> {
+        // Check pyproject.toml
+        let pyproject_path = dir.join("pyproject.toml");
+        if pyproject_path.exists() {
+            if let Ok(content) = fs::read_to_string(&pyproject_path) {
+                if content.contains("fastapi") {
+                    return Some(Framework::FastAPI);
+                }
+                if content.contains("django") {
+                    return Some(Framework::Django);
+                }
+                if content.contains("flask") {
+                    return Some(Framework::Flask);
+                }
+            }
+        }
+
+        // Check requirements.txt as fallback
+        let requirements_path = dir.join("requirements.txt");
+        if requirements_path.exists() {
+            if let Ok(content) = fs::read_to_string(&requirements_path) {
+                if content.contains("fastapi") {
+                    return Some(Framework::FastAPI);
+                }
+                if content.contains("django") || content.contains("Django") {
+                    return Some(Framework::Django);
+                }
+                if content.contains("flask") || content.contains("Flask") {
+                    return Some(Framework::Flask);
+                }
+            }
+        }
+
+        None
+    }
+
+    fn is_cargo_workspace(&self, dir: &Path) -> bool {
+        let cargo_toml_path = dir.join("Cargo.toml");
+        if !cargo_toml_path.exists() {
+            return false;
+        }
+
+        if let Ok(content) = fs::read_to_string(&cargo_toml_path) {
+            return content.contains("[workspace]");
+        }
+        false
+    }
+
+    fn is_npm_workspace(&self, dir: &Path) -> bool {
+        // Check for pnpm workspace
+        if dir.join("pnpm-workspace.yaml").exists() {
+            return true;
+        }
+
+        // Check for lerna
+        if dir.join("lerna.json").exists() {
+            return true;
+        }
+
+        // Check for npm/yarn workspaces in package.json
+        let package_json_path = dir.join("package.json");
+        if package_json_path.exists() {
+            if let Ok(content) = fs::read_to_string(&package_json_path) {
+                return content.contains("\"workspaces\"");
+            }
+        }
+
+        false
     }
 
     fn create_agents_file(&self, project: &ProjectInfo) -> Result<()> {
@@ -145,13 +322,14 @@ impl InitCommand {
     }
 
     fn get_agents_template(&self, project: &ProjectInfo) -> String {
+        let project_description = self.get_project_description(project);
         format!(r#"# Agent Instructions
 
 This project uses **bd** (beads) for issue tracking with a multi-agent workflow.
 
 ## Project: {}
 
-**Type:** {:?}
+**Type:** {}
 
 ## Agent Roles
 
@@ -212,7 +390,21 @@ git push
 5. **Verify** - All changes committed AND pushed
 
 **CRITICAL**: Work is NOT complete until `git push` succeeds.
-"#, project.name, project.project_type)
+"#, project.name, project_description)
+    }
+
+    fn get_project_description(&self, project: &ProjectInfo) -> String {
+        let mut desc = format!("{:?}", project.language);
+        
+        if let Some(ref framework) = project.framework {
+            desc.push_str(&format!(" ({:?})", framework));
+        }
+        
+        if project.is_workspace {
+            desc.push_str(" Workspace/Monorepo");
+        }
+        
+        desc
     }
 
     fn create_config_file(&self, project: &ProjectInfo) -> Result<()> {
@@ -223,9 +415,10 @@ git push
             return Ok(());
         }
 
+        let project_description = self.get_project_description(project);
         let config = format!(r#"[project]
 name = "{}"
-type = "{:?}"
+type = "{}"
 
 [agents]
 # Define your agent IDs and roles
@@ -244,7 +437,7 @@ templates_dir = ".beads/templates"
 [mcp]
 # MCP servers for documentation lookup
 # servers = ["rust-docs", "mdn-web-docs"]
-"#, project.name, project.project_type);
+"#, project.name, project_description);
 
         fs::write(&config_path, config)
             .context("Failed to write kn.toml")?;
@@ -268,34 +461,47 @@ templates_dir = ".beads/templates"
     fn install_recommended_skills(&self, project: &ProjectInfo) -> Result<()> {
         println!("\n{}", "📦 Installing recommended skills...".bright_cyan().bold());
         
-        // Map project type to recommended skills
-        let skills: Vec<&str> = match project.project_type {
-            ProjectType::Rust => vec![
-                "rust-best-practices",
-                "docker-best-practices",
-                "bash-best-practices",
-            ],
-            ProjectType::Node => vec![
-                "docker-best-practices",
-                "bash-best-practices",
-            ],
-            ProjectType::Python => vec![
-                "python-best-practices",
-                "docker-best-practices",
-                "bash-best-practices",
-            ],
-            ProjectType::Go => vec![
-                "docker-best-practices",
-                "bash-best-practices",
-            ],
-            ProjectType::Monorepo => vec![
-                "docker-best-practices",
-                "bash-best-practices",
-            ],
-            ProjectType::Unknown => vec![
-                "bash-best-practices",
-            ],
-        };
+        let mut skills: Vec<&str> = Vec::new();
+        
+        // Base skills by language
+        match project.language {
+            Language::Rust => {
+                skills.push("rust-best-practices");
+                skills.push("docker-best-practices");
+                skills.push("bash-best-practices");
+            }
+            Language::Node => {
+                skills.push("docker-best-practices");
+                skills.push("bash-best-practices");
+            }
+            Language::Python => {
+                skills.push("python-best-practices");
+                skills.push("docker-best-practices");
+                skills.push("bash-best-practices");
+            }
+            Language::Go => {
+                skills.push("docker-best-practices");
+                skills.push("bash-best-practices");
+            }
+            Language::Unknown => {
+                skills.push("bash-best-practices");
+            }
+        }
+        
+        // Add framework-specific skills
+        if let Some(ref framework) = project.framework {
+            match framework {
+                Framework::Astro => {
+                    skills.push("astro-best-practices");
+                }
+                Framework::FastAPI => {
+                    // FastAPI-specific skills could be added here
+                }
+                _ => {
+                    // Other frameworks can be added as needed
+                }
+            }
+        }
 
         if skills.is_empty() {
             println!("{}", "  ℹ No skills to install for this project type".bright_blue());

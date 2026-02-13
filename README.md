@@ -87,11 +87,17 @@ kn init -y
 kn init -y --no-skills
 ```
 
-**Skills are auto-installed based on project type:**
-- **Rust**: rust-best-practices, docker-best-practices, bash-best-practices
-- **Python**: python-best-practices, docker-best-practices, bash-best-practices
-- **Node/Go/Monorepo**: docker-best-practices, bash-best-practices
-- **Unknown**: bash-best-practices
+**Skills are auto-installed based on detected project:**
+- **Base Language + Framework Detection**:
+  - Rust projects → rust-best-practices + docker + bash
+  - Python projects → python-best-practices + docker + bash
+  - Node projects → docker + bash
+  - Go projects → docker + bash
+- **Framework-specific skills**:
+  - Astro detected → astro-best-practices
+  - FastAPI detected → python-best-practices
+  - More frameworks coming soon!
+- **Workspace/Monorepo**: Automatically detected for Cargo, pnpm, npm workspaces
 
 ### Manage Skills
 
