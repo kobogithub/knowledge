@@ -38,6 +38,33 @@ Specify project type:
 kn init --project-type rust
 ```
 
+### Manage Skills
+
+Install a skill from local path:
+```bash
+kn skills install /path/to/SKILL.md
+```
+
+Install from URL:
+```bash
+kn skills install https://example.com/skills/typescript/SKILL.md
+```
+
+Install by name (from agentskills.io):
+```bash
+kn skills install typescript
+```
+
+Force reinstall:
+```bash
+kn skills install typescript --force
+```
+
+List installed skills:
+```bash
+kn skills list
+```
+
 ### What Gets Created
 
 - **AGENTS.md** - Agent workflow instructions and quick reference
@@ -98,15 +125,16 @@ cli/
 │   ├── main.rs              # CLI entry point, argument parsing
 │   └── commands/
 │       ├── mod.rs            # Command module exports
-│       └── init.rs           # Project initialization command
+│       ├── init.rs           # Project initialization command
+│       └── skills.rs         # Skills management (install, list)
 ├── Cargo.toml
 └── README.md
 ```
 
 ## Next Steps (Phase 1 Roadmap)
 
-- [ ] `kn skills install <name>` - Install skills from agentskills.io
-- [ ] `kn skills list` - List available/installed skills
+- [x] `kn skills install <name>` - Install skills from agentskills.io ✅
+- [x] `kn skills list` - List available/installed skills ✅
 - [ ] `kn beads template <type>` - Generate issue templates
 - [ ] `kn mcp add <server>` - Configure MCP servers
 - [ ] Cross-platform symlink handling for Windows

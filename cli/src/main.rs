@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 
 mod commands;
 use commands::init::InitCommand;
+use commands::skills::SkillsCommand;
 
 #[derive(Parser)]
 #[command(name = "kn")]
@@ -16,6 +17,8 @@ struct Cli {
 enum Commands {
     /// Initialize AI agent workflow in current project
     Init(InitCommand),
+    /// Manage skills (install, list, update)
+    Skills(SkillsCommand),
 }
 
 fn main() -> Result<()> {
@@ -23,6 +26,7 @@ fn main() -> Result<()> {
 
     match cli.command {
         Commands::Init(cmd) => cmd.execute()?,
+        Commands::Skills(cmd) => cmd.execute()?,
     }
 
     Ok(())
