@@ -82,16 +82,29 @@ kn init
 
 # Follow prompts or use -y for defaults
 kn init -y
+
+# Skip auto-installation of recommended skills
+kn init -y --no-skills
 ```
 
-### Install Skills
+**Skills are auto-installed based on project type:**
+- **Rust**: rust-best-practices, docker-best-practices, bash-best-practices
+- **Python**: python-best-practices, docker-best-practices, bash-best-practices
+- **Node/Go/Monorepo**: docker-best-practices, bash-best-practices
+- **Unknown**: bash-best-practices
+
+### Manage Skills
 
 ```bash
-# Install a skill
-kn skills install typescript
-
 # View installed skills
 kn skills list
+
+# Install additional skills
+kn skills install <skill-name>
+
+# Install from URL or local path
+kn skills install https://example.com/skill/SKILL.md
+kn skills install ./local/skill/SKILL.md
 ```
 
 ### Generate Issue Templates

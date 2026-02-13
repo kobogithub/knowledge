@@ -33,10 +33,28 @@ Skip interactive prompts:
 kn init -y
 ```
 
+Skip auto-installation of recommended skills:
+```bash
+kn init -y --no-skills
+```
+
 Specify project type:
 ```bash
 kn init --project-type rust
 ```
+
+**Skills Auto-Installation:**
+
+`kn init` automatically installs recommended skills based on detected project type:
+
+- **Rust**: `rust-best-practices`, `docker-best-practices`, `bash-best-practices`
+- **Python**: `python-best-practices`, `docker-best-practices`, `bash-best-practices`
+- **Node**: `docker-best-practices`, `bash-best-practices`
+- **Go**: `docker-best-practices`, `bash-best-practices`
+- **Monorepo**: `docker-best-practices`, `bash-best-practices`
+- **Unknown**: `bash-best-practices`
+
+Use `--no-skills` flag to skip auto-installation.
 
 ### Manage Skills
 
@@ -150,6 +168,7 @@ kn mcp remove postgres
 
 - **AGENTS.md** - Agent workflow instructions and quick reference
 - **kn.toml** - Configuration file for agents, skills, and MCP servers
+- **skills/** - Directory with auto-installed skills (based on project type)
 
 ### Supported Project Types
 
