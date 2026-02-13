@@ -9,6 +9,7 @@ Each agent has specialized responsibilities and autonomy to close their own task
 - **[Planner Agent](./AGENTS_PLANNER.md)** (`knowledge-x6e`) - Coordinates work, creates epics, assigns tasks
 - **[Frontend Agent](./AGENTS_FRONTEND.md)** (`knowledge-4yh`) - UI/UX, React, components, client-side
 - **[Backend Agent](./AGENTS_BACKEND.md)** (`knowledge-vlf`) - APIs, databases, business logic, security
+- **[Rust Agent](./AGENTS_RUST.md)** (`knowledge-r5t`) - CLI tools, libraries, systems programming
 - **[DevOps Agent](./AGENTS_DEVOPS.md)** (`knowledge-w5p`) - Infrastructure, CI/CD, deployment, monitoring
 
 **Click on your role above for detailed instructions.**
