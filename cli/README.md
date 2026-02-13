@@ -65,6 +65,39 @@ List installed skills:
 kn skills list
 ```
 
+### Beads Templates
+
+Generate issue templates for Beads workflow:
+
+Print to stdout:
+```bash
+kn beads template task
+kn beads template epic
+kn beads template bug
+kn beads template feature
+kn beads template chore
+```
+
+Save to file:
+```bash
+kn beads template epic -o .beads/templates/epic.md
+```
+
+Force overwrite existing file:
+```bash
+kn beads template task -o task.md --force
+```
+
+Generate all templates:
+```bash
+mkdir -p .beads/templates
+kn beads template epic -o .beads/templates/epic.md
+kn beads template task -o .beads/templates/task.md
+kn beads template bug -o .beads/templates/bug.md
+kn beads template feature -o .beads/templates/feature.md
+kn beads template chore -o .beads/templates/chore.md
+```
+
 ### What Gets Created
 
 - **AGENTS.md** - Agent workflow instructions and quick reference
@@ -126,7 +159,8 @@ cli/
 │   └── commands/
 │       ├── mod.rs            # Command module exports
 │       ├── init.rs           # Project initialization command
-│       └── skills.rs         # Skills management (install, list)
+│       ├── skills.rs         # Skills management (install, list)
+│       └── beads.rs          # Beads templates (epic, task, bug, feature, chore)
 ├── Cargo.toml
 └── README.md
 ```
@@ -135,7 +169,7 @@ cli/
 
 - [x] `kn skills install <name>` - Install skills from agentskills.io ✅
 - [x] `kn skills list` - List available/installed skills ✅
-- [ ] `kn beads template <type>` - Generate issue templates
+- [x] `kn beads template <type>` - Generate issue templates ✅
 - [ ] `kn mcp add <server>` - Configure MCP servers
 - [ ] Cross-platform symlink handling for Windows
 

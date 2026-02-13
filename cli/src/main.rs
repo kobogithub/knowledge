@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 mod commands;
+use commands::beads::BeadsCommand;
 use commands::init::InitCommand;
 use commands::skills::SkillsCommand;
 
@@ -19,6 +20,8 @@ enum Commands {
     Init(InitCommand),
     /// Manage skills (install, list, update)
     Skills(SkillsCommand),
+    /// Beads issue tracking utilities
+    Beads(BeadsCommand),
 }
 
 fn main() -> Result<()> {
@@ -27,6 +30,7 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::Init(cmd) => cmd.execute()?,
         Commands::Skills(cmd) => cmd.execute()?,
+        Commands::Beads(cmd) => cmd.execute()?,
     }
 
     Ok(())
