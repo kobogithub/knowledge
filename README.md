@@ -2,6 +2,8 @@
 
 > **A meta-framework CLI for AI-assisted development workflows**
 
+**[🇪🇸 Leer en Español](./README_ES.md)** | **[🇬🇧 Read in English](./README.md)**
+
 Knowledge Framework (`kn`) is a command-line tool that solves the "cold start problem" in AI-assisted development by automating project setup with agents, skills, and standardized workflows.
 
 [![Rust](https://img.shields.io/badge/rust-1.93+-orange.svg)](https://www.rust-lang.org)
@@ -143,6 +145,17 @@ knowledge/
 │   │       └── mcp.rs        # MCP server management
 │   ├── Cargo.toml
 │   └── README.md
+├── agents/                   # Agent-specific instructions
+│   ├── planner/
+│   │   └── AGENTS.md         # Planner agent guide
+│   ├── frontend/
+│   │   └── AGENTS.md         # Frontend agent guide
+│   ├── backend/
+│   │   └── AGENTS.md         # Backend agent guide
+│   ├── rust/
+│   │   └── AGENTS.md         # Rust agent guide
+│   └── devops/
+│       └── AGENTS.md         # DevOps agent guide
 ├── skills/                   # Installed AI agent skills
 │   ├── astro-best-practices/
 │   ├── bash-best-practices/
@@ -157,11 +170,6 @@ knowledge/
 ├── .beads/                   # Issue tracking (Beads + Dolt)
 │   └── issues.jsonl          # Issue database
 ├── AGENTS.md                 # Main agent coordination
-├── AGENTS_PLANNER.md         # Planner agent instructions
-├── AGENTS_FRONTEND.md        # Frontend agent instructions
-├── AGENTS_BACKEND.md         # Backend agent instructions
-├── AGENTS_RUST.md            # Rust agent instructions
-├── AGENTS_DEVOPS.md          # DevOps agent instructions
 └── README.md                 # This file
 ```
 
@@ -207,8 +215,8 @@ See [AGENTS.md](./AGENTS.md) for detailed instructions.
 - [x] `kn beads template` - Issue template generation
 - [x] `kn mcp add/list/remove` - MCP server configuration
 
-### 🔄 Phase 2: Enhancement (0%)
-- [ ] Enhanced project detection (workspaces, frameworks)
+### ✅ Phase 2: Enhancement (50%)
+- [x] Enhanced project detection (workspaces, frameworks)
 - [ ] Cross-platform support (Windows symlinks)
 - [ ] Test suite for all commands
 
