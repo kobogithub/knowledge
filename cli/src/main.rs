@@ -4,6 +4,7 @@ use clap::{Parser, Subcommand};
 mod commands;
 use commands::beads::BeadsCommand;
 use commands::init::InitCommand;
+use commands::mcp::{McpCommands, McpHandler};
 use commands::skills::SkillsCommand;
 
 #[derive(Parser)]
@@ -22,6 +23,9 @@ enum Commands {
     Skills(SkillsCommand),
     /// Beads issue tracking utilities
     Beads(BeadsCommand),
+    /// Manage MCP (Model Context Protocol) servers
+    #[command(subcommand)]
+    Mcp(McpCommands),
 }
 
 fn main() -> Result<()> {
@@ -31,6 +35,10 @@ fn main() -> Result<()> {
         Commands::Init(cmd) => cmd.execute()?,
         Commands::Skills(cmd) => cmd.execute()?,
         Commands::Beads(cmd) => cmd.execute()?,
+        Commands::Mcp(cmd) => {
+            let handler = McpHandler::new();
+            handler.handle(cmd)?;
+        }
     }
 
     Ok(())

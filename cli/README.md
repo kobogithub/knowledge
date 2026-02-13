@@ -98,6 +98,54 @@ kn beads template feature -o .beads/templates/feature.md
 kn beads template chore -o .beads/templates/chore.md
 ```
 
+### MCP Servers
+
+Manage Model Context Protocol (MCP) servers for documentation lookup and external tool integration:
+
+List available presets and configured servers:
+```bash
+kn mcp list
+```
+
+Add a preset server:
+```bash
+kn mcp add filesystem
+kn mcp add postgres
+kn mcp add github
+kn mcp add brave-search
+kn mcp add puppeteer
+```
+
+Add with custom environment variables:
+```bash
+kn mcp add postgres -e POSTGRES_URL=postgresql://user:pass@localhost/db
+kn mcp add github -e GITHUB_TOKEN=ghp_your_token_here
+```
+
+Add a custom npm package:
+```bash
+kn mcp add @modelcontextprotocol/server-slack
+kn mcp add @myorg/custom-mcp-server
+```
+
+Add a custom command:
+```bash
+kn mcp add my-server --command python -a "-m" -a "my_mcp_server"
+```
+
+Remove a server:
+```bash
+kn mcp remove postgres
+```
+
+#### Available Presets
+
+- **filesystem** - Access local files and directories
+- **postgres** - PostgreSQL database queries and schema inspection
+- **github** - GitHub API integration (issues, PRs, repos)
+- **brave-search** - Web search via Brave Search API
+- **puppeteer** - Web scraping and browser automation
+
 ### What Gets Created
 
 - **AGENTS.md** - Agent workflow instructions and quick reference
@@ -129,8 +177,16 @@ enabled = ["typescript", "react-19"]
 enabled = true
 templates_dir = ".beads/templates"
 
-[mcp]
-servers = ["rust-docs", "mdn-web-docs"]
+[mcp.servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "."]
+
+[mcp.servers.postgres]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-postgres"]
+
+[mcp.servers.postgres.env]
+POSTGRES_URL = "postgresql://localhost/mydb"
 ```
 
 ## Development

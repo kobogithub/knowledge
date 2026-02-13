@@ -48,9 +48,10 @@ kn beads template task              # Print to stdout for piping
 kn beads template bug --force       # Overwrite existing files
 ```
 
-### 🔌 MCP Integration (Coming Soon)
+### 🔌 MCP Server Management
 ```bash
-kn mcp add rust-docs                # Connect documentation servers
+kn mcp add filesystem               # Add preset MCP servers
+kn mcp add postgres -e POSTGRES_URL=... # With environment variables
 kn mcp list                         # View configured servers
 ```
 
@@ -169,15 +170,16 @@ See [AGENTS.md](./AGENTS.md) for detailed instructions.
 
 ## 🛣️ Roadmap
 
-### ✅ Phase 1: Core CLI (Completed - 57%)
+### ✅ Phase 1: Core CLI (Completed - 100%)
 - [x] `kn init` - Project initialization with auto-detection
 - [x] `kn skills install/list` - Skills management
 - [x] `kn beads template` - Issue template generation
+- [x] `kn mcp add/list/remove` - MCP server configuration
 
-### 🔄 Phase 2: Integration (In Progress - 43%)
-- [ ] `kn mcp add/list` - MCP server configuration
+### 🔄 Phase 2: Enhancement (0%)
 - [ ] Enhanced project detection (workspaces, frameworks)
 - [ ] Cross-platform support (Windows symlinks)
+- [ ] Test suite for all commands
 
 ### 🔮 Phase 3: Advanced Features
 - [ ] `kn agent create` - Custom agent generation

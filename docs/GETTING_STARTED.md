@@ -207,6 +207,76 @@ kn beads template bug -o bugs/login-issue.md
 4. **Feature** - New functionality with requirements
 5. **Chore** - Maintenance, refactoring, technical work
 
+## Configuring MCP Servers
+
+Model Context Protocol (MCP) servers provide external capabilities to AI agents like database access, web search, and file system operations.
+
+### Adding Preset Servers
+
+```bash
+# Filesystem access (recommended for all projects)
+kn mcp add filesystem
+
+# Database access
+kn mcp add postgres -e POSTGRES_URL=postgresql://user:pass@localhost/mydb
+
+# GitHub integration
+kn mcp add github -e GITHUB_TOKEN=ghp_your_token_here
+
+# Web search
+kn mcp add brave-search -e BRAVE_API_KEY=your_api_key
+
+# Web scraping
+kn mcp add puppeteer
+```
+
+### Adding Custom Servers
+
+```bash
+# Add any npm package
+kn mcp add @modelcontextprotocol/server-slack
+
+# Add custom command
+kn mcp add my-server --command python -a "-m" -a "my_mcp_module"
+```
+
+### Managing Servers
+
+```bash
+# List all configured servers
+kn mcp list
+
+# Remove a server
+kn mcp remove postgres
+```
+
+### Available Preset Servers
+
+| Server | Description | Environment Variables |
+|--------|-------------|----------------------|
+| `filesystem` | Local file access | None |
+| `postgres` | PostgreSQL database | `POSTGRES_URL` |
+| `github` | GitHub API integration | `GITHUB_TOKEN` |
+| `brave-search` | Web search via Brave | `BRAVE_API_KEY` |
+| `puppeteer` | Browser automation | None |
+
+### Configuration in kn.toml
+
+MCP servers are stored in your `kn.toml`:
+
+```toml
+[mcp.servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "."]
+
+[mcp.servers.postgres]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-postgres"]
+
+[mcp.servers.postgres.env]
+POSTGRES_URL = "postgresql://localhost/mydb"
+```
+
 ## Working with Beads (Issue Tracking)
 
 ### Setup Beads
