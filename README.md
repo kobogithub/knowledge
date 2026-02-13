@@ -120,9 +120,21 @@ knowledge/
 │   │   └── commands/
 │   │       ├── init.rs       # Project initialization
 │   │       ├── skills.rs     # Skills management
-│   │       └── beads.rs      # Issue templates
+│   │       ├── beads.rs      # Issue templates
+│   │       └── mcp.rs        # MCP server management
 │   ├── Cargo.toml
 │   └── README.md
+├── skills/                   # Installed AI agent skills
+│   ├── astro-best-practices/
+│   ├── bash-best-practices/
+│   ├── docker-best-practices/
+│   ├── python-best-practices/
+│   ├── rust-best-practices/
+│   ├── supabase-postgres-best-practices/
+│   └── README.md
+├── docs/                     # Documentation
+│   ├── GETTING_STARTED.md
+│   └── ARCHITECTURE.md
 ├── .beads/                   # Issue tracking (Beads + Dolt)
 │   └── issues.jsonl          # Issue database
 ├── AGENTS.md                 # Main agent coordination
