@@ -1,0 +1,290 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v0.1.0)'
+        required: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Build binaries for all platforms
+  build-binaries:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          # Linux x86_64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: kn
+            asset_name: kn-linux-x86_64
+          
+          # Linux ARM64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            artifact_name: kn
+            asset_name: kn-linux-arm64
+          
+          # macOS x86_64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact_name: kn
+            asset_name: kn-macos-x86_64
+          
+          # macOS ARM64 (Apple Silicon)
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact_name: kn
+            asset_name: kn-macos-arm64
+          
+          # Windows x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: kn.exe
+            asset_name: kn-windows-x86_64.exe
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      
+      - name: Install cross-compilation tools
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+      
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }} --locked
+        working-directory: ./cli
+      
+      - name: Strip binary (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: strip cli/target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+      
+      - name: Create tarball (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          cd cli/target/${{ matrix.target }}/release
+          tar czf ${{ matrix.asset_name }}.tar.gz ${{ matrix.artifact_name }}
+          mv ${{ matrix.asset_name }}.tar.gz ../../../../
+      
+      - name: Create zip (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd cli/target/${{ matrix.target }}/release
+          7z a ${{ matrix.asset_name }}.zip ${{ matrix.artifact_name }}
+          mv ${{ matrix.asset_name }}.zip ../../../../
+        shell: bash
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.asset_name }}
+          path: |
+            ${{ matrix.asset_name }}.tar.gz
+            ${{ matrix.asset_name }}.zip
+          retention-days: 1
+
+  # Build Debian package
+  build-deb:
+    name: Build Debian Package
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential debhelper devscripts
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Build Debian package
+        run: dpkg-buildpackage -us -uc -b
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: debian-package
+          path: ../kn_*.deb
+          retention-days: 1
+
+  # Build RPM packages
+  build-rpm:
+    name: Build RPM (${{ matrix.dist }})
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      matrix:
+        include:
+          - dist: fedora-39
+            container: fedora:39
+          - dist: el9
+            container: rockylinux:9
+          - dist: el8
+            container: rockylinux:8
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install build dependencies
+        run: |
+          if [ -f /etc/fedora-release ]; then
+            dnf install -y rpm-build rpmdevtools cargo rust git gcc nodejs npm
+          else
+            dnf install -y rpm-build rpmdevtools git gcc nodejs npm epel-release
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            source $HOME/.cargo/env
+          fi
+      
+      - name: Setup RPM build tree
+        run: rpmdev-setuptree
+      
+      - name: Prepare sources
+        run: |
+          cp kn.spec ~/rpmbuild/SPECS/
+          tar czf ~/rpmbuild/SOURCES/v${{ github.ref_name }}.tar.gz .
+      
+      - name: Build RPM
+        run: |
+          source $HOME/.cargo/env || true
+          rpmbuild -ba ~/rpmbuild/SPECS/kn.spec
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: rpm-${{ matrix.dist }}
+          path: |
+            ~/rpmbuild/RPMS/x86_64/kn-*.rpm
+            ~/rpmbuild/SRPMS/kn-*.src.rpm
+          retention-days: 1
+
+  # Create GitHub release
+  create-release:
+    name: Create GitHub Release
+    needs: [build-binaries, build-deb, build-rpm]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      
+      - name: Display structure
+        run: ls -R artifacts
+      
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          find . -type f \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.deb" -o -name "*.rpm" \) -exec sha256sum {} \; > ../checksums.txt
+          cd ..
+      
+      - name: Create Release Notes
+        run: |
+          cat > release-notes.md << 'EOF'
+          ## Installation
+          
+          ### Binary Downloads
+          
+          Download the appropriate binary for your platform:
+          
+          - **Linux x86_64**: `kn-linux-x86_64.tar.gz`
+          - **Linux ARM64**: `kn-linux-arm64.tar.gz`
+          - **macOS x86_64**: `kn-macos-x86_64.tar.gz`
+          - **macOS ARM64** (Apple Silicon): `kn-macos-arm64.tar.gz`
+          - **Windows x86_64**: `kn-windows-x86_64.exe.zip`
+          
+          Extract and move to your PATH:
+          
+          ```bash
+          # Linux/macOS
+          tar xzf kn-*.tar.gz
+          sudo mv kn /usr/local/bin/
+          
+          # Or user directory
+          mv kn ~/.local/bin/
+          ```
+          
+          ### Package Managers
+          
+          #### macOS (Homebrew)
+          
+          ```bash
+          brew tap kobogithub/knowledge
+          brew install kn
+          ```
+          
+          #### Ubuntu/Debian
+          
+          ```bash
+          wget https://github.com/kobogithub/knowledge/releases/download/${{ github.ref_name }}/kn_*.deb
+          sudo apt install ./kn_*.deb
+          ```
+          
+          #### Fedora/RHEL/Rocky
+          
+          ```bash
+          wget https://github.com/kobogithub/knowledge/releases/download/${{ github.ref_name }}/kn-*.rpm
+          sudo dnf install ./kn-*.rpm
+          ```
+          
+          ### Automated Installer
+          
+          ```bash
+          curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
+          ```
+          
+          ### Verify Installation
+          
+          ```bash
+          kn --version
+          kn doctor
+          ```
+          
+          ## What's Changed
+          
+          See [CHANGELOG.md](https://github.com/kobogithub/knowledge/blob/prod/CHANGELOG.md) for full details.
+          
+          ## Checksums
+          
+          ```
+          $(cat checksums.txt)
+          ```
+          EOF
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/**/*.tar.gz
+            artifacts/**/*.zip
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+            checksums.txt
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

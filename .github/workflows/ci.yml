@@ -1,0 +1,119 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [prod, main]
+  pull_request:
+    branches: [prod, main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        rust: [stable, 1.70.0]  # Test stable and minimum supported version
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: cli/target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Check formatting
+        if: matrix.rust == 'stable'
+        run: cargo fmt --check
+        working-directory: ./cli
+      
+      - name: Run clippy
+        if: matrix.rust == 'stable'
+        run: cargo clippy --all-targets --all-features -- -D warnings
+        working-directory: ./cli
+      
+      - name: Build
+        run: cargo build --release --verbose
+        working-directory: ./cli
+      
+      - name: Run tests
+        run: cargo test --release --verbose
+        working-directory: ./cli
+      
+      - name: Test kn --help
+        run: |
+          ./target/release/kn --help
+          ./target/release/kn --version
+        working-directory: ./cli
+        shell: bash
+      
+      - name: Test kn doctor (may fail due to missing deps, that's OK)
+        run: ./target/release/kn doctor || true
+        working-directory: ./cli
+        shell: bash
+      
+      - name: Upload kn binary (artifact)
+        uses: actions/upload-artifact@v3
+        with:
+          name: kn-${{ matrix.os }}-${{ matrix.rust }}
+          path: cli/target/release/kn${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+          retention-days: 7
+
+  lint-scripts:
+    name: Lint Installation Scripts
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+      
+      - name: Lint install.sh
+        run: shellcheck install.sh
+      
+      - name: Test install.sh --help
+        run: bash install.sh --help
+
+  test-install-script:
+    name: Test install.sh on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Test install.sh (dry-run with --skip-deps)
+        run: |
+          chmod +x install.sh
+          # We can't fully test installation in CI, but we can test the script runs
+          ./install.sh --help
+        shell: bash
