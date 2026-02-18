@@ -106,6 +106,9 @@ impl InitCommand {
         // Initialize beads if not present
         self.init_beads(&project_info)?;
 
+        // Create OpenCode configuration
+        self.create_opencode_config(&project_info)?;
+
         println!("\n{}", "✓ Initialization complete!".bright_green().bold());
         println!("\n{}", "Next steps:".bright_white().bold());
         println!("  1. Review and customize AGENTS.md");
@@ -565,6 +568,132 @@ templates_dir = ".beads/templates"
             .bright_green()
         );
 
+        Ok(())
+    }
+
+    fn create_opencode_config(&self, project: &ProjectInfo) -> Result<()> {
+        let opencode_dir = project.root_dir.join(".opencode");
+        let opencode_config_path = opencode_dir.join("opencode.json");
+
+        // Create .opencode directory if it doesn't exist
+        if !opencode_dir.exists() {
+            fs::create_dir_all(&opencode_dir).context("Failed to create .opencode directory")?;
+        }
+
+        if opencode_config_path.exists() {
+            println!(
+                "{}",
+                "  ⚠ .opencode/opencode.json already exists, skipping...".yellow()
+            );
+            return Ok(());
+        }
+
+        // Get absolute path for the project root
+        let root_path = project
+            .root_dir
+            .canonicalize()
+            .unwrap_or_else(|_| project.root_dir.clone());
+        let root_path_str = root_path.to_string_lossy();
+
+        // Determine project type string
+        let project_type = match project.language {
+            Language::Rust => {
+                if let Some(Framework::RustCli) = project.framework {
+                    "rust-cli"
+                } else {
+                    "rust"
+                }
+            }
+            Language::Node => "node",
+            Language::Python => "python",
+            Language::Go => "go",
+            Language::Unknown => "unknown",
+        };
+
+        // Build skills array based on installed skills
+        let skills_dir = project.root_dir.join("skills");
+        let mut skills_json = String::from("  \"skills\": [\n");
+
+        if skills_dir.exists() {
+            if let Ok(entries) = fs::read_dir(&skills_dir) {
+                let mut skill_entries: Vec<String> = Vec::new();
+                for entry in entries.filter_map(|e| e.ok()) {
+                    let path = entry.path();
+                    if path.is_dir() {
+                        if let Some(skill_name) = path.file_name().and_then(|n| n.to_str()) {
+                            let skill_path = path.to_string_lossy();
+                            skill_entries.push(format!(
+                                "    {{\n      \"name\": \"{}\",\n      \"path\": \"{}\"\n    }}",
+                                skill_name, skill_path
+                            ));
+                        }
+                    }
+                }
+                skills_json.push_str(&skill_entries.join(",\n"));
+            }
+        }
+        skills_json.push_str("\n  ]");
+
+        // Create OpenCode configuration
+        let config = format!(
+            r#"{{
+  "mcpServers": {{
+    "filesystem": {{
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "{root_path}"
+      ]
+    }},
+    "github": {{
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {{
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${{GITHUB_TOKEN}}"
+      }}
+    }}
+  }},
+{skills},
+  "agents": {{
+    "planner": {{
+      "id": "{project_name}-planner",
+      "role": "planner",
+      "instructionsPath": "{root_path}/agents/planner/AGENTS.md"
+    }},
+    "implementation": {{
+      "id": "{project_name}-impl",
+      "role": "implementation",
+      "instructionsPath": "{root_path}/agents/implementation/AGENTS.md"
+    }},
+    "review": {{
+      "id": "{project_name}-review",
+      "role": "review",
+      "instructionsPath": "{root_path}/agents/review/AGENTS.md"
+    }}
+  }},
+  "workspace": {{
+    "name": "{project_name}",
+    "type": "{project_type}",
+    "rootPath": "{root_path}",
+    "beadsEnabled": true,
+    "beadsPath": "{root_path}/.beads"
+  }}
+}}
+"#,
+            root_path = root_path_str,
+            skills = skills_json,
+            project_name = project.name,
+            project_type = project_type
+        );
+
+        fs::write(&opencode_config_path, config)
+            .context("Failed to write .opencode/opencode.json")?;
+
+        println!("{}", "  ✓ Created .opencode/opencode.json".green());
         Ok(())
     }
 }

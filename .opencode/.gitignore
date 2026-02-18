@@ -1,0 +1,9 @@
+# Node modules for MCP servers
+node_modules/
+package.json
+package-lock.json
+bun.lock
+
+# Temporary files
+*.tmp
+*.log

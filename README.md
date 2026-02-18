@@ -33,6 +33,8 @@ kn init
 # → Auto-detects project type
 # → Creates AGENTS.md with workflow instructions
 # → Generates kn.toml configuration
+# → Creates .opencode/opencode.json for OpenCode/Antigravity workspace
+# → Auto-installs recommended skills
 ```
 
 ### 📚 Skills Management
