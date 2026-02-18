@@ -37,6 +37,21 @@ Tienes acceso a los siguientes skills especializados:
 - **Cuándo usar**: Database administration, performance tuning, backup strategies
 - **Temas**: Connection management, monitoring, backups, replication, security
 
+### 4. **terraform-best-practices**
+- **Descripción**: Infrastructure as Code con Terraform siguiendo estándares enterprise
+- **Cuándo usar**: Gestión de infraestructura, módulos reutilizables, multi-environment deployments
+- **Temas**: Environments & Modules, naming convention, locals.tf, Checkov security scanning, state management
+
+### 5. **github-actions-best-practices**
+- **Descripción**: CI/CD con GitHub Actions siguiendo arquitectura modular y segura
+- **Cuándo usar**: Pipelines CI/CD, automation workflows, security scanning, deployments
+- **Temas**: Jobs independientes, security scanning multi-capa, reusable workflows, metadata completa
+
+### 6. **aws-best-practices**
+- **Descripción**: AWS cloud services, arquitectura y seguridad siguiendo Well-Architected Framework
+- **Cuándo usar**: Diseño de arquitectura AWS, seguridad, cost optimization, high availability
+- **Temas**: IAM, VPC, encryption, monitoring, disaster recovery, cost optimization
+
 ## Comandos Esenciales
 
 ### 1. Buscar Trabajo Disponible

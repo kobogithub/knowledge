@@ -131,6 +131,72 @@ Este directorio contiene skills para AI agents que proporcionan conocimiento esp
 
 ---
 
+### 7. Terraform Best Practices (`terraform-best-practices/`)
+**Fuente**: Custom (Knowledge Framework)  
+**Descripción**: Infrastructure as Code con Terraform siguiendo estándares enterprise
+
+**Temas cubiertos**:
+- Estructura de proyecto (Environments & Modules)
+- Naming convention estándar: `{entorno}-{empresa}-{proyecto}-{componente}-{servicio}`
+- locals.tf para prefijos y tags generales
+- Security scanning con Checkov
+- Backend configuration y state management
+- Module versioning y documentación
+- Code quality y testing
+
+**Cuándo usar**:
+- Gestión de infraestructura como código
+- Creando módulos reutilizables de Terraform
+- Multi-environment deployments (dev, staging, prod)
+- Implementando security scanning en IaC
+- Estandarización de naming y tagging
+
+---
+
+### 8. GitHub Actions Best Practices (`github-actions-best-practices/`)
+**Fuente**: Custom (Knowledge Framework)  
+**Descripción**: CI/CD con GitHub Actions siguiendo arquitectura modular y segura
+
+**Temas cubiertos**:
+- Metadata completa en workflows (Project, Author, Version)
+- Jobs independientes y paralelos (no monolíticos)
+- Security scanning multi-capa (dependencies, secrets, SAST, containers, IaC, licenses)
+- Reusable workflows para repos múltiples
+- Performance optimization y caching
+- Best practices checklist completo
+
+**Cuándo usar**:
+- Creando pipelines CI/CD
+- Implementando security scanning automático
+- Diseñando workflows escalables
+- Automatización de deployments
+- Workflows compartidos entre proyectos
+
+---
+
+### 9. AWS Best Practices (`aws-best-practices/`)
+**Fuente**: Custom (Knowledge Framework)  
+**Descripción**: AWS cloud services, arquitectura y seguridad siguiendo Well-Architected Framework
+
+**Temas cubiertos**:
+- AWS Well-Architected Framework (6 pilares)
+- Security: IAM, encryption, VPC, secrets management
+- Cost Optimization: right-sizing, Reserved Instances, Spot, S3 lifecycle
+- High Availability: Multi-AZ, Auto Scaling, health checks
+- Monitoring & Observability: CloudWatch, X-Ray, alarms
+- Disaster Recovery: backups, cross-region replication
+- Performance optimization: CloudFront, ElastiCache
+
+**Cuándo usar**:
+- Diseñando arquitectura AWS
+- Implementando seguridad en AWS
+- Optimización de costos de infraestructura
+- Configurando alta disponibilidad
+- Disaster recovery planning
+- Performance tuning de aplicaciones AWS
+
+---
+
 ## Instalación de Skills
 
 ### Usando el CLI `kn`
