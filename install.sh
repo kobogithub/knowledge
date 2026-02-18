@@ -5,11 +5,12 @@
 # This script installs kn and all its dependencies on Linux and macOS.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
 #   or
 #   ./install.sh
 #
 # Options:
+#   --version VER  Install specific version (default: latest)
 #   --skip-deps    Skip dependency installation (assumes all deps are present)
 #   --no-confirm   Skip confirmation prompts
 #   --help         Show this help message
@@ -26,15 +27,16 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configuration
-RUST_MIN_VERSION="1.70"
 NODE_MIN_VERSION="18.0"
 INSTALL_DIR="${HOME}/.local/bin"
-KN_REPO="https://github.com/kobogithub/knowledge.git"
+GITHUB_REPO="kobogithub/knowledge"
+GITHUB_API="https://api.github.com/repos/${GITHUB_REPO}"
 TMP_DIR="${TMPDIR:-/tmp}/kn-install-$$"
 
 # Flags
 SKIP_DEPS=false
 NO_CONFIRM=false
+VERSION="latest"
 
 # Logging functions
 info() {
@@ -61,6 +63,10 @@ header() {
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
+            --version)
+                VERSION="$2"
+                shift 2
+                ;;
             --skip-deps)
                 SKIP_DEPS=true
                 shift
@@ -76,15 +82,19 @@ kn CLI Installation Script
 Usage: $0 [OPTIONS]
 
 Options:
+    --version VER   Install specific version (e.g., v0.2.0)
     --skip-deps     Skip automatic dependency installation
     --no-confirm    Skip all confirmation prompts
     --help          Show this help message
 
 Dependencies installed (if not present):
-    - Rust/Cargo (via rustup)
     - Git
     - Node.js (via package manager or manual instructions)
+    - Rust/Cargo (for bd installation)
     - bd (beads) - via cargo install
+
+Note: This script downloads pre-compiled binaries from GitHub releases.
+No Rust toolchain is required for kn itself.
 
 EOF
                 exit 0
@@ -101,6 +111,13 @@ EOF
 detect_os() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         OS="linux"
+        ARCH=$(uname -m)
+        if [[ "$ARCH" != "x86_64" ]]; then
+            error "Unsupported architecture: $ARCH"
+            error "Only x86_64 is supported on Linux"
+            exit 1
+        fi
+        
         if command -v apt-get &> /dev/null; then
             PKG_MANAGER="apt"
         elif command -v dnf &> /dev/null; then
@@ -114,6 +131,12 @@ detect_os() {
         fi
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         OS="macos"
+        ARCH=$(uname -m)
+        if [[ "$ARCH" != "x86_64" && "$ARCH" != "arm64" ]]; then
+            error "Unsupported architecture: $ARCH"
+            exit 1
+        fi
+        
         if command -v brew &> /dev/null; then
             PKG_MANAGER="brew"
         else
@@ -125,7 +148,7 @@ detect_os() {
         exit 1
     fi
     
-    info "Detected OS: $OS (package manager: $PKG_MANAGER)"
+    info "Detected OS: $OS ($ARCH, package manager: $PKG_MANAGER)"
 }
 
 # Check if command exists
@@ -174,12 +197,85 @@ check_dependency() {
     fi
 }
 
-# Install Rust via rustup
-install_rust() {
-    header "Installing Rust"
+# Get latest release version from GitHub
+get_latest_version() {
+    local version
+    version=$(curl -fsSL "${GITHUB_API}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     
-    if check_dependency "Rust" "rustc" "$RUST_MIN_VERSION" 2>/dev/null; then
-        info "Rust is already installed"
+    if [[ -z "$version" ]]; then
+        error "Failed to fetch latest version from GitHub"
+        return 1
+    fi
+    
+    echo "$version"
+}
+
+# Download kn binary from GitHub releases
+download_kn() {
+    header "Downloading kn binary"
+    
+    local version="$VERSION"
+    
+    if [[ "$version" == "latest" ]]; then
+        info "Fetching latest version..."
+        version=$(get_latest_version)
+        if [[ -z "$version" ]]; then
+            error "Failed to determine latest version"
+            return 1
+        fi
+    fi
+    
+    info "Version to install: $version"
+    
+    # Determine asset name based on OS and architecture
+    local asset_name
+    if [[ "$OS" == "linux" ]]; then
+        asset_name="kn-linux-x86_64.tar.gz"
+    elif [[ "$OS" == "macos" ]]; then
+        if [[ "$ARCH" == "arm64" ]]; then
+            asset_name="kn-macos-arm64.tar.gz"
+        else
+            asset_name="kn-macos-x86_64.tar.gz"
+        fi
+    else
+        error "Unsupported OS for binary download: $OS"
+        return 1
+    fi
+    
+    local download_url="https://github.com/${GITHUB_REPO}/releases/download/${version}/${asset_name}"
+    
+    info "Downloading from: $download_url"
+    
+    mkdir -p "$TMP_DIR"
+    local tarball="$TMP_DIR/$asset_name"
+    
+    if ! curl -fsSL -o "$tarball" "$download_url"; then
+        error "Failed to download kn binary"
+        error "URL: $download_url"
+        return 1
+    fi
+    
+    info "Extracting binary..."
+    if ! tar -xzf "$tarball" -C "$TMP_DIR"; then
+        error "Failed to extract tarball"
+        return 1
+    fi
+    
+    if [[ ! -f "$TMP_DIR/kn" ]]; then
+        error "Binary not found in tarball"
+        return 1
+    fi
+    
+    success "Binary downloaded and extracted successfully"
+    return 0
+}
+
+# Install Rust via rustup (only needed for bd)
+install_rust() {
+    header "Installing Rust (required for bd)"
+    
+    if command_exists rustc && command_exists cargo; then
+        success "Rust is already installed"
         return 0
     fi
     
@@ -321,6 +417,14 @@ install_bd() {
         return 0
     fi
     
+    # Ensure Rust is installed first
+    if ! command_exists cargo; then
+        if ! install_rust; then
+            error "Cannot install bd without Rust/Cargo"
+            return 1
+        fi
+    fi
+    
     info "Installing bd via cargo..."
     if cargo install bd; then
         success "bd installed successfully"
@@ -332,53 +436,19 @@ install_bd() {
     fi
 }
 
-# Clone repository
-clone_repo() {
-    header "Cloning kn repository"
-    
-    if [[ -d "$TMP_DIR" ]]; then
-        rm -rf "$TMP_DIR"
-    fi
-    
-    info "Cloning to $TMP_DIR..."
-    if git clone --depth 1 "$KN_REPO" "$TMP_DIR"; then
-        success "Repository cloned"
-        return 0
-    else
-        error "Failed to clone repository"
-        return 1
-    fi
-}
-
-# Build kn
-build_kn() {
-    header "Building kn CLI"
-    
-    cd "$TMP_DIR/cli" || {
-        error "Failed to enter cli directory"
-        return 1
-    }
-    
-    info "Building kn (this may take a few minutes)..."
-    if cargo build --release; then
-        success "kn built successfully"
-        return 0
-    else
-        error "Failed to build kn"
-        return 1
-    fi
-}
-
 # Install kn binary
 install_kn() {
     header "Installing kn binary"
     
-    local binary="$TMP_DIR/cli/target/release/kn"
+    local binary="$TMP_DIR/kn"
     
     if [[ ! -f "$binary" ]]; then
         error "Binary not found at $binary"
         return 1
     fi
+    
+    # Make binary executable
+    chmod +x "$binary"
     
     # Create install directory if it doesn't exist
     mkdir -p "$INSTALL_DIR"
@@ -418,7 +488,7 @@ install_kn() {
     fi
     
     # Add to PATH if not already there
-    if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+    if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]] && [[ ! -f "/usr/local/bin/kn" ]]; then
         warn "$INSTALL_DIR is not in your PATH"
         info "Add the following line to your ~/.bashrc or ~/.zshrc:"
         echo ""
@@ -471,7 +541,7 @@ main() {
     
     parse_args "$@"
     
-    # Detect OS
+    # Detect OS and architecture
     detect_os
     
     # Check/Install dependencies
@@ -479,14 +549,6 @@ main() {
         header "Checking dependencies"
         
         local deps_ok=true
-        
-        # Rust (required)
-        if ! check_dependency "Rust" "rustc" "$RUST_MIN_VERSION" 2>/dev/null; then
-            if ! install_rust; then
-                error "Rust installation failed"
-                deps_ok=false
-            fi
-        fi
         
         # Git (required)
         if ! check_dependency "Git" "git" 2>/dev/null; then
@@ -504,7 +566,7 @@ main() {
             fi
         fi
         
-        # bd (required)
+        # bd (required) - will auto-install Rust if needed
         if ! check_dependency "bd" "bd" 2>/dev/null; then
             if ! install_bd; then
                 error "bd installation failed"
@@ -521,14 +583,8 @@ main() {
         info "Skipping dependency installation (--skip-deps)"
     fi
     
-    # Clone repository
-    if ! clone_repo; then
-        cleanup
-        exit 1
-    fi
-    
-    # Build kn
-    if ! build_kn; then
+    # Download kn binary
+    if ! download_kn; then
         cleanup
         exit 1
     fi
@@ -550,6 +606,7 @@ main() {
     header "Installation Complete!"
     info "Get started with: kn init"
     info "Run 'kn --help' for more information"
+    info "Update to latest version anytime with: kn update"
     echo ""
 }
 
