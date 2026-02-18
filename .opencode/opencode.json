@@ -59,6 +59,10 @@
     {
       "name": "supabase-postgres-best-practices",
       "path": "skills/supabase-postgres-best-practices"
+    },
+    {
+      "name": "kubernetes-best-practices",
+      "path": "skills/kubernetes-best-practices"
     }
   ],
   "agents": {
