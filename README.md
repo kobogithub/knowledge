@@ -63,18 +63,98 @@ kn mcp list                         # View configured servers
 
 ### Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/kobogithub/knowledge.git
-cd knowledge
+#### Automated Installation (Linux/macOS)
 
-# Build the CLI
-cd cli
+```bash
+# One-line install (recommended)
+curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/main/install.sh | bash
+
+# Or download and run
+wget https://raw.githubusercontent.com/kobogithub/knowledge/main/install.sh
+chmod +x install.sh
+./install.sh
+```
+
+**Options:**
+```bash
+./install.sh --help              # Show help
+./install.sh --skip-deps         # Skip dependency installation
+./install.sh --no-confirm        # Non-interactive mode
+```
+
+The install script will:
+- ✅ Detect your OS and package manager
+- ✅ Install missing dependencies (Rust, Git, Node.js, bd)
+- ✅ Clone the repository and build kn
+- ✅ Install kn to `~/.local/bin` or `/usr/local/bin`
+- ✅ Verify installation with `kn doctor`
+
+#### Manual Installation
+
+```bash
+# 1. Install dependencies
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh  # Rust
+cargo install bd                                                  # Beads
+# Install Node.js from https://nodejs.org/ or your package manager
+
+# 2. Clone and build
+git clone https://github.com/kobogithub/knowledge.git
+cd knowledge/cli
 cargo build --release
 
-# Install globally (optional)
+# 3. Install globally
 sudo cp target/release/kn /usr/local/bin/
+# or to user directory
+cp target/release/kn ~/.local/bin/
+
+# 4. Verify
+kn doctor
 ```
+
+#### Windows Installation
+
+```powershell
+# Download and run the PowerShell script
+irm https://raw.githubusercontent.com/kobogithub/knowledge/main/install.ps1 | iex
+
+# Or follow manual instructions in install.ps1
+```
+
+**Note**: Windows automated installation is in development. See `install.ps1` for manual steps.
+
+### Verify Installation
+
+After installation, verify that all dependencies are met:
+
+```bash
+kn doctor
+```
+
+**Expected output:**
+```
+🔍 Checking dependencies...
+
+✓ Rust         1.93.1
+✓ Cargo        1.93.1
+✓ Git          2.53.0
+✓ bd           0.49.6
+○ Dolt         (optional - not found)
+✓ Node.js      25.6.0
+✓ npm          11.8.0
+
+✓ Overall: 7/7 dependencies met
+
+🎉 Ready to use!
+```
+
+**Dependencies:**
+- ✅ **Rust** (1.70+) - For building kn
+- ✅ **Cargo** - Rust package manager
+- ✅ **Git** - Version control
+- ✅ **bd** (beads) - Issue tracking
+- ⚪ **Dolt** - Optional, for Beads database
+- ✅ **Node.js** (18.0+) - For MCP servers
+- ✅ **npm** - Node package manager
 
 ### Initialize Your First Project
 
