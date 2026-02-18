@@ -67,10 +67,10 @@ kn mcp list                         # View configured servers
 
 ```bash
 # One-line install (recommended)
-curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
 
 # Or download and run
-wget https://raw.githubusercontent.com/kobogithub/knowledge/main/install.sh
+wget https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh
 chmod +x install.sh
 ./install.sh
 ```
@@ -115,7 +115,7 @@ kn doctor
 
 ```powershell
 # Download and run the PowerShell script
-irm https://raw.githubusercontent.com/kobogithub/knowledge/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.ps1 | iex
 
 # Or follow manual instructions in install.ps1
 ```
