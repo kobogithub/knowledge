@@ -47,14 +47,14 @@ enum Framework {
     Axum,
     Tauri,
     RustCli,
-    
+
     // Node frameworks
     NextJs,
     Astro,
     React,
     Express,
     NestJs,
-    
+
     // Python frameworks
     FastAPI,
     Django,
@@ -63,7 +63,10 @@ enum Framework {
 
 impl InitCommand {
     pub fn execute(&self) -> Result<()> {
-        println!("{}", "🚀 Initializing AI agent workflow...".bright_cyan().bold());
+        println!(
+            "{}",
+            "🚀 Initializing AI agent workflow...".bright_cyan().bold()
+        );
 
         let current_dir = std::env::current_dir()?;
         let project_info = self.detect_project(&current_dir)?;
@@ -91,7 +94,7 @@ impl InitCommand {
 
         // Create AGENTS.md
         self.create_agents_file(&project_info)?;
-        
+
         // Create kn.toml
         self.create_config_file(&project_info)?;
 
@@ -132,7 +135,7 @@ impl InitCommand {
                 "go" => Language::Go,
                 _ => Language::Unknown,
             };
-            
+
             return Ok(ProjectInfo {
                 name,
                 language,
@@ -197,7 +200,9 @@ impl InitCommand {
                 return Some(Framework::Tauri);
             }
             // Check if it's a CLI tool
-            if content.contains("[[bin]]") || content.contains("[package]") && content.contains("clap") {
+            if content.contains("[[bin]]")
+                || content.contains("[package]") && content.contains("clap")
+            {
                 return Some(Framework::RustCli);
             }
         }
@@ -307,15 +312,14 @@ impl InitCommand {
 
     fn create_agents_file(&self, project: &ProjectInfo) -> Result<()> {
         let agents_path = project.root_dir.join("AGENTS.md");
-        
+
         if agents_path.exists() {
             println!("{}", "  ⚠ AGENTS.md already exists, skipping...".yellow());
             return Ok(());
         }
 
         let template = self.get_agents_template(project);
-        fs::write(&agents_path, template)
-            .context("Failed to write AGENTS.md")?;
+        fs::write(&agents_path, template).context("Failed to write AGENTS.md")?;
 
         println!("{}", "  ✓ Created AGENTS.md".green());
         Ok(())
@@ -323,7 +327,8 @@ impl InitCommand {
 
     fn get_agents_template(&self, project: &ProjectInfo) -> String {
         let project_description = self.get_project_description(project);
-        format!(r#"# Agent Instructions
+        format!(
+            r#"# Agent Instructions
 
 This project uses **bd** (beads) for issue tracking with a multi-agent workflow.
 
@@ -390,33 +395,36 @@ git push
 5. **Verify** - All changes committed AND pushed
 
 **CRITICAL**: Work is NOT complete until `git push` succeeds.
-"#, project.name, project_description)
+"#,
+            project.name, project_description
+        )
     }
 
     fn get_project_description(&self, project: &ProjectInfo) -> String {
         let mut desc = format!("{:?}", project.language);
-        
+
         if let Some(ref framework) = project.framework {
             desc.push_str(&format!(" ({:?})", framework));
         }
-        
+
         if project.is_workspace {
             desc.push_str(" Workspace/Monorepo");
         }
-        
+
         desc
     }
 
     fn create_config_file(&self, project: &ProjectInfo) -> Result<()> {
         let config_path = project.root_dir.join("kn.toml");
-        
+
         if config_path.exists() {
             println!("{}", "  ⚠ kn.toml already exists, skipping...".yellow());
             return Ok(());
         }
 
         let project_description = self.get_project_description(project);
-        let config = format!(r#"[project]
+        let config = format!(
+            r#"[project]
 name = "{}"
 type = "{}"
 
@@ -437,10 +445,11 @@ templates_dir = ".beads/templates"
 [mcp]
 # MCP servers for documentation lookup
 # servers = ["rust-docs", "mdn-web-docs"]
-"#, project.name, project_description);
+"#,
+            project.name, project_description
+        );
 
-        fs::write(&config_path, config)
-            .context("Failed to write kn.toml")?;
+        fs::write(&config_path, config).context("Failed to write kn.toml")?;
 
         println!("{}", "  ✓ Created kn.toml".green());
         Ok(())
@@ -448,21 +457,30 @@ templates_dir = ".beads/templates"
 
     fn init_beads(&self, project: &ProjectInfo) -> Result<()> {
         let beads_dir = project.root_dir.join(".beads");
-        
+
         if beads_dir.exists() {
-            println!("{}", "  ⚠ .beads already exists, skipping beads init...".yellow());
+            println!(
+                "{}",
+                "  ⚠ .beads already exists, skipping beads init...".yellow()
+            );
             return Ok(());
         }
 
-        println!("{}", "  ℹ Run 'bd init' to initialize beads issue tracking".bright_blue());
+        println!(
+            "{}",
+            "  ℹ Run 'bd init' to initialize beads issue tracking".bright_blue()
+        );
         Ok(())
     }
 
     fn install_recommended_skills(&self, project: &ProjectInfo) -> Result<()> {
-        println!("\n{}", "📦 Installing recommended skills...".bright_cyan().bold());
-        
+        println!(
+            "\n{}",
+            "📦 Installing recommended skills...".bright_cyan().bold()
+        );
+
         let mut skills: Vec<&str> = Vec::new();
-        
+
         // Base skills by language
         match project.language {
             Language::Rust => {
@@ -487,7 +505,7 @@ templates_dir = ".beads/templates"
                 skills.push("bash-best-practices");
             }
         }
-        
+
         // Add framework-specific skills
         if let Some(ref framework) = project.framework {
             match framework {
@@ -504,7 +522,10 @@ templates_dir = ".beads/templates"
         }
 
         if skills.is_empty() {
-            println!("{}", "  ℹ No skills to install for this project type".bright_blue());
+            println!(
+                "{}",
+                "  ℹ No skills to install for this project type".bright_blue()
+            );
             return Ok(());
         }
 
@@ -514,12 +535,12 @@ templates_dir = ".beads/templates"
         for skill_name in skills {
             // Check if skill already exists
             let skill_dir = project.root_dir.join("skills").join(skill_name);
-            
+
             if skill_dir.exists() {
                 skipped_count += 1;
                 continue;
             }
-            
+
             // Install from bundled skills - just pass the skill name
             match install_skill_from_path(skill_name, true) {
                 Ok(_) => {
@@ -527,14 +548,23 @@ templates_dir = ".beads/templates"
                     installed_count += 1;
                 }
                 Err(e) => {
-                    println!("{}", format!("  ⚠ Failed to install {}: {}", skill_name, e).yellow());
+                    println!(
+                        "{}",
+                        format!("  ⚠ Failed to install {}: {}", skill_name, e).yellow()
+                    );
                 }
             }
         }
 
-        println!("\n{}", format!("✓ Skills: {} installed, {} already present", 
-            installed_count, skipped_count).bright_green());
-        
+        println!(
+            "\n{}",
+            format!(
+                "✓ Skills: {} installed, {} already present",
+                installed_count, skipped_count
+            )
+            .bright_green()
+        );
+
         Ok(())
     }
 }

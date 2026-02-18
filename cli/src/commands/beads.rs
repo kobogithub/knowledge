@@ -58,8 +58,11 @@ fn generate_template(args: &TemplateArgs) -> Result<()> {
         if path.exists() && !args.force {
             eprintln!(
                 "{}",
-                format!("Error: File '{}' already exists. Use --force to overwrite.", output_path)
-                    .red()
+                format!(
+                    "Error: File '{}' already exists. Use --force to overwrite.",
+                    output_path
+                )
+                .red()
             );
             std::process::exit(1);
         }
@@ -67,13 +70,11 @@ fn generate_template(args: &TemplateArgs) -> Result<()> {
         // Create parent directory if needed
         if let Some(parent) = path.parent() {
             if !parent.exists() {
-                fs::create_dir_all(parent)
-                    .context("Failed to create output directory")?;
+                fs::create_dir_all(parent).context("Failed to create output directory")?;
             }
         }
 
-        fs::write(path, template)
-            .context("Failed to write template file")?;
+        fs::write(path, template).context("Failed to write template file")?;
 
         println!(
             "{}",

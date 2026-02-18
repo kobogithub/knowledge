@@ -97,11 +97,11 @@ impl DoctorCommand {
 
         for dep in dependencies {
             let result = self.check_dependency(&dep);
-            
+
             if result.required && result.status == DependencyStatus::Missing {
                 critical_missing += 1;
             }
-            
+
             results.push(result);
         }
 
@@ -111,26 +111,51 @@ impl DoctorCommand {
         // Print summary
         println!();
         let total = results.len();
-        let ok_count = results.iter().filter(|r| r.status == DependencyStatus::Ok).count();
-        let optional_count = results.iter().filter(|r| r.status == DependencyStatus::Optional).count();
+        let ok_count = results
+            .iter()
+            .filter(|r| r.status == DependencyStatus::Ok)
+            .count();
+        let optional_count = results
+            .iter()
+            .filter(|r| r.status == DependencyStatus::Optional)
+            .count();
 
         if critical_missing == 0 {
-            println!("{}", format!("✓ Overall: {}/{} dependencies met", ok_count, total).bright_green().bold());
-            
+            println!(
+                "{}",
+                format!("✓ Overall: {}/{} dependencies met", ok_count, total)
+                    .bright_green()
+                    .bold()
+            );
+
             if optional_count > 0 {
-                println!("{}", format!("  ({} optional dependencies not installed)", optional_count).bright_black());
+                println!(
+                    "{}",
+                    format!("  ({} optional dependencies not installed)", optional_count)
+                        .bright_black()
+                );
             }
-            
+
             println!("{}", "\n🎉 Ready to use!".bright_green().bold());
         } else {
-            println!("{}", format!("⚠ Overall: {}/{} required dependencies met", 
-                ok_count - optional_count, 
-                total - optional_count).bright_yellow().bold());
-            println!("{}", format!("  {} critical dependencies missing", critical_missing).bright_red());
-            
+            println!(
+                "{}",
+                format!(
+                    "⚠ Overall: {}/{} required dependencies met",
+                    ok_count - optional_count,
+                    total - optional_count
+                )
+                .bright_yellow()
+                .bold()
+            );
+            println!(
+                "{}",
+                format!("  {} critical dependencies missing", critical_missing).bright_red()
+            );
+
             println!("\n{}", "Installation Instructions:".bright_white().bold());
             self.print_installation_instructions(&results);
-            
+
             std::process::exit(1);
         }
 
@@ -138,15 +163,13 @@ impl DoctorCommand {
     }
 
     fn check_dependency(&self, dep: &Dependency) -> CheckResult {
-        let output = Command::new(dep.command)
-            .arg(dep.version_flag)
-            .output();
+        let output = Command::new(dep.command).arg(dep.version_flag).output();
 
         match output {
             Ok(output) if output.status.success() => {
                 let version_str = String::from_utf8_lossy(&output.stdout);
                 let version = self.extract_version(&version_str);
-                
+
                 let status = if !dep.required {
                     DependencyStatus::Ok
                 } else if let (Some(min), Some(current)) = (dep.min_version, &version) {
@@ -189,27 +212,21 @@ impl DoctorCommand {
         // Extract version from command output
         // Most tools output "tool x.y.z" format
         let words: Vec<&str> = output.split_whitespace().collect();
-        
+
         for word in words {
             // Look for version pattern (e.g., "1.93.0", "v20.10.0")
             if word.chars().any(|c| c.is_ascii_digit()) && word.contains('.') {
                 return Some(word.trim_start_matches('v').to_string());
             }
         }
-        
+
         None
     }
 
     fn version_meets_minimum(&self, current: &str, minimum: &str) -> bool {
-        let current_parts: Vec<u32> = current
-            .split('.')
-            .filter_map(|s| s.parse().ok())
-            .collect();
-        
-        let min_parts: Vec<u32> = minimum
-            .split('.')
-            .filter_map(|s| s.parse().ok())
-            .collect();
+        let current_parts: Vec<u32> = current.split('.').filter_map(|s| s.parse().ok()).collect();
+
+        let min_parts: Vec<u32> = minimum.split('.').filter_map(|s| s.parse().ok()).collect();
 
         for i in 0..min_parts.len().min(current_parts.len()) {
             if current_parts[i] > min_parts[i] {
@@ -219,7 +236,7 @@ impl DoctorCommand {
                 return false;
             }
         }
-        
+
         true
     }
 
@@ -233,7 +250,7 @@ impl DoctorCommand {
             };
 
             let name = format!("{:<12}", result.name);
-            
+
             let info = if let Some(ref version) = result.version {
                 if self.verbose {
                     format!("{:<15} (installed)", version)
@@ -254,25 +271,41 @@ impl DoctorCommand {
         for result in results {
             if result.required && !result.installed {
                 println!("\n{}", format!("  • {}", result.name).bright_white().bold());
-                
+
                 match result.name.as_str() {
                     "Rust" => {
-                        println!("    {}", "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh".bright_cyan());
+                        println!(
+                            "    {}",
+                            "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+                                .bright_cyan()
+                        );
                         println!("    {}", "https://rustup.rs/".bright_black());
                     }
                     "Git" => {
-                        println!("    {}", "Ubuntu/Debian: sudo apt install git".bright_cyan());
+                        println!(
+                            "    {}",
+                            "Ubuntu/Debian: sudo apt install git".bright_cyan()
+                        );
                         println!("    {}", "macOS: brew install git".bright_cyan());
                         println!("    {}", "https://git-scm.com/downloads".bright_black());
                     }
                     "bd" => {
                         println!("    {}", "cargo install bd".bright_cyan());
-                        println!("    {}", "or visit: https://github.com/your-org/bd".bright_black());
+                        println!(
+                            "    {}",
+                            "or visit: https://github.com/your-org/bd".bright_black()
+                        );
                     }
                     "Node.js" => {
-                        println!("    {}", "Ubuntu/Debian: sudo apt install nodejs npm".bright_cyan());
+                        println!(
+                            "    {}",
+                            "Ubuntu/Debian: sudo apt install nodejs npm".bright_cyan()
+                        );
                         println!("    {}", "macOS: brew install node".bright_cyan());
-                        println!("    {}", "Or use nvm: https://github.com/nvm-sh/nvm".bright_cyan());
+                        println!(
+                            "    {}",
+                            "Or use nvm: https://github.com/nvm-sh/nvm".bright_cyan()
+                        );
                         println!("    {}", "https://nodejs.org/".bright_black());
                     }
                     "npm" => {

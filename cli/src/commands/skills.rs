@@ -1,4 +1,4 @@
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use clap::{Args, Subcommand};
 use colored::*;
 use serde::{Deserialize, Serialize};
@@ -57,35 +57,44 @@ fn install_skill(args: &InstallArgs) -> Result<()> {
 
     // Create skills directory if it doesn't exist
     if !skills_dir.exists() {
-        fs::create_dir_all(&skills_dir)
-            .context("Failed to create skills directory")?;
+        fs::create_dir_all(&skills_dir).context("Failed to create skills directory")?;
         println!("{}", "  ✓ Created skills/ directory".green());
     }
 
     // Determine source type (URL, path, or name)
-    let skill_content = if args.source.starts_with("http://") || args.source.starts_with("https://") {
+    let skill_content = if args.source.starts_with("http://") || args.source.starts_with("https://")
+    {
         // Download from URL
         println!("  Downloading from {}...", args.source.bright_yellow());
         download_skill(&args.source)?
     } else if Path::new(&args.source).exists() {
         // Load from local path
         println!("  Loading from local path: {}", args.source.bright_yellow());
-        fs::read_to_string(&args.source)
-            .context("Failed to read skill file")?
+        fs::read_to_string(&args.source).context("Failed to read skill file")?
     } else {
         // Try to resolve as skill name from agentskills.io
-        let url = format!("https://raw.githubusercontent.com/agentskills/skills/main/{}/SKILL.md", args.source);
-        println!("  Resolving skill '{}' from agentskills.io...", args.source.bright_yellow());
+        let url = format!(
+            "https://raw.githubusercontent.com/agentskills/skills/main/{}/SKILL.md",
+            args.source
+        );
+        println!(
+            "  Resolving skill '{}' from agentskills.io...",
+            args.source.bright_yellow()
+        );
         download_skill(&url)?
     };
 
     // Parse and validate skill metadata
     let metadata = parse_skill_metadata(&skill_content)?;
-    println!("  Skill: {} ({})", metadata.name.bright_green(), metadata.scope);
+    println!(
+        "  Skill: {} ({})",
+        metadata.name.bright_green(),
+        metadata.scope
+    );
 
     // Determine target directory
     let skill_dir = skills_dir.join(&metadata.name);
-    
+
     if skill_dir.exists() && !args.force {
         return Err(anyhow!(
             "Skill '{}' already exists. Use --force to overwrite.",
@@ -94,19 +103,23 @@ fn install_skill(args: &InstallArgs) -> Result<()> {
     }
 
     // Create skill directory and write SKILL.md
-    fs::create_dir_all(&skill_dir)
-        .context("Failed to create skill directory")?;
-    
-    let skill_file = skill_dir.join("SKILL.md");
-    fs::write(&skill_file, &skill_content)
-        .context("Failed to write SKILL.md")?;
+    fs::create_dir_all(&skill_dir).context("Failed to create skill directory")?;
 
-    println!("{}", format!("  ✓ Installed to {}", skill_dir.display()).green());
+    let skill_file = skill_dir.join("SKILL.md");
+    fs::write(&skill_file, &skill_content).context("Failed to write SKILL.md")?;
+
+    println!(
+        "{}",
+        format!("  ✓ Installed to {}", skill_dir.display()).green()
+    );
 
     // Update kn.toml
     update_config_with_skill(&current_dir, &metadata.name)?;
 
-    println!("\n{}", "✓ Skill installed successfully!".bright_green().bold());
+    println!(
+        "\n{}",
+        "✓ Skill installed successfully!".bright_green().bold()
+    );
     println!("\n{}", "Next steps:".bright_white().bold());
     println!("  1. Review skills/{}/SKILL.md", metadata.name);
     println!("  2. Update AGENTS.md to reference the skill");
@@ -121,16 +134,14 @@ pub fn install_skill_from_path(source: &str, silent: bool) -> Result<String> {
 
     // Create skills directory if it doesn't exist
     if !skills_dir.exists() {
-        fs::create_dir_all(&skills_dir)
-            .context("Failed to create skills directory")?;
+        fs::create_dir_all(&skills_dir).context("Failed to create skills directory")?;
     }
 
     // Determine source type and download/load
     let skill_content = if source.starts_with("http://") || source.starts_with("https://") {
         download_skill(source)?
     } else if Path::new(source).exists() {
-        fs::read_to_string(source)
-            .context("Failed to read skill file")?
+        fs::read_to_string(source).context("Failed to read skill file")?
     } else {
         // Try from local skills/ directory first (for bundled skills)
         let local_path = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -139,13 +150,15 @@ pub fn install_skill_from_path(source: &str, silent: bool) -> Result<String> {
             .join("skills")
             .join(source)
             .join("SKILL.md");
-        
+
         if local_path.exists() {
-            fs::read_to_string(&local_path)
-                .context("Failed to read local skill")?
+            fs::read_to_string(&local_path).context("Failed to read local skill")?
         } else {
             // Try agentskills.io
-            let url = format!("https://raw.githubusercontent.com/agentskills/skills/main/{}/SKILL.md", source);
+            let url = format!(
+                "https://raw.githubusercontent.com/agentskills/skills/main/{}/SKILL.md",
+                source
+            );
             download_skill(&url)?
         }
     };
@@ -153,22 +166,23 @@ pub fn install_skill_from_path(source: &str, silent: bool) -> Result<String> {
     // Parse metadata
     let metadata = parse_skill_metadata(&skill_content)?;
     let skill_dir = skills_dir.join(&metadata.name);
-    
+
     // Skip if already exists
     if skill_dir.exists() {
         if !silent {
-            println!("{}", format!("  ⚠ Skill '{}' already exists, skipping", metadata.name).yellow());
+            println!(
+                "{}",
+                format!("  ⚠ Skill '{}' already exists, skipping", metadata.name).yellow()
+            );
         }
         return Ok(metadata.name);
     }
 
     // Create skill directory and write SKILL.md
-    fs::create_dir_all(&skill_dir)
-        .context("Failed to create skill directory")?;
-    
+    fs::create_dir_all(&skill_dir).context("Failed to create skill directory")?;
+
     let skill_file = skill_dir.join("SKILL.md");
-    fs::write(&skill_file, &skill_content)
-        .context("Failed to write SKILL.md")?;
+    fs::write(&skill_file, &skill_content).context("Failed to write SKILL.md")?;
 
     if !silent {
         println!("{}", format!("  ✓ Installed {}", metadata.name).green());
@@ -204,27 +218,46 @@ fn list_skills() -> Result<()> {
             if skill_file.exists() {
                 found_skills = true;
                 match fs::read_to_string(&skill_file) {
-                    Ok(content) => {
-                        match parse_skill_metadata(&content) {
-                            Ok(metadata) => {
-                                println!("  {} {}", "●".bright_green(), metadata.name.bright_white().bold());
-                                if !metadata.scope.is_empty() {
-                                    println!("    Scope: {}", metadata.scope.dimmed());
-                                }
-                                if !metadata.description.is_empty() {
-                                    println!("    {}", metadata.description.dimmed());
-                                }
-                                println!("    Auto-invoke: {}", if metadata.auto_invoke { "yes".green() } else { "no".dimmed() });
-                                println!();
+                    Ok(content) => match parse_skill_metadata(&content) {
+                        Ok(metadata) => {
+                            println!(
+                                "  {} {}",
+                                "●".bright_green(),
+                                metadata.name.bright_white().bold()
+                            );
+                            if !metadata.scope.is_empty() {
+                                println!("    Scope: {}", metadata.scope.dimmed());
                             }
-                            Err(_) => {
-                                println!("  {} {} {}", "●".yellow(), entry.file_name().to_string_lossy(), "(invalid metadata)".dimmed());
-                                println!();
+                            if !metadata.description.is_empty() {
+                                println!("    {}", metadata.description.dimmed());
                             }
+                            println!(
+                                "    Auto-invoke: {}",
+                                if metadata.auto_invoke {
+                                    "yes".green()
+                                } else {
+                                    "no".dimmed()
+                                }
+                            );
+                            println!();
                         }
-                    }
+                        Err(_) => {
+                            println!(
+                                "  {} {} {}",
+                                "●".yellow(),
+                                entry.file_name().to_string_lossy(),
+                                "(invalid metadata)".dimmed()
+                            );
+                            println!();
+                        }
+                    },
                     Err(_) => {
-                        println!("  {} {} {}", "●".red(), entry.file_name().to_string_lossy(), "(error reading)".dimmed());
+                        println!(
+                            "  {} {} {}",
+                            "●".red(),
+                            entry.file_name().to_string_lossy(),
+                            "(error reading)".dimmed()
+                        );
                         println!();
                     }
                 }
@@ -241,8 +274,7 @@ fn list_skills() -> Result<()> {
 }
 
 fn download_skill(url: &str) -> Result<String> {
-    let response = reqwest::blocking::get(url)
-        .context("Failed to download skill")?;
+    let response = reqwest::blocking::get(url).context("Failed to download skill")?;
 
     if !response.status().is_success() {
         return Err(anyhow!(
@@ -251,8 +283,7 @@ fn download_skill(url: &str) -> Result<String> {
         ));
     }
 
-    response.text()
-        .context("Failed to read response body")
+    response.text().context("Failed to read response body")
 }
 
 fn parse_skill_metadata(content: &str) -> Result<SkillMetadata> {
@@ -267,8 +298,8 @@ fn parse_skill_metadata(content: &str) -> Result<SkillMetadata> {
     }
 
     let yaml_str = parts[1].trim();
-    let metadata: SkillMetadata = serde_yaml::from_str(yaml_str)
-        .context("Failed to parse YAML frontmatter")?;
+    let metadata: SkillMetadata =
+        serde_yaml::from_str(yaml_str).context("Failed to parse YAML frontmatter")?;
 
     if metadata.name.is_empty() {
         return Err(anyhow!("Skill must have a 'name' field in frontmatter"));
@@ -281,7 +312,10 @@ fn update_config_with_skill(project_dir: &Path, skill_name: &str) -> Result<()> 
     let config_path = project_dir.join("kn.toml");
 
     if !config_path.exists() {
-        println!("{}", "  ⚠ kn.toml not found, skipping config update".yellow());
+        println!(
+            "{}",
+            "  ⚠ kn.toml not found, skipping config update".yellow()
+        );
         return Ok(());
     }
 
