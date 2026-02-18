@@ -1,6 +1,6 @@
-# kn - Knowledge CLI
+# kn - Knowledge Framework CLI
 
-A CLI tool for AI-assisted development workflows, automating setup of agent configurations, skills, and issue tracking.
+A CLI tool for AI-assisted development workflows with a **global ~/.kn/ directory** for managing agents and skills across all your projects. Supports **OpenCode** and **Antigravity** AI assistants simultaneously.
 
 ## Installation
 
@@ -19,7 +19,154 @@ sudo cp target/release/kn /usr/local/bin/
 export PATH="$PATH:/path/to/knowledge/cli/target/release"
 ```
 
+## Quick Start
+
+```bash
+# 1. Install agents to global directory
+kn agents install ./agents/rust ./agents/planner
+
+# 2. Install skills to global directory
+kn skills install ./skills/rust-best-practices
+
+# 3. Initialize a project (interactive prompts)
+cd your-project
+kn init
+
+# 4. Sync project symlinks (after config changes)
+kn sync
+```
+
+## Architecture Overview
+
+**Global Directory (~/.kn/):**
+- `~/.kn/agents/` - Installed agents (single source of truth)
+- `~/.kn/skills/` - Installed skills (single source of truth)
+
+**Project Workspace:**
+- `kn.toml` - Project configuration (agents, skills, workspace standard)
+- **OpenCode**: Symlinks in `.opencode/skills/` and `.opencode/agents/`
+- **Antigravity**: Symlinks in `.agent/skills/` and `./agents/`
+- **Both**: Symlinks in all locations (recommended)
+
+**Benefits:**
+- ✅ Install once, use everywhere
+- ✅ Consistent versions across projects
+- ✅ Easy updates (update in ~/.kn/, run `kn sync`)
+- ✅ Support both OpenCode and Antigravity simultaneously
+
 ## Usage
+
+### Manage Agents
+
+Install agents to global directory (~/.kn/agents/):
+```bash
+# Install from local path
+kn agents install ./agents/rust
+
+# Install multiple agents
+kn agents install ./agents/rust ./agents/planner ./agents/devops
+
+# List installed agents with metadata
+kn agents list
+```
+
+**Agent Structure:**
+```
+~/.kn/agents/
+└── rust/
+    └── AGENTS.md  # Contains YAML frontmatter with metadata
+```
+
+**YAML Frontmatter Example:**
+```yaml
+---
+name: rust
+id_prefix: r5t
+description: Rust development expert
+required_skills:
+  - rust-best-practices
+  - docker-best-practices
+recommended_skills:
+  - github-actions-best-practices
+tags:
+  - rust
+  - systems
+---
+```
+
+### Manage Skills
+
+Install skills to global directory (~/.kn/skills/):
+```bash
+# Install from local path
+kn skills install ./skills/rust-best-practices
+
+# Install from URL
+kn skills install https://example.com/skills/typescript/SKILL.md
+
+# List installed skills
+kn skills list
+```
+
+**Skill Structure:**
+```
+~/.kn/skills/
+└── rust-best-practices/
+    ├── SKILL.md      # Main skill documentation
+    ├── examples/     # (Optional) Code examples
+    └── scripts/      # (Optional) Helper scripts
+```
+
+### Initialize Project
+
+Initialize a new project with interactive prompts:
+```bash
+kn init
+```
+
+**Interactive Prompts:**
+1. **Project name** - Auto-detected from directory name
+2. **Workspace standard** - OpenCode only / Antigravity only / Both (recommended)
+3. **Select agents** - Multi-select from ~/.kn/agents/
+4. **Select recommended skills** - Optional skills suggested by selected agents
+
+**Non-Interactive Mode:**
+```bash
+# Skip prompts, use defaults (no agents, no skills)
+kn init --yes
+```
+
+**What Gets Created:**
+- `kn.toml` - Project configuration
+- `AGENTS.md` - Agent workflow instructions
+- Symlinks to selected agents and skills (based on workspace standard)
+
+**Example kn.toml:**
+```toml
+[project]
+name = "my-project"
+workspace_standard = "both"
+
+[agents.rust]
+id = "my-project-r5t"
+role = "rust"
+required_skills = ["rust-best-practices", "docker-best-practices"]
+
+[skills]
+enabled = ["rust-best-practices", "docker-best-practices", "bd-best-practices"]
+```
+
+### Sync Project Symlinks
+
+After modifying `kn.toml`, sync symlinks to match configuration:
+```bash
+kn sync
+```
+
+This command:
+- Reads `kn.toml` configuration
+- Creates/updates symlinks based on `workspace_standard`
+- Removes symlinks for disabled agents/skills
 
 ### Check Dependencies
 
@@ -46,68 +193,6 @@ Exit codes:
 - `0` - All required dependencies met
 - `1` - One or more critical dependencies missing
 
-### Initialize Project
-
-Auto-detect project type and create configuration:
-```bash
-kn init
-```
-
-Skip interactive prompts:
-```bash
-kn init -y
-```
-
-Skip auto-installation of recommended skills:
-```bash
-kn init -y --no-skills
-```
-
-Specify project type:
-```bash
-kn init --project-type rust
-```
-
-**Skills Auto-Installation:**
-
-`kn init` automatically installs recommended skills based on detected project type:
-
-- **Rust**: `rust-best-practices`, `docker-best-practices`, `bash-best-practices`
-- **Python**: `python-best-practices`, `docker-best-practices`, `bash-best-practices`
-- **Node**: `docker-best-practices`, `bash-best-practices`
-- **Go**: `docker-best-practices`, `bash-best-practices`
-- **Monorepo**: `docker-best-practices`, `bash-best-practices`
-- **Unknown**: `bash-best-practices`
-
-Use `--no-skills` flag to skip auto-installation.
-
-### Manage Skills
-
-Install a skill from local path:
-```bash
-kn skills install /path/to/SKILL.md
-```
-
-Install from URL:
-```bash
-kn skills install https://example.com/skills/typescript/SKILL.md
-```
-
-Install by name (from agentskills.io):
-```bash
-kn skills install typescript
-```
-
-Force reinstall:
-```bash
-kn skills install typescript --force
-```
-
-List installed skills:
-```bash
-kn skills list
-```
-
 ### Beads Templates
 
 Generate issue templates for Beads workflow:
@@ -131,19 +216,9 @@ Force overwrite existing file:
 kn beads template task -o task.md --force
 ```
 
-Generate all templates:
-```bash
-mkdir -p .beads/templates
-kn beads template epic -o .beads/templates/epic.md
-kn beads template task -o .beads/templates/task.md
-kn beads template bug -o .beads/templates/bug.md
-kn beads template feature -o .beads/templates/feature.md
-kn beads template chore -o .beads/templates/chore.md
-```
-
 ### MCP Servers
 
-Manage Model Context Protocol (MCP) servers for documentation lookup and external tool integration:
+Manage Model Context Protocol (MCP) servers for documentation lookup:
 
 List available presets and configured servers:
 ```bash
@@ -155,25 +230,11 @@ Add a preset server:
 kn mcp add filesystem
 kn mcp add postgres
 kn mcp add github
-kn mcp add brave-search
-kn mcp add puppeteer
 ```
 
 Add with custom environment variables:
 ```bash
 kn mcp add postgres -e POSTGRES_URL=postgresql://user:pass@localhost/db
-kn mcp add github -e GITHUB_TOKEN=ghp_your_token_here
-```
-
-Add a custom npm package:
-```bash
-kn mcp add @modelcontextprotocol/server-slack
-kn mcp add @myorg/custom-mcp-server
-```
-
-Add a custom command:
-```bash
-kn mcp add my-server --command python -a "-m" -a "my_mcp_server"
 ```
 
 Remove a server:
@@ -181,69 +242,69 @@ Remove a server:
 kn mcp remove postgres
 ```
 
-#### Available Presets
+## Workspace Structure Examples
 
-- **filesystem** - Access local files and directories
-- **postgres** - PostgreSQL database queries and schema inspection
-- **github** - GitHub API integration (issues, PRs, repos)
-- **brave-search** - Web search via Brave Search API
-- **puppeteer** - Web scraping and browser automation
+When you run `kn init`, the following structure is created based on your workspace standard:
 
-### What Gets Created
+**Both (OpenCode + Antigravity):**
+```
+your-project/
+├── kn.toml                    # Project configuration
+├── AGENTS.md                  # Agent instructions
+├── .opencode/
+│   ├── agents/               # Symlinks to ~/.kn/agents/
+│   └── skills/               # Symlinks to ~/.kn/skills/
+├── .agent/
+│   └── skills/               # Symlinks to ~/.kn/skills/
+├── agents/                   # Symlinks to ~/.kn/agents/
+└── skills/                   # Symlinks to ~/.kn/skills/
+```
 
-- **AGENTS.md** - Agent workflow instructions and quick reference
-- **kn.toml** - Configuration file for agents, skills, and MCP servers
-- **skills/** - Directory with auto-installed skills (based on project type)
+**OpenCode Only:**
+```
+your-project/
+├── kn.toml
+├── AGENTS.md
+└── .opencode/
+    ├── agents/
+    └── skills/
+```
 
-### Supported Project Types
-
-**Base Languages:**
-- **Rust** - Detects `Cargo.toml`
-- **Node** - Detects `package.json`
-- **Python** - Detects `pyproject.toml` or `setup.py`
-- **Go** - Detects `go.mod`
-
-**Framework Detection:**
-- **Rust**: Actix, Axum, Tauri, CLI tools (clap)
-- **Node**: Next.js, Astro, React, Express, NestJS
-- **Python**: FastAPI, Django, Flask
-
-**Workspace/Monorepo Detection:**
-- **Cargo workspaces** - Detects `[workspace]` in `Cargo.toml`
-- **pnpm workspaces** - Detects `pnpm-workspace.yaml`
-- **npm/yarn workspaces** - Detects `"workspaces"` in `package.json`
-- **Lerna** - Detects `lerna.json`
-
-The detected information is displayed during `kn init` and written to `kn.toml` and `AGENTS.md`.
+**Antigravity Only:**
+```
+your-project/
+├── kn.toml
+├── AGENTS.md
+├── .agent/
+│   └── skills/
+├── agents/
+└── skills/
+```
 
 ## Configuration (kn.toml)
 
 ```toml
 [project]
 name = "my-project"
-type = "Python (FastAPI)"
+description = ""
+workspace_standard = "both"
 
-[agents]
-planner = "project-x6e"
-implementation = "project-4yh"
+[agents.rust]
+id = "my-project-r5t"
+role = "rust"
+required_skills = ["rust-best-practices", "docker-best-practices"]
+
+[agents.planner]
+id = "my-project-x6e"
+role = "planner"
+required_skills = ["bd-best-practices"]
 
 [skills]
-enabled = ["typescript", "react-19"]
-
-[beads]
-enabled = true
-templates_dir = ".beads/templates"
-
-[mcp.servers.filesystem]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "."]
-
-[mcp.servers.postgres]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-postgres"]
-
-[mcp.servers.postgres.env]
-POSTGRES_URL = "postgresql://localhost/mydb"
+enabled = [
+  "rust-best-practices",
+  "docker-best-practices",
+  "bd-best-practices"
+]
 ```
 
 ## Development
@@ -268,39 +329,33 @@ cargo run -- init
 ```
 cli/
 ├── src/
-│   ├── main.rs              # CLI entry point, argument parsing
-│   └── commands/
-│       ├── mod.rs            # Command module exports
-│       ├── init.rs           # Project initialization command
-│       ├── skills.rs         # Skills management (install, list)
-│       ├── beads.rs          # Beads templates (epic, task, bug, feature, chore)
-│       ├── mcp.rs            # MCP server configuration
-│       └── doctor.rs         # Dependency verification
+│   ├── lib.rs                   # Public library API
+│   ├── main.rs                  # CLI entry point
+│   ├── commands/
+│   │   ├── mod.rs
+│   │   ├── init.rs              # kn init (interactive project setup)
+│   │   ├── agents.rs            # kn agents install/list
+│   │   ├── skills.rs            # kn skills install/list
+│   │   ├── sync.rs              # kn sync (update symlinks)
+│   │   ├── beads.rs             # kn beads template
+│   │   ├── mcp.rs               # kn mcp add/list/remove
+│   │   └── doctor.rs            # kn doctor (dependency check)
+│   ├── config/
+│   │   ├── mod.rs
+│   │   ├── kn_toml.rs           # KnConfig struct, save/load
+│   │   └── workspace.rs         # WorkspaceStandard enum
+│   ├── core/
+│   │   ├── mod.rs
+│   │   ├── kn_home.rs           # ~/.kn/ management functions
+│   │   └── symlinks.rs          # Symlink creation logic
+│   └── models/
+│       ├── mod.rs
+│       ├── agent.rs             # AgentMetadata with YAML parser
+│       ├── skill.rs             # SkillMetadata with YAML parser
+│       └── project.rs           # ProjectConfig
 ├── Cargo.toml
 └── README.md
 ```
-
-## Next Steps (Roadmap)
-
-**Phase 1: Core CLI (67% Complete)** ✅
-- [x] `kn init` - Project initialization ✅
-- [x] `kn skills install/list` - Skills management ✅
-- [x] `kn beads template` - Issue templates ✅
-- [x] `kn mcp add/list/remove` - MCP server configuration ✅
-- [x] `kn doctor` - Dependency verification ✅
-
-**Phase 2: Installation & Distribution (Pending)**
-- [ ] `install.sh` script for Linux/Mac
-- [ ] `install.ps1` script for Windows
-- [ ] Cross-platform symlink handling
-- [ ] GitHub Actions for releases
-- [ ] Pre-compiled binaries
-
-**Phase 3: Package Managers (Pending)**
-- [ ] Homebrew formula (macOS)
-- [ ] Cargo install (cross-platform)
-- [ ] apt/yum packages (Linux)
-- [ ] Chocolatey/scoop (Windows)
 
 ## License
 
