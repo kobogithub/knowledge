@@ -2,6 +2,8 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::PathBuf;
 
+use crate::models::agent::AgentMetadata;
+
 /// Get the global kn home directory (~/.kn/)
 pub fn kn_home() -> Result<PathBuf> {
     let home = dirs::home_dir().context("Could not find home directory")?;
@@ -64,7 +66,7 @@ pub fn list_installed_skills() -> Result<Vec<String>> {
     Ok(skill_names)
 }
 
-/// List all installed agents in ~/.kn/agents/
+/// List all installed agents in ~/.kn/agents/ (returns just names)
 pub fn list_installed_agents() -> Result<Vec<String>> {
     let agents = agents_dir()?;
 
@@ -90,6 +92,38 @@ pub fn list_installed_agents() -> Result<Vec<String>> {
 
     agent_names.sort();
     Ok(agent_names)
+}
+
+/// List all installed agents in ~/.kn/agents/ with full metadata
+pub fn list_installed_agents_with_metadata() -> Result<Vec<AgentMetadata>> {
+    let agents = agents_dir()?;
+
+    if !agents.exists() {
+        return Ok(Vec::new());
+    }
+
+    let mut agent_metadata = Vec::new();
+
+    for entry in fs::read_dir(&agents)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.is_dir() {
+            let agents_md = path.join("AGENTS.md");
+            if agents_md.exists() {
+                match AgentMetadata::from_file(&agents_md) {
+                    Ok(metadata) => agent_metadata.push(metadata),
+                    Err(e) => {
+                        eprintln!("Warning: Failed to parse {}: {}", agents_md.display(), e);
+                    }
+                }
+            }
+        }
+    }
+
+    // Sort by name
+    agent_metadata.sort_by(|a, b| a.name.cmp(&b.name));
+    Ok(agent_metadata)
 }
 
 #[cfg(test)]

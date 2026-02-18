@@ -1,11 +1,13 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
+use kn::commands::agents::AgentsCommand;
 use kn::commands::beads::BeadsCommand;
 use kn::commands::doctor::DoctorCommand;
 use kn::commands::init::InitCommand;
 use kn::commands::mcp::{McpCommands, McpHandler};
 use kn::commands::skills::SkillsCommand;
+use kn::commands::sync::SyncCommand;
 
 #[derive(Parser)]
 #[command(name = "kn")]
@@ -21,6 +23,10 @@ enum Commands {
     Init(InitCommand),
     /// Manage skills (install, list, update)
     Skills(SkillsCommand),
+    /// Manage agents (install, list)
+    Agents(AgentsCommand),
+    /// Sync skills and agents from ~/.kn/ to project
+    Sync(SyncCommand),
     /// Beads issue tracking utilities
     Beads(BeadsCommand),
     /// Manage MCP (Model Context Protocol) servers
@@ -36,6 +42,8 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::Init(cmd) => cmd.execute()?,
         Commands::Skills(cmd) => cmd.execute()?,
+        Commands::Agents(cmd) => cmd.execute()?,
+        Commands::Sync(cmd) => cmd.execute()?,
         Commands::Beads(cmd) => cmd.execute()?,
         Commands::Mcp(cmd) => {
             let handler = McpHandler::new();

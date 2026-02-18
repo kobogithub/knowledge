@@ -1,411 +1,264 @@
 use anyhow::{Context, Result};
 use clap::Args;
 use colored::*;
-use serde::{Deserialize, Serialize};
+use dialoguer::{theme::ColorfulTheme, Confirm, Input, MultiSelect, Select};
+use std::collections::HashSet;
 use std::fs;
-use std::path::{Path, PathBuf};
 
-// use super::skills::install_skill_from_path;
+use crate::config::{KnConfig, WorkspaceStandard};
+use crate::core::{kn_home, symlinks};
+use crate::models::agent::AgentMetadata;
 
 #[derive(Args)]
 pub struct InitCommand {
-    /// Project type (auto-detected if not specified)
-    #[arg(short, long)]
-    project_type: Option<String>,
-
-    /// Skip interactive prompts
+    /// Skip interactive prompts (use defaults)
     #[arg(short = 'y', long)]
     yes: bool,
-
-    /// Skip auto-installation of recommended skills
-    #[arg(long)]
-    no_skills: bool,
-
-    /// Workspace standard to use (opencode or antigravity, default: both)
-    #[arg(long, default_value = "both")]
-    workspace_standard: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct ProjectInfo {
-    name: String,
-    language: Language,
-    framework: Option<Framework>,
-    is_workspace: bool,
-    root_dir: PathBuf,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-enum Language {
-    Rust,
-    Node,
-    Python,
-    Go,
-    Unknown,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-enum Framework {
-    // Rust frameworks
-    Actix,
-    Axum,
-    Tauri,
-    RustCli,
-
-    // Node frameworks
-    NextJs,
-    Astro,
-    React,
-    Express,
-    NestJs,
-
-    // Python frameworks
-    FastAPI,
-    Django,
-    Flask,
 }
 
 impl InitCommand {
     pub fn execute(&self) -> Result<()> {
         println!(
             "{}",
-            "🚀 Initializing AI agent workflow...".bright_cyan().bold()
+            "🚀 Initializing Knowledge Framework workspace..."
+                .bright_cyan()
+                .bold()
         );
 
         let current_dir = std::env::current_dir()?;
-        let project_info = self.detect_project(&current_dir)?;
 
-        println!("\n{}", "Detected project:".bright_white().bold());
-        println!("  Name: {}", project_info.name.bright_yellow());
-        println!("  Language: {:?}", project_info.language);
-        if let Some(ref framework) = project_info.framework {
-            println!("  Framework: {:?}", framework);
-        }
-        if project_info.is_workspace {
-            println!("  Type: Workspace/Monorepo");
-        }
-        println!("  Root: {}", project_info.root_dir.display());
+        // Check if kn.toml already exists
+        let config_path = current_dir.join("kn.toml");
+        if config_path.exists() {
+            println!("{}", "  ⚠ kn.toml already exists!".yellow());
+            let overwrite = if self.yes {
+                false
+            } else {
+                Confirm::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Overwrite existing configuration?")
+                    .default(false)
+                    .interact()?
+            };
 
-        if !self.yes {
-            println!("\n{}", "Continue? (y/n): ".bright_white());
-            let mut input = String::new();
-            std::io::stdin().read_line(&mut input)?;
-            if !input.trim().eq_ignore_ascii_case("y") {
-                println!("{}", "Aborted.".yellow());
+            if !overwrite {
+                println!("{}", "  Aborted.".yellow());
                 return Ok(());
             }
         }
 
-        // Create AGENTS.md
-        self.create_agents_file(&project_info)?;
-
-        // Create kn.toml
-        self.create_config_file(&project_info)?;
-
-        // Auto-install recommended skills (unless --no-skills is specified)
-        if !self.no_skills {
-            self.install_recommended_skills(&project_info)?;
-        }
-
-        // Initialize beads if not present
-        self.init_beads(&project_info)?;
-
-        // Determine workspace standard (interactive or from flag)
-        let standard = if !self.yes && self.workspace_standard == "both" {
-            // Interactive mode: ask user to choose
-            println!(
-                "\n{}",
-                "Choose workspace standard for AI assistants:"
-                    .bright_white()
-                    .bold()
-            );
-            println!("  1. OpenCode only");
-            println!("  2. Antigravity only");
-            println!("  3. Both (recommended)");
-            println!("\n{}", "Enter choice [1-3] (default: 3): ".bright_white());
-
-            let mut input = String::new();
-            std::io::stdin().read_line(&mut input)?;
-            let choice = input.trim();
-
-            match choice {
-                "1" => "opencode",
-                "2" => "antigravity",
-                "3" | "" => "both",
-                _ => {
-                    println!(
-                        "{}",
-                        format!("⚠ Invalid choice '{}', using default (both)", choice).yellow()
-                    );
-                    "both"
-                }
-            }
-        } else {
-            // Non-interactive mode or explicit flag: use the provided value
-            self.workspace_standard.as_str()
-        };
-
-        // Create workspace configurations based on standard
-        match standard {
-            "opencode" => {
-                self.create_opencode_config(&project_info)?;
-            }
-            "antigravity" => {
-                self.create_antigravity_config(&project_info)?;
-            }
-            "both" => {
-                self.create_opencode_config(&project_info)?;
-                self.create_antigravity_config(&project_info)?;
-            }
-            _ => {
-                println!(
-                    "{}",
-                    format!(
-                        "⚠ Unknown workspace standard '{}', skipping workspace config",
-                        standard
-                    )
-                    .yellow()
-                );
-            }
-        }
-
-        println!("\n{}", "✓ Initialization complete!".bright_green().bold());
-        println!("\n{}", "Next steps:".bright_white().bold());
-        println!("  1. Review and customize AGENTS.md");
-        println!("  2. Run: bd init (if not already initialized)");
-        if !self.no_skills {
-            println!("  3. Review installed skills: kn skills list");
-        } else {
-            println!("  3. Install skills: kn skills install <skill-name>");
-        }
-
-        Ok(())
-    }
-
-    fn detect_project(&self, dir: &Path) -> Result<ProjectInfo> {
-        let name = dir
+        // 1. Prompt: Project name
+        let default_name = current_dir
             .file_name()
             .and_then(|n| n.to_str())
-            .unwrap_or("project")
-            .to_string();
+            .unwrap_or("my-project");
 
-        // Manual override if specified
-        if let Some(ref pt) = self.project_type {
-            let language = match pt.as_str() {
-                "rust" => Language::Rust,
-                "node" => Language::Node,
-                "python" => Language::Python,
-                "go" => Language::Go,
-                _ => Language::Unknown,
-            };
-
-            return Ok(ProjectInfo {
-                name,
-                language,
-                framework: None,
-                is_workspace: false,
-                root_dir: dir.to_path_buf(),
-            });
-        }
-
-        // Auto-detect language
-        let language = if dir.join("Cargo.toml").exists() {
-            Language::Rust
-        } else if dir.join("package.json").exists() {
-            Language::Node
-        } else if dir.join("pyproject.toml").exists() || dir.join("setup.py").exists() {
-            Language::Python
-        } else if dir.join("go.mod").exists() {
-            Language::Go
+        let project_name = if self.yes {
+            default_name.to_string()
         } else {
-            Language::Unknown
+            Input::with_theme(&ColorfulTheme::default())
+                .with_prompt("Project name")
+                .default(default_name.to_string())
+                .interact_text()?
         };
 
-        // Detect framework based on language
-        let framework = match language {
-            Language::Rust => self.detect_rust_framework(dir),
-            Language::Node => self.detect_node_framework(dir),
-            Language::Python => self.detect_python_framework(dir),
-            _ => None,
+        // 2. Prompt: Workspace standard
+        let workspace_standard = if self.yes {
+            WorkspaceStandard::Both
+        } else {
+            let standards = vec!["OpenCode only", "Antigravity only", "Both (recommended)"];
+            let selection = Select::with_theme(&ColorfulTheme::default())
+                .with_prompt("Choose workspace standard for AI assistants")
+                .items(&standards)
+                .default(2) // "Both" is recommended
+                .interact()?;
+
+            match selection {
+                0 => WorkspaceStandard::OpenCode,
+                1 => WorkspaceStandard::Antigravity,
+                2 => WorkspaceStandard::Both,
+                _ => WorkspaceStandard::Both,
+            }
         };
 
-        // Detect workspace/monorepo
-        let is_workspace = match language {
-            Language::Rust => self.is_cargo_workspace(dir),
-            Language::Node => self.is_npm_workspace(dir),
-            _ => false,
+        // 3. Prompt: Agent selection (multi-select)
+        let available_agents = kn_home::list_installed_agents_with_metadata()?;
+
+        let selected_agents = if self.yes {
+            // In non-interactive mode, use no agents by default
+            Vec::new()
+        } else if available_agents.is_empty() {
+            println!("{}", "  ℹ No agents found in ~/.kn/agents/".bright_blue());
+            println!("  Run 'kn agents install <path>' to install agents first.");
+            Vec::new()
+        } else {
+            let agent_names: Vec<String> = available_agents
+                .iter()
+                .map(|a| format!("{} - {}", a.name, a.description))
+                .collect();
+
+            let selections = MultiSelect::with_theme(&ColorfulTheme::default())
+                .with_prompt("Select agents to enable (Space to select, Enter to confirm)")
+                .items(&agent_names)
+                .interact()?;
+
+            selections
+                .into_iter()
+                .map(|i| &available_agents[i])
+                .collect()
         };
 
-        Ok(ProjectInfo {
-            name,
-            language,
-            framework,
-            is_workspace,
-            root_dir: dir.to_path_buf(),
-        })
-    }
+        // 4. Auto-detect required skills from selected agents
+        let mut required_skills = HashSet::new();
+        let mut recommended_skills = HashSet::new();
 
-    fn detect_rust_framework(&self, dir: &Path) -> Option<Framework> {
-        let cargo_toml_path = dir.join("Cargo.toml");
-        if !cargo_toml_path.exists() {
-            return None;
+        for agent in &selected_agents {
+            for skill in &agent.required_skills {
+                required_skills.insert(skill.clone());
+            }
+            for skill in &agent.recommended_skills {
+                recommended_skills.insert(skill.clone());
+            }
         }
 
-        if let Ok(content) = fs::read_to_string(&cargo_toml_path) {
-            // Check dependencies for frameworks
-            if content.contains("actix-web") {
-                return Some(Framework::Actix);
-            }
-            if content.contains("axum") {
-                return Some(Framework::Axum);
-            }
-            if content.contains("tauri") {
-                return Some(Framework::Tauri);
-            }
-            // Check if it's a CLI tool
-            if content.contains("[[bin]]")
-                || content.contains("[package]") && content.contains("clap")
-            {
-                return Some(Framework::RustCli);
-            }
-        }
-        None
-    }
+        // 5. Auto-install required skills
+        if !required_skills.is_empty() {
+            println!(
+                "\n{}",
+                format!(
+                    "📦 Auto-installing {} required skills...",
+                    required_skills.len()
+                )
+                .bright_cyan()
+            );
 
-    fn detect_node_framework(&self, dir: &Path) -> Option<Framework> {
-        let package_json_path = dir.join("package.json");
-        if !package_json_path.exists() {
-            return None;
-        }
-
-        if let Ok(content) = fs::read_to_string(&package_json_path) {
-            // Check for Next.js
-            if content.contains("\"next\"") {
-                return Some(Framework::NextJs);
-            }
-            // Check for Astro
-            if content.contains("\"astro\"") || dir.join("astro.config.mjs").exists() {
-                return Some(Framework::Astro);
-            }
-            // Check for NestJS
-            if content.contains("\"@nestjs/core\"") {
-                return Some(Framework::NestJs);
-            }
-            // Check for Express
-            if content.contains("\"express\"") {
-                return Some(Framework::Express);
-            }
-            // Check for React (not Next.js)
-            if content.contains("\"react\"") && !content.contains("\"next\"") {
-                return Some(Framework::React);
-            }
-        }
-        None
-    }
-
-    fn detect_python_framework(&self, dir: &Path) -> Option<Framework> {
-        // Check pyproject.toml
-        let pyproject_path = dir.join("pyproject.toml");
-        if pyproject_path.exists() {
-            if let Ok(content) = fs::read_to_string(&pyproject_path) {
-                if content.contains("fastapi") {
-                    return Some(Framework::FastAPI);
-                }
-                if content.contains("django") {
-                    return Some(Framework::Django);
-                }
-                if content.contains("flask") {
-                    return Some(Framework::Flask);
+            for skill in &required_skills {
+                // Check if already installed in ~/.kn/skills/
+                let skill_path = kn_home::skills_dir()?.join(skill);
+                if skill_path.exists() {
+                    println!("  {} {}", "✓".green(), skill.bright_white());
+                } else {
+                    println!(
+                        "  {} {} (not found in ~/.kn/skills/)",
+                        "⚠".yellow(),
+                        skill.yellow()
+                    );
                 }
             }
         }
 
-        // Check requirements.txt as fallback
-        let requirements_path = dir.join("requirements.txt");
-        if requirements_path.exists() {
-            if let Ok(content) = fs::read_to_string(&requirements_path) {
-                if content.contains("fastapi") {
-                    return Some(Framework::FastAPI);
-                }
-                if content.contains("django") || content.contains("Django") {
-                    return Some(Framework::Django);
-                }
-                if content.contains("flask") || content.contains("Flask") {
-                    return Some(Framework::Flask);
-                }
+        // 6. Prompt: Optional recommended skills
+        let selected_recommended = if self.yes || recommended_skills.is_empty() {
+            HashSet::new()
+        } else {
+            let rec_vec: Vec<&String> = recommended_skills.iter().collect();
+            let rec_names: Vec<String> = rec_vec.iter().map(|s| s.to_string()).collect();
+
+            if !rec_names.is_empty() {
+                let selections = MultiSelect::with_theme(&ColorfulTheme::default())
+                    .with_prompt(
+                        "Select optional recommended skills (Space to select, Enter to confirm)",
+                    )
+                    .items(&rec_names)
+                    .interact()?;
+
+                selections.into_iter().map(|i| rec_vec[i].clone()).collect()
+            } else {
+                HashSet::new()
             }
+        };
+
+        // 7. Generate kn.toml
+        println!("\n{}", "📝 Generating kn.toml...".bright_cyan());
+
+        let mut config = KnConfig::new(&project_name, workspace_standard.clone());
+
+        // Add selected agents
+        for agent in &selected_agents {
+            config.add_agent(agent, &project_name);
         }
 
-        None
-    }
-
-    fn is_cargo_workspace(&self, dir: &Path) -> bool {
-        let cargo_toml_path = dir.join("Cargo.toml");
-        if !cargo_toml_path.exists() {
-            return false;
+        // Add required + selected recommended skills
+        for skill in required_skills.iter().chain(selected_recommended.iter()) {
+            config.add_skill(skill);
         }
 
-        if let Ok(content) = fs::read_to_string(&cargo_toml_path) {
-            return content.contains("[workspace]");
-        }
-        false
-    }
+        config.save(&config_path)?;
+        println!("  {} Created kn.toml", "✓".green());
 
-    fn is_npm_workspace(&self, dir: &Path) -> bool {
-        // Check for pnpm workspace
-        if dir.join("pnpm-workspace.yaml").exists() {
-            return true;
-        }
+        // 8. Create symlinks based on workspace standard
+        println!("\n{}", "🔗 Creating symlinks...".bright_cyan());
 
-        // Check for lerna
-        if dir.join("lerna.json").exists() {
-            return true;
-        }
+        // Create symlinks for all enabled skills
+        let all_skills: Vec<String> = required_skills
+            .iter()
+            .chain(selected_recommended.iter())
+            .cloned()
+            .collect();
 
-        // Check for npm/yarn workspaces in package.json
-        let package_json_path = dir.join("package.json");
-        if package_json_path.exists() {
-            if let Ok(content) = fs::read_to_string(&package_json_path) {
-                return content.contains("\"workspaces\"");
-            }
-        }
+        symlinks::create_skill_symlinks(&current_dir, &all_skills, &workspace_standard)?;
 
-        false
-    }
+        // Create agent symlinks
+        let agent_names: Vec<String> = selected_agents.iter().map(|a| a.name.clone()).collect();
+        symlinks::create_agent_symlinks(&current_dir, &agent_names, &workspace_standard)?;
 
-    fn create_agents_file(&self, project: &ProjectInfo) -> Result<()> {
-        let agents_path = project.root_dir.join("AGENTS.md");
+        println!("  {} Symlinks created", "✓".green());
 
-        if agents_path.exists() {
-            println!("{}", "  ⚠ AGENTS.md already exists, skipping...".yellow());
-            return Ok(());
+        // 9. Create AGENTS.md if it doesn't exist
+        let agents_md_path = current_dir.join("AGENTS.md");
+        if !agents_md_path.exists() {
+            let agents_md_content = self.generate_agents_md(&project_name, &selected_agents);
+            fs::write(&agents_md_path, agents_md_content).context("Failed to write AGENTS.md")?;
+            println!("  {} Created AGENTS.md", "✓".green());
+        } else {
+            println!("  {} AGENTS.md already exists", "⚠".yellow());
         }
 
-        let template = self.get_agents_template(project);
-        fs::write(&agents_path, template).context("Failed to write AGENTS.md")?;
+        // 10. Summary
+        println!("\n{}", "✓ Initialization complete!".bright_green().bold());
+        println!("\n{}", "Summary:".bright_white().bold());
+        println!("  Project: {}", project_name.bright_yellow());
+        println!("  Workspace: {:?}", workspace_standard);
+        println!("  Agents: {}", selected_agents.len());
+        println!("  Skills: {}", all_skills.len());
 
-        println!("{}", "  ✓ Created AGENTS.md".green());
+        println!("\n{}", "Next steps:".bright_white().bold());
+        println!("  1. Review kn.toml and customize as needed");
+        println!("  2. Run: kn sync (to update symlinks)");
+        if !all_skills.is_empty() {
+            println!("  3. Ensure skills are installed: kn skills list");
+        }
+
         Ok(())
     }
 
-    fn get_agents_template(&self, project: &ProjectInfo) -> String {
-        let project_description = self.get_project_description(project);
+    fn generate_agents_md(&self, project_name: &str, agents: &[&AgentMetadata]) -> String {
+        let agent_list = if agents.is_empty() {
+            "- **No agents configured yet**".to_string()
+        } else {
+            agents
+                .iter()
+                .map(|a| {
+                    format!(
+                        "- **{}** (`{}`) - {}",
+                        a.name,
+                        a.generate_id(project_name),
+                        a.description
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join("\n")
+        };
+
         format!(
             r#"# Agent Instructions
 
-This project uses **bd** (beads) for issue tracking with a multi-agent workflow.
+This project uses **bd** (beads) for issue tracking with the Knowledge Framework.
 
 ## Project: {}
 
-**Type:** {}
+## Enabled Agents
 
-## Agent Roles
-
-Each agent has specialized responsibilities and autonomy to close their own tasks:
-
-- **Planner Agent** - Coordinates work, creates epics, assigns tasks
-- **Implementation Agent** - Writes code, fixes bugs, implements features
-- **Review Agent** - Code review, quality assurance, documentation
+{}
 
 ## Quick Reference
 
@@ -459,471 +312,7 @@ git push
 
 **CRITICAL**: Work is NOT complete until `git push` succeeds.
 "#,
-            project.name, project_description
+            project_name, agent_list
         )
-    }
-
-    fn get_project_description(&self, project: &ProjectInfo) -> String {
-        let mut desc = format!("{:?}", project.language);
-
-        if let Some(ref framework) = project.framework {
-            desc.push_str(&format!(" ({:?})", framework));
-        }
-
-        if project.is_workspace {
-            desc.push_str(" Workspace/Monorepo");
-        }
-
-        desc
-    }
-
-    fn create_config_file(&self, project: &ProjectInfo) -> Result<()> {
-        let config_path = project.root_dir.join("kn.toml");
-
-        if config_path.exists() {
-            println!("{}", "  ⚠ kn.toml already exists, skipping...".yellow());
-            return Ok(());
-        }
-
-        let project_description = self.get_project_description(project);
-        let config = format!(
-            r#"[project]
-name = "{}"
-type = "{}"
-
-[agents]
-# Define your agent IDs and roles
-# planner = "project-abc"
-# implementation = "project-xyz"
-
-[skills]
-# Skills to auto-install
-# enabled = ["typescript", "react-19", "beads-workflow"]
-
-[beads]
-# Beads integration settings
-enabled = true
-templates_dir = ".beads/templates"
-
-[mcp]
-# MCP servers for documentation lookup
-# servers = ["rust-docs", "mdn-web-docs"]
-"#,
-            project.name, project_description
-        );
-
-        fs::write(&config_path, config).context("Failed to write kn.toml")?;
-
-        println!("{}", "  ✓ Created kn.toml".green());
-        Ok(())
-    }
-
-    fn init_beads(&self, project: &ProjectInfo) -> Result<()> {
-        let beads_dir = project.root_dir.join(".beads");
-
-        if beads_dir.exists() {
-            println!(
-                "{}",
-                "  ⚠ .beads already exists, skipping beads init...".yellow()
-            );
-            return Ok(());
-        }
-
-        println!(
-            "{}",
-            "  ℹ Run 'bd init' to initialize beads issue tracking".bright_blue()
-        );
-        Ok(())
-    }
-
-    fn install_recommended_skills(&self, project: &ProjectInfo) -> Result<()> {
-        println!(
-            "\n{}",
-            "📦 Installing recommended skills...".bright_cyan().bold()
-        );
-
-        let mut skills: Vec<&str> = Vec::new();
-
-        // Base skills by language
-        match project.language {
-            Language::Rust => {
-                skills.push("rust-best-practices");
-                skills.push("docker-best-practices");
-                skills.push("bash-best-practices");
-            }
-            Language::Node => {
-                skills.push("docker-best-practices");
-                skills.push("bash-best-practices");
-            }
-            Language::Python => {
-                skills.push("python-best-practices");
-                skills.push("docker-best-practices");
-                skills.push("bash-best-practices");
-            }
-            Language::Go => {
-                skills.push("docker-best-practices");
-                skills.push("bash-best-practices");
-            }
-            Language::Unknown => {
-                skills.push("bash-best-practices");
-            }
-        }
-
-        // Add framework-specific skills
-        if let Some(ref framework) = project.framework {
-            match framework {
-                Framework::Astro => {
-                    skills.push("astro-best-practices");
-                }
-                Framework::FastAPI => {
-                    // FastAPI-specific skills could be added here
-                }
-                _ => {
-                    // Other frameworks can be added as needed
-                }
-            }
-        }
-
-        if skills.is_empty() {
-            println!(
-                "{}",
-                "  ℹ No skills to install for this project type".bright_blue()
-            );
-            return Ok(());
-        }
-
-        let mut installed_count = 0;
-        let mut skipped_count = 0;
-
-        for skill_name in skills {
-            // Check if skill already exists in .opencode/skills/
-            let skill_dir = project.root_dir.join(".opencode/skills").join(skill_name);
-
-            if skill_dir.exists() {
-                skipped_count += 1;
-                continue;
-            }
-
-            // TODO: Re-implement skill installation with new architecture
-            // For now, skip skill installation
-            println!(
-                "{}",
-                format!(
-                    "  ⚠ Skipping skill installation (not yet implemented in refactor): {}",
-                    skill_name
-                )
-                .yellow()
-            );
-        }
-
-        println!(
-            "\n{}",
-            format!(
-                "✓ Skills: {} installed, {} already present",
-                installed_count, skipped_count
-            )
-            .bright_green()
-        );
-
-        Ok(())
-    }
-
-    fn create_opencode_config(&self, project: &ProjectInfo) -> Result<()> {
-        let opencode_dir = project.root_dir.join(".opencode");
-        let opencode_config_path = opencode_dir.join("opencode.json");
-
-        // Create .opencode directory if it doesn't exist
-        if !opencode_dir.exists() {
-            fs::create_dir_all(&opencode_dir).context("Failed to create .opencode directory")?;
-        }
-
-        if opencode_config_path.exists() {
-            println!(
-                "{}",
-                "  ⚠ .opencode/opencode.json already exists, skipping...".yellow()
-            );
-            return Ok(());
-        }
-
-        // Get absolute path for the project root
-        let root_path = project
-            .root_dir
-            .canonicalize()
-            .unwrap_or_else(|_| project.root_dir.clone());
-        let root_path_str = root_path.to_string_lossy();
-
-        // Determine project type string
-        let project_type = match project.language {
-            Language::Rust => {
-                if let Some(Framework::RustCli) = project.framework {
-                    "rust-cli"
-                } else {
-                    "rust"
-                }
-            }
-            Language::Node => "node",
-            Language::Python => "python",
-            Language::Go => "go",
-            Language::Unknown => "unknown",
-        };
-
-        // Build skills array based on installed skills
-        let skills_dir = project.root_dir.join(".opencode/skills");
-        let mut skills_json = String::from("  \"skills\": [\n");
-
-        if skills_dir.exists() {
-            if let Ok(entries) = fs::read_dir(&skills_dir) {
-                let mut skill_entries: Vec<String> = Vec::new();
-                for entry in entries.filter_map(|e| e.ok()) {
-                    let path = entry.path();
-                    if path.is_dir() {
-                        if let Some(skill_name) = path.file_name().and_then(|n| n.to_str()) {
-                            // Use relative path from .opencode/ directory
-                            let relative_path = format!("skills/{}", skill_name);
-                            skill_entries.push(format!(
-                                "    {{\n      \"name\": \"{}\",\n      \"path\": \"{}\"\n    }}",
-                                skill_name, relative_path
-                            ));
-                        }
-                    }
-                }
-                skills_json.push_str(&skill_entries.join(",\n"));
-            }
-        }
-        skills_json.push_str("\n  ]");
-
-        // Create OpenCode configuration
-        let config = format!(
-            r#"{{
-  "mcpServers": {{
-    "filesystem": {{
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "{root_path}"
-      ]
-    }},
-    "github": {{
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
-      "env": {{
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${{GITHUB_TOKEN}}"
-      }}
-    }}
-  }},
-{skills},
-  "agents": {{
-    "planner": {{
-      "id": "{project_name}-planner",
-      "role": "planner",
-      "instructionsPath": "{root_path}/agents/planner/AGENTS.md"
-    }},
-    "implementation": {{
-      "id": "{project_name}-impl",
-      "role": "implementation",
-      "instructionsPath": "{root_path}/agents/implementation/AGENTS.md"
-    }},
-    "review": {{
-      "id": "{project_name}-review",
-      "role": "review",
-      "instructionsPath": "{root_path}/agents/review/AGENTS.md"
-    }}
-  }},
-  "workspace": {{
-    "name": "{project_name}",
-    "type": "{project_type}",
-    "rootPath": "{root_path}",
-    "beadsEnabled": true,
-    "beadsPath": "{root_path}/.beads"
-  }}
-}}
-"#,
-            root_path = root_path_str,
-            skills = skills_json,
-            project_name = project.name,
-            project_type = project_type
-        );
-
-        fs::write(&opencode_config_path, config)
-            .context("Failed to write .opencode/opencode.json")?;
-
-        println!("{}", "  ✓ Created .opencode/opencode.json".green());
-        Ok(())
-    }
-
-    fn create_antigravity_config(&self, project: &ProjectInfo) -> Result<()> {
-        let agent_dir = project.root_dir.join(".agent");
-        let skills_dir = agent_dir.join("skills");
-
-        // Create .agent/skills directory if it doesn't exist
-        if !skills_dir.exists() {
-            fs::create_dir_all(&skills_dir).context("Failed to create .agent/skills directory")?;
-            println!("{}", "  ✓ Created .agent/skills directory".green());
-        } else {
-            println!(
-                "{}",
-                "  ⚠ .agent/skills already exists, skipping...".yellow()
-            );
-        }
-
-        // Create symlinks from .opencode/skills/* to .agent/skills/*
-        let workspace_skills_dir = project.root_dir.join(".opencode/skills");
-        if workspace_skills_dir.exists() {
-            if let Ok(entries) = fs::read_dir(&workspace_skills_dir) {
-                for entry in entries.filter_map(|e| e.ok()) {
-                    let path = entry.path();
-                    if path.is_dir() {
-                        if let Some(skill_name) = path.file_name() {
-                            let target = skills_dir.join(skill_name);
-
-                            // Skip if symlink already exists
-                            if target.exists() {
-                                continue;
-                            }
-
-                            // Create symlink (relative path for portability)
-                            let relative_source =
-                                PathBuf::from("../../.opencode/skills").join(skill_name);
-
-                            #[cfg(unix)]
-                            {
-                                use std::os::unix::fs::symlink;
-                                if let Err(e) = symlink(&relative_source, &target) {
-                                    println!(
-                                        "{}",
-                                        format!(
-                                            "  ⚠ Failed to create symlink for {}: {}",
-                                            skill_name.to_string_lossy(),
-                                            e
-                                        )
-                                        .yellow()
-                                    );
-                                }
-                            }
-
-                            #[cfg(windows)]
-                            {
-                                use std::os::windows::fs::symlink_dir;
-                                if let Err(e) = symlink_dir(&relative_source, &target) {
-                                    println!(
-                                        "{}",
-                                        format!(
-                                            "  ⚠ Failed to create symlink for {}: {}",
-                                            skill_name.to_string_lossy(),
-                                            e
-                                        )
-                                        .yellow()
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-                println!(
-                    "{}",
-                    "  ✓ Created symlinks to skills in .agent/skills/".green()
-                );
-            }
-        }
-
-        // Create .agent/README.md with Antigravity documentation
-        let agent_readme_path = agent_dir.join("README.md");
-        if !agent_readme_path.exists() {
-            let readme_content = format!(
-                r#"# Antigravity Agent Configuration
-
-This directory contains configuration for **Google Antigravity** AI agent.
-
-## Structure
-
-```
-.agent/
-└── skills/           # Agent skills (symlinked from ../.opencode/skills/)
-```
-
-## Skills
-
-Skills in this directory follow the Antigravity standard:
-- Each skill is a folder containing a `SKILL.md` file
-- Skills are automatically discovered by Antigravity
-- Skills can include scripts, examples, and resources
-
-### Available Skills
-
-Skills are symlinked from the `../.opencode/skills/` directory:
-
-```bash
-ls -la .agent/skills/
-```
-
-## Adding Skills
-
-To add a new skill:
-
-```bash
-# Install using kn CLI
-kn skills install <skill-name>
-
-# The skill will be installed to .opencode/skills/<skill-name>/
-# A symlink will be automatically created in .agent/skills/<skill-name>
-```
-
-## Structure
-
-The workspace uses a unified skill directory structure:
-
-```
-# - ./.opencode/skills/<skill-name>/   (source for OpenCode)
-# - ./.agent/skills/<skill-name>/      (symlink for Antigravity)
-```
-
-## Skills
-
-Skills in this directory follow the Antigravity standard:
-- Each skill is a folder containing a `SKILL.md` file
-- Skills are automatically discovered by Antigravity
-- Skills can include scripts, examples, and resources
-
-### Available Skills
-
-Skills are symlinked from the `../skills/` directory:
-
-```bash
-ls -la .agent/skills/
-```
-
-## Adding Skills
-
-To add a new skill:
-
-```bash
-# Install using kn CLI
-kn skills install <skill-name>
-
-# The skill will be available in both locations:
-# - ./skills/<skill-name>/          (source)
-# - ./.agent/skills/<skill-name>/   (symlink for Antigravity)
-```
-
-## Project: {}
-
-**Type:** {:?}
-
-For more information about Antigravity skills, see:
-https://antigravity.dev/docs/agent/skills
-"#,
-                project.name, project.language
-            );
-
-            fs::write(&agent_readme_path, readme_content)
-                .context("Failed to write .agent/README.md")?;
-            println!("{}", "  ✓ Created .agent/README.md".green());
-        }
-
-        Ok(())
     }
 }
