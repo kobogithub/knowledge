@@ -113,32 +113,61 @@ impl UpdateCommand {
 
         // Determine platform
         let (os, arch) = self.get_platform()?;
-        println!("  Platform: {}-{}", os, arch);
+        let asset_name = format!("kn-{}-{}", os, arch);
+        println!("  Platform: {}", asset_name.bright_white());
 
-        // Download binary from GitHub release
+        // Download tarball from GitHub release
         let download_url = format!(
-            "https://github.com/{}/releases/download/v{}/kn-{}-{}",
-            GITHUB_REPO, version, os, arch
+            "https://github.com/{}/releases/download/v{}/{}.tar.gz",
+            GITHUB_REPO, version, asset_name
         );
 
         println!("  Downloading from GitHub...");
 
-        // Use curl to download (more portable than reqwest for this use case)
-        let temp_file = self.download_binary(&download_url)?;
+        // Download tarball
+        let temp_tarball = self.download_binary(&download_url)?;
+
+        // Extract tarball
+        println!("  Extracting archive...");
+        let temp_dir = std::env::temp_dir().join("kn-update-extract");
+        fs::create_dir_all(&temp_dir)?;
+
+        let output = Command::new("tar")
+            .args([
+                "xzf",
+                temp_tarball.to_str().unwrap(),
+                "-C",
+                temp_dir.to_str().unwrap(),
+            ])
+            .output()
+            .context("Failed to extract tarball")?;
+
+        if !output.status.success() {
+            anyhow::bail!(
+                "Failed to extract tarball: {}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+
+        let extracted_binary = temp_dir.join("kn");
 
         // Make executable
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
-            let mut perms = fs::metadata(&temp_file)?.permissions();
+            let mut perms = fs::metadata(&extracted_binary)?.permissions();
             perms.set_mode(0o755);
-            fs::set_permissions(&temp_file, perms)?;
+            fs::set_permissions(&extracted_binary, perms)?;
         }
 
         // Replace current binary
         println!("  Installing new binary...");
-        fs::rename(&temp_file, &current_exe)
+        fs::rename(&extracted_binary, &current_exe)
             .context("Failed to replace current binary. Try running with sudo.")?;
+
+        // Clean up
+        let _ = fs::remove_file(&temp_tarball);
+        let _ = fs::remove_dir_all(&temp_dir);
 
         Ok(())
     }
