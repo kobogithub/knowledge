@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use super::skills::install_skill_from_path;
+// use super::skills::install_skill_from_path;
 
 #[derive(Args)]
 pub struct InitCommand {
@@ -604,19 +604,16 @@ templates_dir = ".beads/templates"
                 continue;
             }
 
-            // Install from bundled skills - just pass the skill name
-            match install_skill_from_path(skill_name, true) {
-                Ok(_) => {
-                    println!("{}", format!("  ✓ Installed {}", skill_name).green());
-                    installed_count += 1;
-                }
-                Err(e) => {
-                    println!(
-                        "{}",
-                        format!("  ⚠ Failed to install {}: {}", skill_name, e).yellow()
-                    );
-                }
-            }
+            // TODO: Re-implement skill installation with new architecture
+            // For now, skip skill installation
+            println!(
+                "{}",
+                format!(
+                    "  ⚠ Skipping skill installation (not yet implemented in refactor): {}",
+                    skill_name
+                )
+                .yellow()
+            );
         }
 
         println!(

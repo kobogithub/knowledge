@@ -113,3 +113,9 @@ temp/
 *.wasm
 *.tar.gz
 *.zip
+
+# Workspace-specific directories (created by kn init, not in source repo)
+.opencode/skills/
+.opencode/agents/
+.agent/skills/
+.agent/agents/

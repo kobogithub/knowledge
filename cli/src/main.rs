@@ -1,12 +1,11 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
-mod commands;
-use commands::beads::BeadsCommand;
-use commands::doctor::DoctorCommand;
-use commands::init::InitCommand;
-use commands::mcp::{McpCommands, McpHandler};
-use commands::skills::SkillsCommand;
+use kn::commands::beads::BeadsCommand;
+use kn::commands::doctor::DoctorCommand;
+use kn::commands::init::InitCommand;
+use kn::commands::mcp::{McpCommands, McpHandler};
+use kn::commands::skills::SkillsCommand;
 
 #[derive(Parser)]
 #[command(name = "kn")]

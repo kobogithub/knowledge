@@ -1,9 +1,11 @@
 use anyhow::{anyhow, Context, Result};
 use clap::{Args, Subcommand};
 use colored::*;
-use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
+
+use crate::core::kn_home;
+use crate::models::SkillMetadata;
 
 #[derive(Args)]
 pub struct SkillsCommand {
@@ -13,31 +15,20 @@ pub struct SkillsCommand {
 
 #[derive(Subcommand)]
 enum SkillsAction {
-    /// Install a skill from URL or local path
+    /// Install a skill to ~/.kn/skills/ from local path or URL
     Install(InstallArgs),
-    /// List installed skills
+    /// List installed skills in ~/.kn/skills/
     List,
 }
 
 #[derive(Args)]
 struct InstallArgs {
-    /// Skill name, URL, or local path
+    /// Skill name or local path (e.g., rust-best-practices or ./skills/rust-best-practices)
     source: String,
 
     /// Force reinstall if already exists
     #[arg(short, long)]
     force: bool,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct SkillMetadata {
-    name: String,
-    #[serde(default)]
-    scope: String,
-    #[serde(default)]
-    auto_invoke: bool,
-    #[serde(default)]
-    description: String,
 }
 
 impl SkillsCommand {
@@ -50,54 +41,61 @@ impl SkillsCommand {
 }
 
 fn install_skill(args: &InstallArgs) -> Result<()> {
-    println!("{}", "📦 Installing skill...".bright_cyan().bold());
+    println!(
+        "{}",
+        "📦 Installing skill to ~/.kn/skills/..."
+            .bright_cyan()
+            .bold()
+    );
 
-    let current_dir = std::env::current_dir()?;
-    let skills_dir = current_dir.join(".opencode/skills");
+    // Ensure ~/.kn/skills/ exists
+    kn_home::ensure_kn_home()?;
+    let global_skills_dir = kn_home::skills_dir()?;
 
-    // Create .opencode/skills directory if it doesn't exist
-    if !skills_dir.exists() {
-        fs::create_dir_all(&skills_dir).context("Failed to create .opencode/skills directory")?;
-        println!("{}", "  ✓ Created .opencode/skills/ directory".green());
-    }
+    // Determine source
+    let source_path = Path::new(&args.source);
 
-    // Determine source type (URL, path, or name)
-    let skill_content = if args.source.starts_with("http://") || args.source.starts_with("https://")
-    {
+    let skill_content = if source_path.exists() {
+        // Load from local path
+        let skill_file = if source_path.is_dir() {
+            source_path.join("SKILL.md")
+        } else {
+            source_path.to_path_buf()
+        };
+
+        if !skill_file.exists() {
+            return Err(anyhow!("SKILL.md not found in {}", source_path.display()));
+        }
+
+        println!(
+            "  Loading from local path: {}",
+            skill_file.display().to_string().bright_yellow()
+        );
+        fs::read_to_string(&skill_file).context("Failed to read SKILL.md")?
+    } else if args.source.starts_with("http://") || args.source.starts_with("https://") {
         // Download from URL
         println!("  Downloading from {}...", args.source.bright_yellow());
         download_skill(&args.source)?
-    } else if Path::new(&args.source).exists() {
-        // Load from local path
-        println!("  Loading from local path: {}", args.source.bright_yellow());
-        fs::read_to_string(&args.source).context("Failed to read skill file")?
     } else {
-        // Try to resolve as skill name from agentskills.io
-        let url = format!(
-            "https://raw.githubusercontent.com/agentskills/skills/main/{}/SKILL.md",
+        return Err(anyhow!(
+            "Source '{}' not found. Provide a valid local path or URL.",
             args.source
-        );
-        println!(
-            "  Resolving skill '{}' from agentskills.io...",
-            args.source.bright_yellow()
-        );
-        download_skill(&url)?
+        ));
     };
 
-    // Parse and validate skill metadata
-    let metadata = parse_skill_metadata(&skill_content)?;
-    println!(
-        "  Skill: {} ({})",
-        metadata.name.bright_green(),
-        metadata.scope
-    );
+    // Parse metadata
+    let metadata = SkillMetadata::from_content(&skill_content)?;
+    println!("  Skill: {}", metadata.name.bright_green().bold());
+    if !metadata.description.is_empty() {
+        println!("  Description: {}", metadata.description.dimmed());
+    }
 
     // Determine target directory
-    let skill_dir = skills_dir.join(&metadata.name);
+    let skill_dir = global_skills_dir.join(&metadata.name);
 
     if skill_dir.exists() && !args.force {
         return Err(anyhow!(
-            "Skill '{}' already exists. Use --force to overwrite.",
+            "Skill '{}' already exists in ~/.kn/skills/. Use --force to overwrite.",
             metadata.name
         ));
     }
@@ -113,161 +111,128 @@ fn install_skill(args: &InstallArgs) -> Result<()> {
         format!("  ✓ Installed to {}", skill_dir.display()).green()
     );
 
-    // Update kn.toml
-    update_config_with_skill(&current_dir, &metadata.name)?;
-
     println!(
         "\n{}",
         "✓ Skill installed successfully!".bright_green().bold()
     );
     println!("\n{}", "Next steps:".bright_white().bold());
-    println!("  1. Review .opencode/skills/{}/SKILL.md", metadata.name);
-    println!("  2. Update AGENTS.md to reference the skill");
+    println!("  1. Run 'kn sync' in your project to create symlinks");
+    println!("  2. Or use 'kn init' in a new project and select this skill");
 
     Ok(())
 }
 
-// Public API for use by other commands (e.g., init)
-pub fn install_skill_from_path(source: &str, silent: bool) -> Result<String> {
-    let current_dir = std::env::current_dir()?;
-    let skills_dir = current_dir.join(".opencode/skills");
+/// Public API for batch installation (used by kn init)
+pub fn install_skill_from_repo(skill_name: &str, repo_path: &Path, force: bool) -> Result<()> {
+    kn_home::ensure_kn_home()?;
+    let global_skills_dir = kn_home::skills_dir()?;
 
-    // Create .opencode/skills directory if it doesn't exist
-    if !skills_dir.exists() {
-        fs::create_dir_all(&skills_dir).context("Failed to create .opencode/skills directory")?;
+    // Source path in the repo
+    let source_dir = repo_path.join("skills").join(skill_name);
+    let source_file = source_dir.join("SKILL.md");
+
+    if !source_file.exists() {
+        return Err(anyhow!(
+            "Skill '{}' not found in repository at {}",
+            skill_name,
+            source_dir.display()
+        ));
     }
 
-    // Determine source type and download/load
-    let skill_content = if source.starts_with("http://") || source.starts_with("https://") {
-        download_skill(source)?
-    } else if Path::new(source).exists() {
-        fs::read_to_string(source).context("Failed to read skill file")?
-    } else {
-        // Try from local skills/ directory first (for bundled skills)
-        let local_path = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .unwrap()
-            .join("skills")
-            .join(source)
-            .join("SKILL.md");
+    let skill_content = fs::read_to_string(&source_file)?;
+    let metadata = SkillMetadata::from_content(&skill_content)?;
 
-        if local_path.exists() {
-            fs::read_to_string(&local_path).context("Failed to read local skill")?
-        } else {
-            // Try agentskills.io
-            let url = format!(
-                "https://raw.githubusercontent.com/agentskills/skills/main/{}/SKILL.md",
-                source
-            );
-            download_skill(&url)?
-        }
-    };
+    // Target directory in ~/.kn/skills/
+    let skill_dir = global_skills_dir.join(&metadata.name);
 
-    // Parse metadata
-    let metadata = parse_skill_metadata(&skill_content)?;
-    let skill_dir = skills_dir.join(&metadata.name);
-
-    // Skip if already exists
-    if skill_dir.exists() {
-        if !silent {
-            println!(
-                "{}",
-                format!("  ⚠ Skill '{}' already exists, skipping", metadata.name).yellow()
-            );
-        }
-        return Ok(metadata.name);
+    if skill_dir.exists() && !force {
+        // Already installed, skip
+        return Ok(());
     }
 
-    // Create skill directory and write SKILL.md
-    fs::create_dir_all(&skill_dir).context("Failed to create skill directory")?;
+    // Create and copy
+    fs::create_dir_all(&skill_dir)?;
+    let target_file = skill_dir.join("SKILL.md");
+    fs::write(&target_file, &skill_content)?;
 
-    let skill_file = skill_dir.join("SKILL.md");
-    fs::write(&skill_file, &skill_content).context("Failed to write SKILL.md")?;
+    println!("{}", format!("  ✓ Installed {}", metadata.name).green());
 
-    if !silent {
-        println!("{}", format!("  ✓ Installed {}", metadata.name).green());
-    }
-
-    // Update kn.toml
-    let _ = update_config_with_skill(&current_dir, &metadata.name);
-
-    Ok(metadata.name)
+    Ok(())
 }
 
 fn list_skills() -> Result<()> {
-    let current_dir = std::env::current_dir()?;
-    let skills_dir = current_dir.join(".opencode/skills");
+    let global_skills_dir = kn_home::skills_dir()?;
 
-    if !skills_dir.exists() {
-        println!("{}", "No .opencode/skills directory found.".yellow());
-        println!("Run 'kn skills install <skill-name>' to install your first skill.");
+    if !global_skills_dir.exists() {
+        println!("{}", "No skills installed yet.".yellow());
+        println!("Run 'kn skills install <path>' to install your first skill.");
+        println!("Example: kn skills install ./skills/rust-best-practices");
         return Ok(());
     }
 
     println!("{}", "Installed Skills:".bright_white().bold());
+    println!(
+        "{} {}",
+        "Location:".dimmed(),
+        global_skills_dir.display().to_string().dimmed()
+    );
     println!();
 
-    let mut found_skills = false;
+    let skills = kn_home::list_installed_skills()?;
 
-    for entry in fs::read_dir(&skills_dir)? {
-        let entry = entry?;
-        let path = entry.path();
-
-        if path.is_dir() {
-            let skill_file = path.join("SKILL.md");
-            if skill_file.exists() {
-                found_skills = true;
-                match fs::read_to_string(&skill_file) {
-                    Ok(content) => match parse_skill_metadata(&content) {
-                        Ok(metadata) => {
-                            println!(
-                                "  {} {}",
-                                "●".bright_green(),
-                                metadata.name.bright_white().bold()
-                            );
-                            if !metadata.scope.is_empty() {
-                                println!("    Scope: {}", metadata.scope.dimmed());
-                            }
-                            if !metadata.description.is_empty() {
-                                println!("    {}", metadata.description.dimmed());
-                            }
-                            println!(
-                                "    Auto-invoke: {}",
-                                if metadata.auto_invoke {
-                                    "yes".green()
-                                } else {
-                                    "no".dimmed()
-                                }
-                            );
-                            println!();
-                        }
-                        Err(_) => {
-                            println!(
-                                "  {} {} {}",
-                                "●".yellow(),
-                                entry.file_name().to_string_lossy(),
-                                "(invalid metadata)".dimmed()
-                            );
-                            println!();
-                        }
-                    },
-                    Err(_) => {
-                        println!(
-                            "  {} {} {}",
-                            "●".red(),
-                            entry.file_name().to_string_lossy(),
-                            "(error reading)".dimmed()
-                        );
-                        println!();
-                    }
-                }
-            }
-        }
+    if skills.is_empty() {
+        println!("{}", "  No skills found.".yellow());
+        println!("  Run 'kn skills install <path>' to install a skill.");
+        return Ok(());
     }
 
-    if !found_skills {
-        println!("{}", "  No skills found.".yellow());
-        println!("  Run 'kn skills install <name>' to install a skill.");
+    for skill_name in skills {
+        let skill_path = global_skills_dir.join(&skill_name).join("SKILL.md");
+
+        match fs::read_to_string(&skill_path) {
+            Ok(content) => match SkillMetadata::from_content(&content) {
+                Ok(metadata) => {
+                    println!(
+                        "  {} {}",
+                        "●".bright_green(),
+                        metadata.name.bright_white().bold()
+                    );
+                    if !metadata.description.is_empty() {
+                        println!("    {}", metadata.description.dimmed());
+                    }
+                    if !metadata.tags.is_empty() {
+                        println!("    Tags: {}", metadata.tags.join(", ").dimmed());
+                    }
+                    println!(
+                        "    Auto-invoke: {}",
+                        if metadata.auto_invoke {
+                            "yes".green()
+                        } else {
+                            "no".dimmed()
+                        }
+                    );
+                    println!();
+                }
+                Err(_) => {
+                    println!(
+                        "  {} {} {}",
+                        "●".yellow(),
+                        skill_name,
+                        "(invalid metadata)".dimmed()
+                    );
+                    println!();
+                }
+            },
+            Err(_) => {
+                println!(
+                    "  {} {} {}",
+                    "●".red(),
+                    skill_name,
+                    "(error reading)".dimmed()
+                );
+                println!();
+            }
+        }
     }
 
     Ok(())
@@ -284,61 +249,4 @@ fn download_skill(url: &str) -> Result<String> {
     }
 
     response.text().context("Failed to read response body")
-}
-
-fn parse_skill_metadata(content: &str) -> Result<SkillMetadata> {
-    // Look for YAML frontmatter between --- markers
-    if !content.starts_with("---") {
-        return Err(anyhow!("Skill file missing YAML frontmatter"));
-    }
-
-    let parts: Vec<&str> = content.splitn(3, "---").collect();
-    if parts.len() < 3 {
-        return Err(anyhow!("Invalid YAML frontmatter format"));
-    }
-
-    let yaml_str = parts[1].trim();
-    let metadata: SkillMetadata =
-        serde_yaml::from_str(yaml_str).context("Failed to parse YAML frontmatter")?;
-
-    if metadata.name.is_empty() {
-        return Err(anyhow!("Skill must have a 'name' field in frontmatter"));
-    }
-
-    Ok(metadata)
-}
-
-fn update_config_with_skill(project_dir: &Path, skill_name: &str) -> Result<()> {
-    let config_path = project_dir.join("kn.toml");
-
-    if !config_path.exists() {
-        println!(
-            "{}",
-            "  ⚠ kn.toml not found, skipping config update".yellow()
-        );
-        return Ok(());
-    }
-
-    let content = fs::read_to_string(&config_path)?;
-    let mut config: toml::Value = toml::from_str(&content)?;
-
-    // Add skill to [skills.enabled] array if not already present
-    if let Some(skills_table) = config.get_mut("skills") {
-        if let Some(skills_table) = skills_table.as_table_mut() {
-            let enabled = skills_table
-                .entry("enabled")
-                .or_insert(toml::Value::Array(vec![]));
-
-            if let Some(enabled_array) = enabled.as_array_mut() {
-                let skill_value = toml::Value::String(skill_name.to_string());
-                if !enabled_array.contains(&skill_value) {
-                    enabled_array.push(skill_value);
-                    fs::write(&config_path, toml::to_string_pretty(&config)?)?;
-                    println!("{}", "  ✓ Updated kn.toml".green());
-                }
-            }
-        }
-    }
-
-    Ok(())
 }
