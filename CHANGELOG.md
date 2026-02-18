@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed - MAJOR REFACTOR (2026-02-18)
+## [0.2.0] - 2026-02-18
+
+### Changed - MAJOR REFACTOR
 
 **Global ~/.kn/ Directory Architecture:**
 - **BREAKING**: Complete refactor to use `~/.kn/` as global directory for agents and skills
