@@ -63,6 +63,10 @@
     {
       "name": "kubernetes-best-practices",
       "path": "skills/kubernetes-best-practices"
+    },
+    {
+      "name": "jsonnet-best-practices",
+      "path": "skills/jsonnet-best-practices"
     }
   ],
   "agents": {
