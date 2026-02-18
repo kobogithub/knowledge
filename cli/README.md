@@ -34,6 +34,9 @@ kn init
 
 # 4. Sync project symlinks (after config changes)
 kn sync
+
+# 5. Keep kn up to date
+kn update
 ```
 
 ## Architecture Overview
@@ -167,6 +170,29 @@ This command:
 - Reads `kn.toml` configuration
 - Creates/updates symlinks based on `workspace_standard`
 - Removes symlinks for disabled agents/skills
+
+### Update kn CLI
+
+Check for updates:
+```bash
+kn update --check
+```
+
+Update to latest version:
+```bash
+kn update
+```
+
+Force update even if on latest:
+```bash
+kn update --force
+```
+
+**Requirements:**
+- `gh` (GitHub CLI) - For fetching latest release
+- `curl` - For downloading binaries
+
+**Note:** This command downloads pre-built binaries from GitHub releases and replaces the current executable. If installed in a system directory (e.g., `/usr/local/bin/`), you may need to run with `sudo`.
 
 ### Check Dependencies
 

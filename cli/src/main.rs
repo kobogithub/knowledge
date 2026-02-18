@@ -8,6 +8,7 @@ use kn::commands::init::InitCommand;
 use kn::commands::mcp::{McpCommands, McpHandler};
 use kn::commands::skills::SkillsCommand;
 use kn::commands::sync::SyncCommand;
+use kn::commands::update::UpdateCommand;
 
 #[derive(Parser)]
 #[command(name = "kn")]
@@ -27,6 +28,8 @@ enum Commands {
     Agents(AgentsCommand),
     /// Sync skills and agents from ~/.kn/ to project
     Sync(SyncCommand),
+    /// Update kn CLI to latest version
+    Update(UpdateCommand),
     /// Beads issue tracking utilities
     Beads(BeadsCommand),
     /// Manage MCP (Model Context Protocol) servers
@@ -44,6 +47,7 @@ fn main() -> Result<()> {
         Commands::Skills(cmd) => cmd.execute()?,
         Commands::Agents(cmd) => cmd.execute()?,
         Commands::Sync(cmd) => cmd.execute()?,
+        Commands::Update(cmd) => cmd.execute()?,
         Commands::Beads(cmd) => cmd.execute()?,
         Commands::Mcp(cmd) => {
             let handler = McpHandler::new();

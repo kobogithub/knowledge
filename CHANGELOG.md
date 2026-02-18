@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `kn update` command for self-updating CLI from GitHub releases
+  - `kn update --check` to check for updates without updating
+  - `kn update --force` to force update even if on latest
+  - Automatic download and installation of latest binary
+  - Cross-platform support (Linux, macOS, Windows)
+
 ## [0.2.0] - 2026-02-18
 
 ### Changed - MAJOR REFACTOR
