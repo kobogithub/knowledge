@@ -77,7 +77,7 @@ jobs:
         shell: bash
       
       - name: Upload kn binary (artifact)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kn-${{ matrix.os }}-${{ matrix.rust }}
           path: cli/target/release/kn${{ matrix.os == 'windows-latest' && '.exe' || '' }}

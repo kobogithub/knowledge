@@ -186,7 +186,7 @@ install_rust() {
     info "Installing Rust via rustup..."
     if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; then
         # Source cargo env
-        # shellcheck disable=SC1090
+        # shellcheck disable=SC1090,SC1091
         source "$HOME/.cargo/env" 2>/dev/null || true
         export PATH="$HOME/.cargo/bin:$PATH"
         success "Rust installed successfully"
