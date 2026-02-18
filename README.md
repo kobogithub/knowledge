@@ -87,82 +87,51 @@ kn mcp list                         # View configured servers
 
 ### Installation
 
-Choose the installation method that works best for your platform:
+#### 🚀 Automated Installation (Recommended)
 
-#### 📦 Package Managers (Recommended)
-
-##### macOS (Homebrew)
+The easiest way to install `kn` is using our automated installer. It downloads pre-compiled binaries from GitHub releases:
 
 ```bash
-# Add the Knowledge Framework tap
-brew tap kobogithub/knowledge
-
-# Install kn
-brew install kn
-
-# Verify
-kn doctor
-```
-
-**Note**: Homebrew formula will be available after first release. For now, use the automated installer below.
-
-##### Ubuntu / Debian (APT)
-
-```bash
-# Download and install .deb package
-wget https://github.com/kobogithub/knowledge/releases/download/v0.1.0/kn_0.1.0-1_amd64.deb
-sudo apt install ./kn_0.1.0-1_amd64.deb
-
-# Verify
-kn doctor
-```
-
-**Note**: APT repository coming soon. For now, use the automated installer below.
-
-##### Fedora / RHEL / Rocky Linux (DNF/YUM)
-
-```bash
-# Download and install .rpm package
-wget https://github.com/kobogithub/knowledge/releases/download/v0.1.0/kn-0.1.0-1.el9.x86_64.rpm
-sudo dnf install ./kn-0.1.0-1.el9.x86_64.rpm
-
-# Verify
-kn doctor
-```
-
-**Note**: YUM/DNF repository coming soon. For now, use the automated installer below.
-
----
-
-#### 🚀 Automated Installation (All Linux/macOS)
-
-```bash
-# One-line install (recommended for now)
+# One-line install (recommended)
 curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
 
-# Or download and run
+# Or download and inspect first
 wget https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh
 chmod +x install.sh
 ./install.sh
 ```
 
-**Options:**
+**Smart Features:**
+- ✅ **Version Check**: Skips reinstallation if you already have the target version
+- ✅ **Auto PATH Setup**: Automatically adds `~/.local/bin` to your shell config (bash, zsh, fish)
+- ✅ **Rosetta Detection**: On macOS, uses ARM64 binaries even in Rosetta terminal for better performance
+- ✅ **Visual Progress**: Shows download progress with a clean progress bar
+- ✅ **Pre-compiled Binaries**: No compilation needed - fast installation
+
+**Available Options:**
 ```bash
-./install.sh --help              # Show help
-./install.sh --skip-deps         # Skip dependency installation
+./install.sh --help              # Show all options
+./install.sh --version v0.2.0    # Install specific version
+./install.sh --skip-deps         # Skip dependency installation (Git, Node.js, bd)
 ./install.sh --no-confirm        # Non-interactive mode
+./install.sh --no-modify-path    # Don't modify shell config files
 ```
 
-The install script will:
-- ✅ Detect your OS and package manager
-- ✅ Install missing dependencies (Rust, Git, Node.js, bd)
-- ✅ Clone the repository and build kn
-- ✅ Install kn to `~/.local/bin` or `/usr/local/bin`
-- ✅ Verify installation with `kn doctor`
+**Supported Platforms:**
+- Linux x86_64
+- macOS x86_64 (Intel)
+- macOS ARM64 (Apple Silicon)
+
+**Updates:**
+```bash
+kn update                        # Update to latest version
+```
 
 ---
 
 #### 🔨 Manual Installation (From Source)
+
+If you prefer to build from source or need to customize the installation:
 
 ```bash
 # 1. Install dependencies
@@ -178,9 +147,13 @@ cargo build --release
 # 3. Install globally
 sudo cp target/release/kn /usr/local/bin/
 # or to user directory
+mkdir -p ~/.local/bin
 cp target/release/kn ~/.local/bin/
 
-# 4. Verify
+# 4. Add to PATH (if not already)
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc  # or ~/.zshrc
+
+# 5. Verify
 kn doctor
 ```
 
@@ -196,6 +169,18 @@ irm https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.ps1 | ie
 ```
 
 **Note**: Windows automated installation is in development. See `install.ps1` for manual steps.
+
+---
+
+#### 📦 Package Managers (Coming Soon)
+
+We're working on official packages for popular package managers:
+
+- **Homebrew** (macOS): `brew install kobogithub/knowledge/kn`
+- **APT** (Ubuntu/Debian): `apt install kn`
+- **DNF/YUM** (Fedora/RHEL): `dnf install kn`
+
+For now, please use the automated installer above.
 
 ---
 

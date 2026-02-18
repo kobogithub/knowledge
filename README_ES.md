@@ -63,18 +63,102 @@ kn mcp list                         # Ver servidores configurados
 
 ### Instalación
 
-```bash
-# Clonar el repositorio
-git clone https://github.com/kobogithub/knowledge.git
-cd knowledge
+#### 🚀 Instalación Automatizada (Recomendada)
 
-# Compilar el CLI
-cd cli
+La forma más fácil de instalar `kn` es usando nuestro instalador automatizado. Descarga binarios precompilados desde GitHub releases:
+
+```bash
+# Instalación de una línea (recomendado)
+curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
+
+# O descargar e inspeccionar primero
+wget https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh
+chmod +x install.sh
+./install.sh
+```
+
+**Funciones Inteligentes:**
+- ✅ **Verificación de Versión**: Evita reinstalar si ya tienes la versión objetivo
+- ✅ **Configuración Automática de PATH**: Agrega automáticamente `~/.local/bin` a tu configuración de shell (bash, zsh, fish)
+- ✅ **Detección de Rosetta**: En macOS, usa binarios ARM64 incluso en terminal Rosetta para mejor rendimiento
+- ✅ **Progreso Visual**: Muestra el progreso de descarga con una barra de progreso limpia
+- ✅ **Binarios Precompilados**: No requiere compilación - instalación rápida
+
+**Opciones Disponibles:**
+```bash
+./install.sh --help              # Mostrar todas las opciones
+./install.sh --version v0.2.0    # Instalar versión específica
+./install.sh --skip-deps         # Saltar instalación de dependencias (Git, Node.js, bd)
+./install.sh --no-confirm        # Modo no interactivo
+./install.sh --no-modify-path    # No modificar archivos de configuración del shell
+```
+
+**Plataformas Soportadas:**
+- Linux x86_64
+- macOS x86_64 (Intel)
+- macOS ARM64 (Apple Silicon)
+
+**Actualizaciones:**
+```bash
+kn update                        # Actualizar a la última versión
+```
+
+---
+
+#### 🔨 Instalación Manual (Desde el Código Fuente)
+
+Si prefieres compilar desde el código fuente o necesitas personalizar la instalación:
+
+```bash
+# 1. Instalar dependencias
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh  # Rust
+cargo install bd                                                  # Beads
+# Instalar Node.js desde https://nodejs.org/ o tu gestor de paquetes
+
+# 2. Clonar y compilar
+git clone https://github.com/kobogithub/knowledge.git
+cd knowledge/cli
 cargo build --release
 
-# Instalar globalmente (opcional)
+# 3. Instalar globalmente
 sudo cp target/release/kn /usr/local/bin/
+# o al directorio de usuario
+mkdir -p ~/.local/bin
+cp target/release/kn ~/.local/bin/
+
+# 4. Agregar al PATH (si no está ya)
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc  # o ~/.zshrc
+
+# 5. Verificar
+kn doctor
 ```
+
+---
+
+#### 🪟 Instalación en Windows
+
+```powershell
+# Descargar y ejecutar el script de PowerShell
+irm https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.ps1 | iex
+
+# O seguir las instrucciones manuales en install.ps1
+```
+
+**Nota**: La instalación automatizada para Windows está en desarrollo. Ver `install.ps1` para pasos manuales.
+
+---
+
+#### 📦 Gestores de Paquetes (Próximamente)
+
+Estamos trabajando en paquetes oficiales para gestores de paquetes populares:
+
+- **Homebrew** (macOS): `brew install kobogithub/knowledge/kn`
+- **APT** (Ubuntu/Debian): `apt install kn`
+- **DNF/YUM** (Fedora/RHEL): `dnf install kn`
+
+Por ahora, por favor usa el instalador automatizado arriba.
+
+---
 
 ### Inicializar Tu Primer Proyecto
 
