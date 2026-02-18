@@ -37,6 +37,11 @@ Tienes acceso a los siguientes skills especializados:
 - **Cuándo usar**: Testing de aplicaciones Rust, cargo test, benchmarking
 - **Temas**: Unit testing, integration testing, property-based testing, benchmarks
 
+### 4. **bd-best-practices**
+- **Descripción**: Issue tracking con bd (beads) - sistema descentralizado basado en git
+- **Cuándo usar**: TODO tu trabajo con tareas, reportes de progreso, coordinación con otros agentes
+- **Temas**: Comandos bd, workflow de agentes, sincronización con git, reportes efectivos
+
 ## Comandos Esenciales
 
 ### 1. Encontrar Tu Trabajo

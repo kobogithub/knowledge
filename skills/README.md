@@ -197,6 +197,30 @@ Este directorio contiene skills para AI agents que proporcionan conocimiento esp
 
 ---
 
+### 10. bd Best Practices (`bd-best-practices/`)
+**Fuente**: Custom (Knowledge Framework)  
+**Descripción**: Issue tracking con bd (beads) - sistema descentralizado basado en git
+
+**Temas cubiertos**:
+- Comandos esenciales de bd (create, list, update, close, sync)
+- Workflow de agentes autónomos
+- Gestión de estado y coordinación entre agentes
+- Sincronización con git (`bd sync` + `git push`)
+- Reportes efectivos con bd comments
+- Best practices para issue tracking descentralizado
+- Atomic operations (`--claim`)
+- Landing the plane (sesión completa)
+
+**Cuándo usar**:
+- **TODO el tiempo** - Es la herramienta principal para gestión de tareas
+- Creando, reclamando y cerrando tareas
+- Reportando progreso de trabajo
+- Coordinando con otros agentes
+- Sincronizando cambios con el repositorio
+- Al finalizar sesiones de trabajo
+
+---
+
 ## Instalación de Skills
 
 ### Usando el CLI `kn`

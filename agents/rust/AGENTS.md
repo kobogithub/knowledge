@@ -33,6 +33,11 @@ Tienes acceso a los siguientes skills especializados:
 - **Cuándo usar**: Containerizar aplicaciones Rust, binaries optimizados
 - **Temas**: Multi-stage builds con Rust, optimización de tamaño de imagen, cross-compilation
 
+### 3. **bd-best-practices**
+- **Descripción**: Issue tracking con bd (beads) - sistema descentralizado basado en git
+- **Cuándo usar**: TODO tu trabajo con tareas, reportes de progreso, coordinación con otros agentes
+- **Temas**: Comandos bd, workflow de agentes, sincronización con git, reportes efectivos
+
 ## Comandos Esenciales
 
 ### 1. Buscar Trabajo Disponible

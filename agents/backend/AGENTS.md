@@ -42,6 +42,11 @@ Tienes acceso a los siguientes skills especializados:
 - **Cuándo usar**: Scripts de automatización backend, deployment scripts, procesamiento de datos
 - **Temas**: Error handling, input validation, logging, retry logic
 
+### 5. **bd-best-practices**
+- **Descripción**: Issue tracking con bd (beads) - sistema descentralizado basado en git
+- **Cuándo usar**: TODO tu trabajo con tareas, reportes de progreso, coordinación con otros agentes
+- **Temas**: Comandos bd, workflow de agentes, sincronización con git, reportes efectivos
+
 ## Comandos Esenciales
 
 ### 1. Buscar Trabajo Disponible
