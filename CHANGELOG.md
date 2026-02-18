@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed - MAJOR REFACTOR (2026-02-18)
+
+**Global ~/.kn/ Directory Architecture:**
+- **BREAKING**: Complete refactor to use `~/.kn/` as global directory for agents and skills
+- `~/.kn/agents/` - Single source of truth for all agents
+- `~/.kn/skills/` - Single source of truth for all skills
+- Projects now use symlinks to global directory (install once, use everywhere)
+
+**New Commands:**
+- `kn agents install <path>` - Install agents to ~/.kn/agents/
+- `kn agents list` - List installed agents with full metadata
+- `kn sync` - Sync project symlinks from kn.toml configuration
+
+**Completely Refactored `kn init`:**
+- Interactive prompts using `dialoguer`:
+  - Project name (auto-detected from directory)
+  - Workspace standard selection (OpenCode/Antigravity/Both)
+  - Multi-select agent selection from ~/.kn/agents/
+  - Optional recommended skills selection
+- Auto-detection of `required_skills` from agent YAML frontmatter
+- Generates kn.toml with selected agents and skills
+- Creates workspace-specific symlinks (`.opencode/`, `.agent/`, etc.)
+- Simplified to single `--yes` flag (non-interactive mode)
+
+**Agent Metadata System:**
+- YAML frontmatter in agents/*/AGENTS.md files
+- Metadata includes: name, id_prefix, description, required_skills, recommended_skills, tags
+- Auto-generation of agent IDs based on project name + id_prefix
+
+**New Rust CLI Architecture:**
+- `lib.rs` - Public library API
+- `config/` - Configuration management (KnConfig, WorkspaceStandard)
+- `core/` - Core functionality (kn_home, symlinks)
+- `models/` - Data models (AgentMetadata, SkillMetadata)
+- `commands/` - Command handlers (agents, skills, init, sync, etc.)
+
+**Benefits:**
+- ✅ Install once, use everywhere
+- ✅ Consistent versions across all projects
+- ✅ Easy updates (update in ~/.kn/, run `kn sync`)
+- ✅ Support both OpenCode and Antigravity simultaneously
+- ✅ Workspace-agnostic agent and skill management
+
 ### Added
 - CI/CD workflows for automated testing and releases
 - GitHub Actions for multi-platform binary builds
