@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 
 mod commands;
 use commands::beads::BeadsCommand;
+use commands::doctor::DoctorCommand;
 use commands::init::InitCommand;
 use commands::mcp::{McpCommands, McpHandler};
 use commands::skills::SkillsCommand;
@@ -26,6 +27,8 @@ enum Commands {
     /// Manage MCP (Model Context Protocol) servers
     #[command(subcommand)]
     Mcp(McpCommands),
+    /// Check system dependencies and installation
+    Doctor(DoctorCommand),
 }
 
 fn main() -> Result<()> {
@@ -39,6 +42,7 @@ fn main() -> Result<()> {
             let handler = McpHandler::new();
             handler.handle(cmd)?;
         }
+        Commands::Doctor(cmd) => cmd.execute()?,
     }
 
     Ok(())

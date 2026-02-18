@@ -21,6 +21,31 @@ export PATH="$PATH:/path/to/knowledge/cli/target/release"
 
 ## Usage
 
+### Check Dependencies
+
+Verify that all required dependencies are installed:
+```bash
+kn doctor
+```
+
+Show detailed output with installation status:
+```bash
+kn doctor --verbose
+```
+
+**Dependencies Checked:**
+- ✅ Rust (1.70+) - Required for building kn
+- ✅ Cargo - Rust package manager
+- ✅ Git - Version control
+- ✅ bd (beads) - Issue tracking system
+- ⚪ Dolt - Optional, for Beads database
+- ✅ Node.js (18.0+) - Required for MCP servers
+- ✅ npm - Node package manager
+
+Exit codes:
+- `0` - All required dependencies met
+- `1` - One or more critical dependencies missing
+
 ### Initialize Project
 
 Auto-detect project type and create configuration:
@@ -248,18 +273,34 @@ cli/
 │       ├── mod.rs            # Command module exports
 │       ├── init.rs           # Project initialization command
 │       ├── skills.rs         # Skills management (install, list)
-│       └── beads.rs          # Beads templates (epic, task, bug, feature, chore)
+│       ├── beads.rs          # Beads templates (epic, task, bug, feature, chore)
+│       ├── mcp.rs            # MCP server configuration
+│       └── doctor.rs         # Dependency verification
 ├── Cargo.toml
 └── README.md
 ```
 
-## Next Steps (Phase 1 Roadmap)
+## Next Steps (Roadmap)
 
-- [x] `kn skills install <name>` - Install skills from agentskills.io ✅
-- [x] `kn skills list` - List available/installed skills ✅
-- [x] `kn beads template <type>` - Generate issue templates ✅
-- [ ] `kn mcp add <server>` - Configure MCP servers
-- [ ] Cross-platform symlink handling for Windows
+**Phase 1: Core CLI (67% Complete)** ✅
+- [x] `kn init` - Project initialization ✅
+- [x] `kn skills install/list` - Skills management ✅
+- [x] `kn beads template` - Issue templates ✅
+- [x] `kn mcp add/list/remove` - MCP server configuration ✅
+- [x] `kn doctor` - Dependency verification ✅
+
+**Phase 2: Installation & Distribution (Pending)**
+- [ ] `install.sh` script for Linux/Mac
+- [ ] `install.ps1` script for Windows
+- [ ] Cross-platform symlink handling
+- [ ] GitHub Actions for releases
+- [ ] Pre-compiled binaries
+
+**Phase 3: Package Managers (Pending)**
+- [ ] Homebrew formula (macOS)
+- [ ] Cargo install (cross-platform)
+- [ ] apt/yum packages (Linux)
+- [ ] Chocolatey/scoop (Windows)
 
 ## License
 
