@@ -24,6 +24,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+ORANGE='\033[38;5;214m'
 NC='\033[0m' # No Color
 
 # Configuration
@@ -257,6 +258,106 @@ check_installed_version() {
     fi
 }
 
+# Unbuffered sed for real-time processing
+unbuffered_sed() {
+    if echo | sed -u -e "" >/dev/null 2>&1; then
+        sed -nu "$@"
+    elif echo | sed -l -e "" >/dev/null 2>&1; then
+        sed -nl "$@"
+    else
+        # Fallback: add padding to force line buffering
+        local pad="$(printf "\n%512s" "")"
+        sed -ne "s/$/\\${pad}/" "$@"
+    fi
+}
+
+# Print visual progress bar
+print_progress() {
+    local bytes="$1"
+    local length="$2"
+    [ "$length" -gt 0 ] || return 0
+
+    local width=50
+    local percent=$(( bytes * 100 / length ))
+    [ "$percent" -gt 100 ] && percent=100
+    local on=$(( percent * width / 100 ))
+    local off=$(( width - on ))
+
+    local filled=$(printf "%*s" "$on" "")
+    filled=${filled// /■}
+    local empty=$(printf "%*s" "$off" "")
+    empty=${empty// /･}
+
+    printf "\r${ORANGE}%s%s %3d%%${NC}" "$filled" "$empty" "$percent" >&4
+}
+
+# Download with visual progress bar
+download_with_progress() {
+    local url="$1"
+    local output="$2"
+
+    # Check if we're in a TTY environment
+    if [ -t 2 ]; then
+        exec 4>&2
+    else
+        # Not a TTY - use simple curl with basic progress
+        curl -# -L -o "$output" "$url"
+        return $?
+    fi
+
+    local tmp_dir=${TMPDIR:-/tmp}
+    local basename="${tmp_dir}/kn_install_$$"
+    local tracefile="${basename}.trace"
+
+    rm -f "$tracefile"
+    mkfifo "$tracefile"
+
+    # Hide cursor
+    printf "\033[?25l" >&4
+
+    # Ensure cleanup on exit
+    trap "trap - RETURN; rm -f \"$tracefile\"; printf '\033[?25h' >&4; exec 4>&-" RETURN
+
+    # Start download in background
+    (
+        curl --trace-ascii "$tracefile" -s -L -o "$output" "$url"
+    ) &
+    local curl_pid=$!
+
+    # Parse trace and show progress
+    unbuffered_sed \
+        -e 'y/ACDEGHLNORTV/acdeghlnortv/' \
+        -e '/^0000: content-length:/p' \
+        -e '/^<= recv data/p' \
+        "$tracefile" | \
+    {
+        local length=0
+        local bytes=0
+
+        while IFS=" " read -r -a line; do
+            [ "${#line[@]}" -lt 2 ] && continue
+            local tag="${line[0]} ${line[1]}"
+
+            if [ "$tag" = "0000: content-length:" ]; then
+                length="${line[2]}"
+                length=$(echo "$length" | tr -d '\r')
+                bytes=0
+            elif [ "$tag" = "<= recv" ]; then
+                local size="${line[3]}"
+                bytes=$(( bytes + size ))
+                if [ "$length" -gt 0 ]; then
+                    print_progress "$bytes" "$length"
+                fi
+            fi
+        done
+    }
+
+    wait $curl_pid
+    local ret=$?
+    echo "" >&4
+    return $ret
+}
+
 # Download kn binary from GitHub releases
 download_kn() {
     header "Downloading kn binary"
@@ -296,7 +397,7 @@ download_kn() {
     mkdir -p "$TMP_DIR"
     local tarball="$TMP_DIR/$asset_name"
     
-    if ! curl -fsSL -o "$tarball" "$download_url"; then
+    if ! download_with_progress "$download_url" "$tarball"; then
         error "Failed to download kn binary"
         error "URL: $download_url"
         return 1
