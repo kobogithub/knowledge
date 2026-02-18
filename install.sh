@@ -36,6 +36,7 @@ TMP_DIR="${TMPDIR:-/tmp}/kn-install-$$"
 # Flags
 SKIP_DEPS=false
 NO_CONFIRM=false
+NO_MODIFY_PATH=false
 VERSION="latest"
 
 # Logging functions
@@ -75,6 +76,10 @@ parse_args() {
                 NO_CONFIRM=true
                 shift
                 ;;
+            --no-modify-path)
+                NO_MODIFY_PATH=true
+                shift
+                ;;
             --help)
                 cat << EOF
 kn CLI Installation Script
@@ -82,10 +87,11 @@ kn CLI Installation Script
 Usage: $0 [OPTIONS]
 
 Options:
-    --version VER   Install specific version (e.g., v0.2.0)
-    --skip-deps     Skip automatic dependency installation
-    --no-confirm    Skip all confirmation prompts
-    --help          Show this help message
+    --version VER       Install specific version (e.g., v0.2.0)
+    --skip-deps         Skip automatic dependency installation
+    --no-confirm        Skip all confirmation prompts
+    --no-modify-path    Don't modify shell config files (.bashrc, .zshrc, etc.)
+    --help              Show this help message
 
 Dependencies installed (if not present):
     - Git
@@ -132,6 +138,18 @@ detect_os() {
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         OS="macos"
         ARCH=$(uname -m)
+        
+        # Detect Rosetta: x86_64 process running on ARM Mac
+        if [[ "$ARCH" == "x86_64" ]]; then
+            local rosetta_flag
+            rosetta_flag=$(sysctl -n sysctl.proc_translated 2>/dev/null || echo 0)
+            if [[ "$rosetta_flag" == "1" ]]; then
+                info "Detected Rosetta translation (x86_64 on ARM)"
+                ARCH="arm64"
+                info "Using ARM64 binary for better performance"
+            fi
+        fi
+        
         if [[ "$ARCH" != "x86_64" && "$ARCH" != "arm64" ]]; then
             error "Unsupported architecture: $ARCH"
             exit 1
@@ -208,6 +226,35 @@ get_latest_version() {
     fi
     
     echo "$version"
+}
+
+# Check if kn is already installed with the target version
+check_installed_version() {
+    local target_version="$1"
+    
+    if ! command_exists kn; then
+        return 1  # Not installed
+    fi
+    
+    local installed_version
+    installed_version=$(kn --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    
+    if [[ -z "$installed_version" ]]; then
+        return 1  # Can't determine version
+    fi
+    
+    # Strip 'v' prefix from target version for comparison
+    local target_clean="${target_version#v}"
+    
+    if [[ "$installed_version" == "$target_clean" ]]; then
+        info "kn version $installed_version is already installed"
+        info "Run with --version <ver> to install a different version"
+        return 0  # Same version installed
+    else
+        info "Current version: $installed_version"
+        info "Will upgrade to: $target_clean"
+        return 1  # Different version
+    fi
 }
 
 # Download kn binary from GitHub releases
@@ -490,12 +537,86 @@ install_kn() {
     # Add to PATH if not already there
     if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]] && [[ ! -f "/usr/local/bin/kn" ]]; then
         warn "$INSTALL_DIR is not in your PATH"
-        info "Add the following line to your ~/.bashrc or ~/.zshrc:"
-        echo ""
-        echo "  export PATH=\"\$PATH:$INSTALL_DIR\""
-        echo ""
+        
+        if [[ "$NO_MODIFY_PATH" == false ]]; then
+            info "Will attempt to add to shell configuration..."
+        else
+            info "Add the following line to your ~/.bashrc or ~/.zshrc:"
+            echo ""
+            echo "  export PATH=\"\$PATH:$INSTALL_DIR\""
+            echo ""
+        fi
     fi
     
+    return 0
+}
+
+# Add kn to PATH in shell configuration
+add_to_shell_config() {
+    if [[ "$NO_MODIFY_PATH" == true ]]; then
+        return 0
+    fi
+    
+    # Skip if already in system PATH
+    if [[ ":$PATH:" == *":$INSTALL_DIR:"* ]] || [[ -f "/usr/local/bin/kn" ]]; then
+        return 0
+    fi
+    
+    local current_shell
+    current_shell=$(basename "$SHELL")
+    
+    local config_files=""
+    local export_cmd="export PATH=\"\$PATH:$INSTALL_DIR\""
+    
+    case $current_shell in
+        fish)
+            config_files="$HOME/.config/fish/config.fish"
+            export_cmd="fish_add_path $INSTALL_DIR"
+            ;;
+        zsh)
+            config_files="${ZDOTDIR:-$HOME}/.zshrc ${ZDOTDIR:-$HOME}/.zshenv"
+            ;;
+        bash)
+            config_files="$HOME/.bashrc $HOME/.bash_profile $HOME/.profile"
+            ;;
+        ash|sh)
+            config_files="$HOME/.profile /etc/profile"
+            ;;
+        *)
+            config_files="$HOME/.bashrc $HOME/.profile"
+            ;;
+    esac
+    
+    local config_file=""
+    for file in $config_files; do
+        if [[ -f "$file" ]] && [[ -w "$file" ]]; then
+            config_file="$file"
+            break
+        fi
+    done
+    
+    if [[ -z "$config_file" ]]; then
+        warn "No writable config file found for $current_shell"
+        info "Manually add to your shell config:"
+        echo "  $export_cmd"
+        return 1
+    fi
+    
+    # Check if already added
+    if grep -Fxq "$export_cmd" "$config_file" 2>/dev/null; then
+        info "PATH already configured in $config_file"
+        return 0
+    fi
+    
+    # Add to config
+    {
+        echo ""
+        echo "# kn - Knowledge Framework CLI"
+        echo "$export_cmd"
+    } >> "$config_file"
+    
+    success "Added kn to PATH in $config_file"
+    info "Restart your shell or run: source $config_file"
     return 0
 }
 
@@ -544,6 +665,23 @@ main() {
     # Detect OS and architecture
     detect_os
     
+    # Determine version to install
+    local target_version="$VERSION"
+    if [[ "$target_version" == "latest" ]]; then
+        info "Fetching latest version from GitHub..."
+        target_version=$(get_latest_version)
+        if [[ -z "$target_version" ]]; then
+            error "Failed to determine latest version"
+            exit 1
+        fi
+    fi
+    
+    # Check if already installed with same version
+    if check_installed_version "$target_version"; then
+        success "Nothing to do!"
+        exit 0
+    fi
+    
     # Check/Install dependencies
     if [[ "$SKIP_DEPS" == false ]]; then
         header "Checking dependencies"
@@ -583,6 +721,9 @@ main() {
         info "Skipping dependency installation (--skip-deps)"
     fi
     
+    # Update VERSION global for download_kn
+    VERSION="$target_version"
+    
     # Download kn binary
     if ! download_kn; then
         cleanup
@@ -595,18 +736,28 @@ main() {
         exit 1
     fi
     
+    # Add to shell PATH configuration
+    add_to_shell_config
+    
     # Cleanup temporary files
     cleanup
     
     # Verify installation
     verify_installation
     
-    # Final message
+    # Final message with ASCII banner
     echo ""
-    header "Installation Complete!"
-    info "Get started with: kn init"
-    info "Run 'kn --help' for more information"
-    info "Update to latest version anytime with: kn update"
+    echo -e "${CYAN}╦╔═╔╗╔"
+    echo -e "╠╩╗║║║"
+    echo -e "╩ ╩╝╚╝${NC}"
+    echo ""
+    echo -e "${GREEN}Knowledge Framework CLI${NC}"
+    echo ""
+    info "Get started with: ${GREEN}kn init${NC}"
+    info "Run ${GREEN}kn --help${NC} for more information"
+    info "Update to latest version anytime with: ${GREEN}kn update${NC}"
+    echo ""
+    info "Documentation: https://github.com/kobogithub/knowledge"
     echo ""
 }
 
