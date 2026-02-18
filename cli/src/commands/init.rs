@@ -20,6 +20,10 @@ pub struct InitCommand {
     /// Skip auto-installation of recommended skills
     #[arg(long)]
     no_skills: bool,
+
+    /// Workspace standard to use (opencode or antigravity, default: both)
+    #[arg(long, default_value = "both")]
+    workspace_standard: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -106,8 +110,30 @@ impl InitCommand {
         // Initialize beads if not present
         self.init_beads(&project_info)?;
 
-        // Create OpenCode configuration
-        self.create_opencode_config(&project_info)?;
+        // Create workspace configurations based on standard
+        let standard = self.workspace_standard.as_str();
+        match standard {
+            "opencode" => {
+                self.create_opencode_config(&project_info)?;
+            }
+            "antigravity" => {
+                self.create_antigravity_config(&project_info)?;
+            }
+            "both" => {
+                self.create_opencode_config(&project_info)?;
+                self.create_antigravity_config(&project_info)?;
+            }
+            _ => {
+                println!(
+                    "{}",
+                    format!(
+                        "⚠ Unknown workspace standard '{}', skipping workspace config",
+                        standard
+                    )
+                    .yellow()
+                );
+            }
+        }
 
         println!("\n{}", "✓ Initialization complete!".bright_green().bold());
         println!("\n{}", "Next steps:".bright_white().bold());
@@ -694,6 +720,141 @@ templates_dir = ".beads/templates"
             .context("Failed to write .opencode/opencode.json")?;
 
         println!("{}", "  ✓ Created .opencode/opencode.json".green());
+        Ok(())
+    }
+
+    fn create_antigravity_config(&self, project: &ProjectInfo) -> Result<()> {
+        let agent_dir = project.root_dir.join(".agent");
+        let skills_dir = agent_dir.join("skills");
+
+        // Create .agent/skills directory if it doesn't exist
+        if !skills_dir.exists() {
+            fs::create_dir_all(&skills_dir).context("Failed to create .agent/skills directory")?;
+            println!("{}", "  ✓ Created .agent/skills directory".green());
+        } else {
+            println!(
+                "{}",
+                "  ⚠ .agent/skills already exists, skipping...".yellow()
+            );
+        }
+
+        // Create symlinks from ./skills/* to .agent/skills/*
+        let workspace_skills_dir = project.root_dir.join("skills");
+        if workspace_skills_dir.exists() {
+            if let Ok(entries) = fs::read_dir(&workspace_skills_dir) {
+                for entry in entries.filter_map(|e| e.ok()) {
+                    let path = entry.path();
+                    if path.is_dir() {
+                        if let Some(skill_name) = path.file_name() {
+                            let target = skills_dir.join(skill_name);
+
+                            // Skip if symlink already exists
+                            if target.exists() {
+                                continue;
+                            }
+
+                            // Create symlink (relative path for portability)
+                            let relative_source = PathBuf::from("../../skills").join(skill_name);
+
+                            #[cfg(unix)]
+                            {
+                                use std::os::unix::fs::symlink;
+                                if let Err(e) = symlink(&relative_source, &target) {
+                                    println!(
+                                        "{}",
+                                        format!(
+                                            "  ⚠ Failed to create symlink for {}: {}",
+                                            skill_name.to_string_lossy(),
+                                            e
+                                        )
+                                        .yellow()
+                                    );
+                                }
+                            }
+
+                            #[cfg(windows)]
+                            {
+                                use std::os::windows::fs::symlink_dir;
+                                if let Err(e) = symlink_dir(&relative_source, &target) {
+                                    println!(
+                                        "{}",
+                                        format!(
+                                            "  ⚠ Failed to create symlink for {}: {}",
+                                            skill_name.to_string_lossy(),
+                                            e
+                                        )
+                                        .yellow()
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+                println!(
+                    "{}",
+                    "  ✓ Created symlinks to skills in .agent/skills/".green()
+                );
+            }
+        }
+
+        // Create .agent/README.md with Antigravity documentation
+        let agent_readme_path = agent_dir.join("README.md");
+        if !agent_readme_path.exists() {
+            let readme_content = format!(
+                r#"# Antigravity Agent Configuration
+
+This directory contains configuration for **Google Antigravity** AI agent.
+
+## Structure
+
+```
+.agent/
+└── skills/           # Agent skills (symlinked from ../skills/)
+```
+
+## Skills
+
+Skills in this directory follow the Antigravity standard:
+- Each skill is a folder containing a `SKILL.md` file
+- Skills are automatically discovered by Antigravity
+- Skills can include scripts, examples, and resources
+
+### Available Skills
+
+Skills are symlinked from the `../skills/` directory:
+
+```bash
+ls -la .agent/skills/
+```
+
+## Adding Skills
+
+To add a new skill:
+
+```bash
+# Install using kn CLI
+kn skills install <skill-name>
+
+# The skill will be available in both locations:
+# - ./skills/<skill-name>/          (source)
+# - ./.agent/skills/<skill-name>/   (symlink for Antigravity)
+```
+
+## Project: {}
+
+**Type:** {:?}
+
+For more information about Antigravity skills, see:
+https://antigravity.dev/docs/agent/skills
+"#,
+                project.name, project.language
+            );
+
+            fs::write(&agent_readme_path, readme_content)
+                .context("Failed to write .agent/README.md")?;
+            println!("{}", "  ✓ Created .agent/README.md".green());
+        }
+
         Ok(())
     }
 }

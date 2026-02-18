@@ -1,0 +1,5 @@
+# Antigravity temporary files
+*.tmp
+*.log
+
+# Note: skills/ contains symlinks, which are tracked in git

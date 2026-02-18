@@ -11,12 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI/CD workflows for automated testing and releases
 - GitHub Actions for multi-platform binary builds
 - Automated Debian and RPM package building
-- **OpenCode/Antigravity workspace configuration**
-  - Automatic generation of `.opencode/opencode.json` during `kn init`
-  - Local workspace configuration with MCP servers, skills, and agents
-  - Support for project-specific OpenCode environments
-  - Auto-detection of installed skills for workspace config
-  - Documentation in `.opencode/README.md`
+- **Dual workspace standard support (OpenCode + Antigravity)**
+  - Automatic generation of `.opencode/opencode.json` for OpenCode
+  - Automatic generation of `.agent/skills/` for Antigravity
+  - Symlinks from `./skills/` to `.agent/skills/` for compatibility
+  - `--workspace-standard` flag (opencode|antigravity|both)
+  - Support for project-specific workspace environments
+  - Auto-detection of installed skills for both standards
+  - Complete documentation in `.opencode/README.md` and `.agent/README.md`
 
 ## [0.1.0] - 2026-02-18
 
