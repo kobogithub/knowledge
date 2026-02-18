@@ -7,6 +7,12 @@ Este directorio contiene la configuración local para **OpenCode** y **Antigravi
 ```
 .opencode/
 ├── opencode.json       # Configuración principal del workspace
+├── skills/             # Skills instalados (OpenCode standard)
+│   ├── rust-best-practices/
+│   │   └── SKILL.md
+│   ├── docker-best-practices/
+│   │   └── SKILL.md
+│   └── ...
 └── .gitignore         # Archivos a ignorar (node_modules, logs, etc.)
 ```
 
@@ -45,12 +51,14 @@ Habilidades específicas instaladas en el proyecto:
 "skills": [
   {
     "name": "rust-best-practices",
-    "path": "/absolute/path/to/skills/rust-best-practices"
+    "path": "skills/rust-best-practices"
   }
 ]
 ```
 
-**Auto-generado** basado en los skills instalados en `./skills/`
+**Skills Location:** `.opencode/skills/<skill-name>/SKILL.md` (OpenCode standard)  
+**Auto-generated** based on installed skills in `.opencode/skills/`  
+**Antigravity Access:** Symlinked from `.agent/skills/` → `.opencode/skills/`
 
 ### 3. **Agents**
 Agentes especializados para este proyecto:
@@ -183,10 +191,11 @@ Las variables se resuelven desde:
 
 ## ⚠️ Notas Importantes
 
-1. **Rutas Absolutas**: El archivo usa rutas absolutas para compatibilidad con OpenCode
-2. **Git Ignore**: `node_modules/` y archivos temporales están en `.gitignore`
-3. **Regeneración**: Ejecutar `kn init` nuevamente NO sobrescribe el archivo existente
-4. **Sincronización**: Los cambios en `./skills/` NO actualizan automáticamente `opencode.json`
+1. **Skills Location**: Skills se instalan en `.opencode/skills/` (OpenCode standard)
+2. **Relative Paths**: El archivo usa rutas relativas para portabilidad
+3. **Git Ignore**: `node_modules/` y archivos temporales están en `.gitignore`
+4. **Regeneración**: Ejecutar `kn init` nuevamente NO sobrescribe el archivo existente
+5. **Antigravity Compatibility**: `.agent/skills/` contiene symlinks a `.opencode/skills/`
 
 ## 🔄 Actualización Manual
 
@@ -196,10 +205,12 @@ Si agregas skills manualmente, actualiza la sección `skills`:
 # Después de instalar un nuevo skill
 kn skills install python-best-practices
 
+# El skill se instala automáticamente en .opencode/skills/python-best-practices/
+
 # Edita .opencode/opencode.json y agrega:
 {
   "name": "python-best-practices",
-  "path": "/absolute/path/to/skills/python-best-practices"
+  "path": "skills/python-best-practices"
 }
 ```
 

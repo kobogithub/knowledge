@@ -22,43 +22,43 @@
   "skills": [
     {
       "name": "rust-best-practices",
-      "path": "/home/kobo/github/knowledge/skills/rust-best-practices"
+      "path": "skills/rust-best-practices"
     },
     {
       "name": "docker-best-practices",
-      "path": "/home/kobo/github/knowledge/skills/docker-best-practices"
+      "path": "skills/docker-best-practices"
     },
     {
       "name": "bash-best-practices",
-      "path": "/home/kobo/github/knowledge/skills/bash-best-practices"
+      "path": "skills/bash-best-practices"
     },
     {
       "name": "bd-best-practices",
-      "path": "/home/kobo/github/knowledge/skills/bd-best-practices"
+      "path": "skills/bd-best-practices"
     },
     {
       "name": "github-actions-best-practices",
-      "path": "/home/kobo/github/knowledge/skills/github-actions-best-practices"
+      "path": "skills/github-actions-best-practices"
     },
     {
       "name": "python-best-practices",
-      "path": "/home/kobo/github/knowledge/skills/python-best-practices"
+      "path": "skills/python-best-practices"
     },
     {
       "name": "astro-best-practices",
-      "path": "/home/kobo/github/knowledge/skills/astro-best-practices"
+      "path": "skills/astro-best-practices"
     },
     {
       "name": "aws-best-practices",
-      "path": "/home/kobo/github/knowledge/skills/aws-best-practices"
+      "path": "skills/aws-best-practices"
     },
     {
       "name": "terraform-best-practices",
-      "path": "/home/kobo/github/knowledge/skills/terraform-best-practices"
+      "path": "skills/terraform-best-practices"
     },
     {
       "name": "supabase-postgres-best-practices",
-      "path": "/home/kobo/github/knowledge/skills/supabase-postgres-best-practices"
+      "path": "skills/supabase-postgres-best-practices"
     }
   ],
   "agents": {

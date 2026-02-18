@@ -13,13 +13,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automated Debian and RPM package building
 - **Dual workspace standard support (OpenCode + Antigravity)**
   - Automatic generation of `.opencode/opencode.json` for OpenCode
+  - Skills installed to `.opencode/skills/<name>/` (standard location)
   - Automatic generation of `.agent/skills/` for Antigravity
-  - Symlinks from `./skills/` to `.agent/skills/` for compatibility
+  - Symlinks from `.opencode/skills/` to `.agent/skills/` for compatibility
   - `--workspace-standard` flag (opencode|antigravity|both)
   - **Interactive prompt to choose workspace standard in `kn init`**
   - Support for project-specific workspace environments
   - Auto-detection of installed skills for both standards
   - Complete documentation in `.opencode/README.md` and `.agent/README.md`
+
+### Changed
+- **BREAKING**: Skills now installed to `.opencode/skills/` instead of `./skills/`
+  - Aligns with OpenCode standard (`.opencode/skills/<name>/SKILL.md`)
+  - Antigravity accesses via symlinks in `.agent/skills/`
+  - Relative paths in `opencode.json` for portability
 
 ## [0.1.0] - 2026-02-18
 

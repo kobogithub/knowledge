@@ -596,8 +596,8 @@ templates_dir = ".beads/templates"
         let mut skipped_count = 0;
 
         for skill_name in skills {
-            // Check if skill already exists
-            let skill_dir = project.root_dir.join("skills").join(skill_name);
+            // Check if skill already exists in .opencode/skills/
+            let skill_dir = project.root_dir.join(".opencode/skills").join(skill_name);
 
             if skill_dir.exists() {
                 skipped_count += 1;
@@ -671,7 +671,7 @@ templates_dir = ".beads/templates"
         };
 
         // Build skills array based on installed skills
-        let skills_dir = project.root_dir.join("skills");
+        let skills_dir = project.root_dir.join(".opencode/skills");
         let mut skills_json = String::from("  \"skills\": [\n");
 
         if skills_dir.exists() {
@@ -681,10 +681,11 @@ templates_dir = ".beads/templates"
                     let path = entry.path();
                     if path.is_dir() {
                         if let Some(skill_name) = path.file_name().and_then(|n| n.to_str()) {
-                            let skill_path = path.to_string_lossy();
+                            // Use relative path from .opencode/ directory
+                            let relative_path = format!("skills/{}", skill_name);
                             skill_entries.push(format!(
                                 "    {{\n      \"name\": \"{}\",\n      \"path\": \"{}\"\n    }}",
-                                skill_name, skill_path
+                                skill_name, relative_path
                             ));
                         }
                     }
@@ -772,8 +773,8 @@ templates_dir = ".beads/templates"
             );
         }
 
-        // Create symlinks from ./skills/* to .agent/skills/*
-        let workspace_skills_dir = project.root_dir.join("skills");
+        // Create symlinks from .opencode/skills/* to .agent/skills/*
+        let workspace_skills_dir = project.root_dir.join(".opencode/skills");
         if workspace_skills_dir.exists() {
             if let Ok(entries) = fs::read_dir(&workspace_skills_dir) {
                 for entry in entries.filter_map(|e| e.ok()) {
@@ -788,7 +789,8 @@ templates_dir = ".beads/templates"
                             }
 
                             // Create symlink (relative path for portability)
-                            let relative_source = PathBuf::from("../../skills").join(skill_name);
+                            let relative_source =
+                                PathBuf::from("../../.opencode/skills").join(skill_name);
 
                             #[cfg(unix)]
                             {
@@ -843,7 +845,43 @@ This directory contains configuration for **Google Antigravity** AI agent.
 
 ```
 .agent/
-└── skills/           # Agent skills (symlinked from ../skills/)
+└── skills/           # Agent skills (symlinked from ../.opencode/skills/)
+```
+
+## Skills
+
+Skills in this directory follow the Antigravity standard:
+- Each skill is a folder containing a `SKILL.md` file
+- Skills are automatically discovered by Antigravity
+- Skills can include scripts, examples, and resources
+
+### Available Skills
+
+Skills are symlinked from the `../.opencode/skills/` directory:
+
+```bash
+ls -la .agent/skills/
+```
+
+## Adding Skills
+
+To add a new skill:
+
+```bash
+# Install using kn CLI
+kn skills install <skill-name>
+
+# The skill will be installed to .opencode/skills/<skill-name>/
+# A symlink will be automatically created in .agent/skills/<skill-name>
+```
+
+## Structure
+
+The workspace uses a unified skill directory structure:
+
+```
+# - ./.opencode/skills/<skill-name>/   (source for OpenCode)
+# - ./.agent/skills/<skill-name>/      (symlink for Antigravity)
 ```
 
 ## Skills

@@ -53,12 +53,12 @@ fn install_skill(args: &InstallArgs) -> Result<()> {
     println!("{}", "📦 Installing skill...".bright_cyan().bold());
 
     let current_dir = std::env::current_dir()?;
-    let skills_dir = current_dir.join("skills");
+    let skills_dir = current_dir.join(".opencode/skills");
 
-    // Create skills directory if it doesn't exist
+    // Create .opencode/skills directory if it doesn't exist
     if !skills_dir.exists() {
-        fs::create_dir_all(&skills_dir).context("Failed to create skills directory")?;
-        println!("{}", "  ✓ Created skills/ directory".green());
+        fs::create_dir_all(&skills_dir).context("Failed to create .opencode/skills directory")?;
+        println!("{}", "  ✓ Created .opencode/skills/ directory".green());
     }
 
     // Determine source type (URL, path, or name)
@@ -121,7 +121,7 @@ fn install_skill(args: &InstallArgs) -> Result<()> {
         "✓ Skill installed successfully!".bright_green().bold()
     );
     println!("\n{}", "Next steps:".bright_white().bold());
-    println!("  1. Review skills/{}/SKILL.md", metadata.name);
+    println!("  1. Review .opencode/skills/{}/SKILL.md", metadata.name);
     println!("  2. Update AGENTS.md to reference the skill");
 
     Ok(())
@@ -130,11 +130,11 @@ fn install_skill(args: &InstallArgs) -> Result<()> {
 // Public API for use by other commands (e.g., init)
 pub fn install_skill_from_path(source: &str, silent: bool) -> Result<String> {
     let current_dir = std::env::current_dir()?;
-    let skills_dir = current_dir.join("skills");
+    let skills_dir = current_dir.join(".opencode/skills");
 
-    // Create skills directory if it doesn't exist
+    // Create .opencode/skills directory if it doesn't exist
     if !skills_dir.exists() {
-        fs::create_dir_all(&skills_dir).context("Failed to create skills directory")?;
+        fs::create_dir_all(&skills_dir).context("Failed to create .opencode/skills directory")?;
     }
 
     // Determine source type and download/load
@@ -196,10 +196,10 @@ pub fn install_skill_from_path(source: &str, silent: bool) -> Result<String> {
 
 fn list_skills() -> Result<()> {
     let current_dir = std::env::current_dir()?;
-    let skills_dir = current_dir.join("skills");
+    let skills_dir = current_dir.join(".opencode/skills");
 
     if !skills_dir.exists() {
-        println!("{}", "No skills directory found.".yellow());
+        println!("{}", "No .opencode/skills directory found.".yellow());
         println!("Run 'kn skills install <skill-name>' to install your first skill.");
         return Ok(());
     }

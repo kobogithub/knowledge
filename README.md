@@ -38,9 +38,13 @@ kn init
 ```
 
 **Workspace Standards Supported:**
-- ✅ **OpenCode** (`.opencode/opencode.json`)
-- ✅ **Antigravity** (`.agent/skills/` with symlinks to `./skills/`)
+- ✅ **OpenCode** (`.opencode/skills/<name>/SKILL.md`)
+- ✅ **Antigravity** (`.agent/skills/<name>/SKILL.md` symlinked to `.opencode/skills/`)
 - ✅ **Both** (default, recommended for maximum compatibility)
+
+**Skills Location:**
+- Single source: `.opencode/skills/<skill-name>/SKILL.md`
+- Antigravity access: `.agent/skills/<skill-name>` → symlink to `.opencode/skills/`
 
 **Interactive Mode:**
 ```bash
