@@ -1,0 +1,54 @@
+#!/usr/bin/make -f
+
+# Debian package build rules for kn
+
+# Enable hardening
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+# Use cargo for building
+export CARGO_HOME = $(CURDIR)/debian/.cargo
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	# Build kn CLI with cargo
+	cd cli && cargo build --release --locked
+
+override_dh_auto_install:
+	# Install kn binary
+	install -D -m 755 cli/target/release/kn $(CURDIR)/debian/kn/usr/bin/kn
+	
+	# Install skills
+	mkdir -p $(CURDIR)/debian/kn/usr/share/kn/skills
+	cp -r skills/* $(CURDIR)/debian/kn/usr/share/kn/skills/
+	
+	# Install agent templates
+	mkdir -p $(CURDIR)/debian/kn/usr/share/kn/agents
+	cp -r agents/* $(CURDIR)/debian/kn/usr/share/kn/agents/
+	
+	# Install documentation
+	mkdir -p $(CURDIR)/debian/kn/usr/share/doc/kn
+	cp README.md README_ES.md $(CURDIR)/debian/kn/usr/share/doc/kn/
+	cp install.sh install.ps1 $(CURDIR)/debian/kn/usr/share/doc/kn/
+	cp HOMEBREW.md $(CURDIR)/debian/kn/usr/share/doc/kn/
+	
+	# Install docs if they exist
+	if [ -d docs ]; then \
+		cp -r docs $(CURDIR)/debian/kn/usr/share/doc/kn/; \
+	fi
+	
+	# Install man page if it exists
+	if [ -f docs/kn.1 ]; then \
+		install -D -m 644 docs/kn.1 $(CURDIR)/debian/kn/usr/share/man/man1/kn.1; \
+	fi
+
+override_dh_auto_test:
+	# Run tests
+	cd cli && cargo test --release
+
+override_dh_auto_clean:
+	# Clean build artifacts
+	cd cli && cargo clean || true
+	rm -rf $(CARGO_HOME)
+	dh_auto_clean

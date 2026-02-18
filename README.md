@@ -63,10 +63,57 @@ kn mcp list                         # View configured servers
 
 ### Installation
 
-#### Automated Installation (Linux/macOS)
+Choose the installation method that works best for your platform:
+
+#### 📦 Package Managers (Recommended)
+
+##### macOS (Homebrew)
 
 ```bash
-# One-line install (recommended)
+# Add the Knowledge Framework tap
+brew tap kobogithub/knowledge
+
+# Install kn
+brew install kn
+
+# Verify
+kn doctor
+```
+
+**Note**: Homebrew formula will be available after first release. For now, use the automated installer below.
+
+##### Ubuntu / Debian (APT)
+
+```bash
+# Download and install .deb package
+wget https://github.com/kobogithub/knowledge/releases/download/v0.1.0/kn_0.1.0-1_amd64.deb
+sudo apt install ./kn_0.1.0-1_amd64.deb
+
+# Verify
+kn doctor
+```
+
+**Note**: APT repository coming soon. For now, use the automated installer below.
+
+##### Fedora / RHEL / Rocky Linux (DNF/YUM)
+
+```bash
+# Download and install .rpm package
+wget https://github.com/kobogithub/knowledge/releases/download/v0.1.0/kn-0.1.0-1.el9.x86_64.rpm
+sudo dnf install ./kn-0.1.0-1.el9.x86_64.rpm
+
+# Verify
+kn doctor
+```
+
+**Note**: YUM/DNF repository coming soon. For now, use the automated installer below.
+
+---
+
+#### 🚀 Automated Installation (All Linux/macOS)
+
+```bash
+# One-line install (recommended for now)
 curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
 
 # Or download and run
@@ -89,7 +136,9 @@ The install script will:
 - ✅ Install kn to `~/.local/bin` or `/usr/local/bin`
 - ✅ Verify installation with `kn doctor`
 
-#### Manual Installation
+---
+
+#### 🔨 Manual Installation (From Source)
 
 ```bash
 # 1. Install dependencies
@@ -111,7 +160,9 @@ cp target/release/kn ~/.local/bin/
 kn doctor
 ```
 
-#### Windows Installation
+---
+
+#### 🪟 Windows Installation
 
 ```powershell
 # Download and run the PowerShell script
@@ -121,6 +172,15 @@ irm https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.ps1 | ie
 ```
 
 **Note**: Windows automated installation is in development. See `install.ps1` for manual steps.
+
+---
+
+#### 📚 Platform-Specific Guides
+
+For detailed platform-specific installation instructions, see:
+- **[HOMEBREW.md](./HOMEBREW.md)** - Homebrew formula and tap setup
+- **[DEBIAN.md](./DEBIAN.md)** - Building and publishing Debian packages
+- **[RPM.md](./RPM.md)** - Building and publishing RPM packages for Fedora/RHEL
 
 ### Verify Installation
 
