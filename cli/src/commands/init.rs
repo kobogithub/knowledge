@@ -110,8 +110,42 @@ impl InitCommand {
         // Initialize beads if not present
         self.init_beads(&project_info)?;
 
+        // Determine workspace standard (interactive or from flag)
+        let standard = if !self.yes && self.workspace_standard == "both" {
+            // Interactive mode: ask user to choose
+            println!(
+                "\n{}",
+                "Choose workspace standard for AI assistants:"
+                    .bright_white()
+                    .bold()
+            );
+            println!("  1. OpenCode only");
+            println!("  2. Antigravity only");
+            println!("  3. Both (recommended)");
+            println!("\n{}", "Enter choice [1-3] (default: 3): ".bright_white());
+
+            let mut input = String::new();
+            std::io::stdin().read_line(&mut input)?;
+            let choice = input.trim();
+
+            match choice {
+                "1" => "opencode",
+                "2" => "antigravity",
+                "3" | "" => "both",
+                _ => {
+                    println!(
+                        "{}",
+                        format!("⚠ Invalid choice '{}', using default (both)", choice).yellow()
+                    );
+                    "both"
+                }
+            }
+        } else {
+            // Non-interactive mode or explicit flag: use the provided value
+            self.workspace_standard.as_str()
+        };
+
         // Create workspace configurations based on standard
-        let standard = self.workspace_standard.as_str();
         match standard {
             "opencode" => {
                 self.create_opencode_config(&project_info)?;

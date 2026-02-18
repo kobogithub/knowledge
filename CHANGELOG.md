@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatic generation of `.agent/skills/` for Antigravity
   - Symlinks from `./skills/` to `.agent/skills/` for compatibility
   - `--workspace-standard` flag (opencode|antigravity|both)
+  - **Interactive prompt to choose workspace standard in `kn init`**
   - Support for project-specific workspace environments
   - Auto-detection of installed skills for both standards
   - Complete documentation in `.opencode/README.md` and `.agent/README.md`
