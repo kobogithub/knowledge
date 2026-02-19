@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-02-19
+
+### Added
+- `kn mcp search` command for searching the official MCP Registry
+  - Search across 81+ MCP servers from the community
+  - Filter by query (searches name, title, and description)
+  - `--limit` flag to control number of results (default: 10)
+  - `--install` flag for interactive installation
+  - Displays formatted results with version, description, website, and repository
+  - Graceful fallback with helpful suggestions when no results found
+  - API endpoint: `https://registry.modelcontextprotocol.io/v0/servers`
+
+### Examples
+```bash
+kn mcp search postgres --limit 5
+kn mcp search github --install
+kn mcp search "AI assistant"
+```
+
+## [0.3.0] - 2026-02-19
+
 ### Added
 - `kn update` command for self-updating CLI from GitHub releases
   - `kn update --check` to check for updates without updating
