@@ -4,7 +4,7 @@ use colored::*;
 use std::env;
 use std::path::PathBuf;
 
-use crate::config::{KnConfig, OpenCodeConfig, WorkspaceStandard};
+use crate::config::{GeminiConfig, KnConfig, OpenCodeConfig, WorkspaceStandard};
 use crate::core::{kn_home, symlinks};
 
 #[derive(Args)]
@@ -259,6 +259,69 @@ impl SyncCommand {
                         }
                         Err(e) => {
                             println!("  {} Failed to generate MCP config: {}", "✗".red(), e);
+                        }
+                    }
+                }
+
+                // Generate .gemini/antigravity/mcp_config.json for Antigravity workspace
+                if matches!(
+                    workspace,
+                    WorkspaceStandard::Antigravity | WorkspaceStandard::Both
+                ) {
+                    let gemini_dir = project_root.join(".gemini").join("antigravity");
+                    let gemini_json = gemini_dir.join("mcp_config.json");
+
+                    // Load existing config if present to preserve manually added servers
+                    let existing_config = if gemini_json.exists() {
+                        match GeminiConfig::from_file(&gemini_json) {
+                            Ok(cfg) => Some(cfg),
+                            Err(_) => {
+                                println!(
+                                    "  {} Could not parse existing mcp_config.json, creating new one",
+                                    "⚠".yellow()
+                                );
+                                None
+                            }
+                        }
+                    } else {
+                        None
+                    };
+
+                    // Generate MCP configuration
+                    match GeminiConfig::generate_from_project(mcp_config) {
+                        Ok(mut generated) => {
+                            // Merge with existing config to preserve manually added servers
+                            if let Some(existing) = existing_config {
+                                generated.merge_with_existing(&existing);
+                            }
+
+                            // Save to file
+                            match generated.save(&gemini_json) {
+                                Ok(_) => {
+                                    println!(
+                                        "{}",
+                                        format!(
+                                            "  ✓ Generated .gemini/antigravity/mcp_config.json with {} MCPs",
+                                            generated.mcp_servers.len()
+                                        )
+                                        .green()
+                                    );
+                                }
+                                Err(e) => {
+                                    println!(
+                                        "  {} Failed to save .gemini/antigravity/mcp_config.json: {}",
+                                        "✗".red(),
+                                        e
+                                    );
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            println!(
+                                "  {} Failed to generate Gemini MCP config: {}",
+                                "✗".red(),
+                                e
+                            );
                         }
                     }
                 }

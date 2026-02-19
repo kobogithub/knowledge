@@ -5,7 +5,7 @@ use dialoguer::{theme::ColorfulTheme, Confirm, Input, MultiSelect, Select};
 use std::collections::HashSet;
 use std::fs;
 
-use crate::config::{KnConfig, OpenCodeConfig, WorkspaceStandard};
+use crate::config::{GeminiConfig, KnConfig, OpenCodeConfig, WorkspaceStandard};
 use crate::core::{kn_home, symlinks};
 use crate::models::agent::AgentMetadata;
 
@@ -253,6 +253,57 @@ impl InitCommand {
             }
         }
 
+        // 9b. Generate .gemini/antigravity/mcp_config.json for Antigravity workspace
+        if matches!(
+            workspace_standard,
+            WorkspaceStandard::Antigravity | WorkspaceStandard::Both
+        ) {
+            println!(
+                "\n{}",
+                "📄 Generating .gemini/antigravity/mcp_config.json...".bright_cyan()
+            );
+
+            let gemini_dir = current_dir.join(".gemini").join("antigravity");
+            let gemini_json = gemini_dir.join("mcp_config.json");
+
+            // Create .gemini/antigravity directory
+            fs::create_dir_all(&gemini_dir)
+                .context("Failed to create .gemini/antigravity directory")?;
+
+            // Generate Gemini config
+            let gemini_config = if let Some(mcp_config) = &config.mcp {
+                // If project has MCPs configured, generate with them
+                match GeminiConfig::generate_from_project(mcp_config) {
+                    Ok(cfg) => cfg,
+                    Err(e) => {
+                        println!("  {} Failed to generate MCP config: {}", "⚠".yellow(), e);
+                        GeminiConfig::new()
+                    }
+                }
+            } else {
+                // Empty config
+                GeminiConfig::new()
+            };
+
+            // Save config
+            gemini_config
+                .save(&gemini_json)
+                .context("Failed to save .gemini/antigravity/mcp_config.json")?;
+
+            if !gemini_config.mcp_servers.is_empty() {
+                println!(
+                    "  {} Created .gemini/antigravity/mcp_config.json with {} MCPs",
+                    "✓".green(),
+                    gemini_config.mcp_servers.len()
+                );
+            } else {
+                println!(
+                    "  {} Created .gemini/antigravity/mcp_config.json (no MCPs)",
+                    "✓".green()
+                );
+            }
+        }
+
         // 10. Create AGENTS.md if it doesn't exist
         let agents_md_path = current_dir.join("AGENTS.md");
         if !agents_md_path.exists() {
@@ -279,14 +330,20 @@ impl InitCommand {
             WorkspaceStandard::OpenCode | WorkspaceStandard::Both
         ) {
             println!("  2. Review .opencode/opencode.json for MCP configuration");
-            println!("  3. Add MCPs: kn mcp install <name> && kn mcp add <name>");
-            println!("  4. Run: kn sync (to update symlinks and configs)");
-        } else {
-            println!("  2. Run: kn sync (to update symlinks)");
         }
 
+        if matches!(
+            workspace_standard,
+            WorkspaceStandard::Antigravity | WorkspaceStandard::Both
+        ) {
+            println!("  3. Review .gemini/antigravity/mcp_config.json for MCP configuration");
+        }
+
+        println!("  4. Add MCPs: kn mcp install <name> && kn mcp add <name>");
+        println!("  5. Run: kn sync (to update symlinks and configs)");
+
         if !all_skills.is_empty() {
-            println!("  5. Ensure skills are installed: kn skills list");
+            println!("  6. Ensure skills are installed: kn skills list");
         }
 
         Ok(())
