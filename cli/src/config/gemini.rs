@@ -23,6 +23,12 @@ pub struct GeminiMcpServer {
     pub env: HashMap<String, String>,
 }
 
+impl Default for GeminiConfig {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GeminiConfig {
     /// Create a new empty Gemini config
     pub fn new() -> Self {

@@ -45,7 +45,7 @@ impl SyncCommand {
         println!("  Project: {}", config.project.name.bright_white().bold());
         println!("  Workspace: {}", config.project.workspace_standard.cyan());
 
-        let workspace = WorkspaceStandard::from_str(&config.project.workspace_standard)
+        let workspace = WorkspaceStandard::parse(&config.project.workspace_standard)
             .unwrap_or(WorkspaceStandard::Both);
 
         // Sync skills

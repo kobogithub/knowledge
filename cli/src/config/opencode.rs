@@ -43,6 +43,12 @@ fn is_true(val: &bool) -> bool {
     *val
 }
 
+impl Default for OpenCodeConfig {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OpenCodeConfig {
     /// Create a new OpenCode config with default schema
     pub fn new() -> Self {

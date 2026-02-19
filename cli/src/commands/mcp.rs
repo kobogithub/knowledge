@@ -117,6 +117,12 @@ pub struct McpProjectOverride {
 
 pub struct McpHandler;
 
+impl Default for McpHandler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl McpHandler {
     pub fn new() -> Self {
         Self
@@ -286,7 +292,7 @@ impl McpHandler {
 
                 if !mcp.environment.is_empty() {
                     println!("  Environment:");
-                    for (key, _) in &mcp.environment {
+                    for key in mcp.environment.keys() {
                         println!("    {} (configured)", key.cyan());
                     }
                 }
@@ -581,7 +587,7 @@ impl McpHandler {
 
         // Use npm view to check if package exists
         let output = std::process::Command::new("npm")
-            .args(&["view", package, "version", "--json"])
+            .args(["view", package, "version", "--json"])
             .output();
 
         match output {

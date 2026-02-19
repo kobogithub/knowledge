@@ -20,7 +20,7 @@ impl fmt::Display for WorkspaceStandard {
 }
 
 impl WorkspaceStandard {
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse(s: &str) -> Option<Self> {
         match s.to_lowercase().as_str() {
             "opencode" | "1" => Some(Self::OpenCode),
             "antigravity" | "2" => Some(Self::Antigravity),
