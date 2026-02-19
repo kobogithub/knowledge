@@ -173,6 +173,56 @@ Por ahora, por favor usa el instalador automatizado arriba.
 
 ---
 
+### Desinstalar
+
+Si necesitas desinstalar `kn`, proporcionamos un script de desinstalación completo:
+
+#### 🗑️ Desinstalación Básica
+
+Elimina solo el binario `kn` y la configuración del shell:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/uninstall.sh | bash
+```
+
+O si tienes el repositorio clonado:
+
+```bash
+./uninstall.sh
+```
+
+#### 🧹 Eliminación Completa
+
+Elimina todo incluyendo todos los recursos globales:
+
+```bash
+# Eliminar binario kn + directorio ~/.kn/ (agentes, skills, MCPs)
+./uninstall.sh --remove-data
+
+# Eliminar binario kn + configuraciones de proyectos (kn.toml, .opencode/, .gemini/)
+./uninstall.sh --remove-config
+
+# Eliminar todo (binario + datos + configuraciones de proyectos)
+./uninstall.sh --remove-data --remove-config --yes
+```
+
+**Opciones:**
+- `--remove-data` - Elimina el directorio `~/.kn/` (todos los agentes, skills, MCPs)
+- `--remove-config` - Elimina configuraciones de proyectos en ubicaciones comunes
+- `--yes` - Omite todas las confirmaciones
+- `--help` - Muestra ayuda detallada
+
+**Qué se elimina:**
+- ✅ Binario `kn` de `~/.local/bin/` o `/usr/local/bin/`
+- ✅ Entradas de configuración del shell (`.bashrc`, `.zshrc`, etc.)
+- ⚠️ Directorio `~/.kn/` (solo con `--remove-data`)
+- ⚠️ Configuraciones de proyectos (solo con `--remove-config`)
+- ❌ Dependencias (Git, Node.js, bd) NO se eliminan
+
+**Nota:** El script de desinstalación crea respaldos de los archivos de configuración del shell antes de modificarlos.
+
+---
+
 ### Inicializar Tu Primer Proyecto
 
 ```bash

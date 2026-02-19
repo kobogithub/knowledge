@@ -238,6 +238,58 @@ kn doctor
 - ✅ **Node.js** (18.0+) - For MCP servers
 - ✅ **npm** - Node package manager
 
+---
+
+### Uninstall
+
+If you need to uninstall `kn`, we provide a comprehensive uninstallation script:
+
+#### 🗑️ Basic Uninstallation
+
+Remove only the `kn` binary and shell configuration:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/uninstall.sh | bash
+```
+
+Or if you have the repository cloned:
+
+```bash
+./uninstall.sh
+```
+
+#### 🧹 Complete Removal
+
+Remove everything including all global resources:
+
+```bash
+# Remove kn binary + ~/.kn/ directory (agents, skills, MCPs)
+./uninstall.sh --remove-data
+
+# Remove kn binary + project configurations (kn.toml, .opencode/, .gemini/)
+./uninstall.sh --remove-config
+
+# Remove everything (binary + data + project configs)
+./uninstall.sh --remove-data --remove-config --yes
+```
+
+**Options:**
+- `--remove-data` - Remove `~/.kn/` directory (all agents, skills, MCPs)
+- `--remove-config` - Remove project configurations from common locations
+- `--yes` - Skip all confirmation prompts
+- `--help` - Show detailed help
+
+**What gets removed:**
+- ✅ `kn` binary from `~/.local/bin/` or `/usr/local/bin/`
+- ✅ Shell configuration entries (`.bashrc`, `.zshrc`, etc.)
+- ⚠️ `~/.kn/` directory (only with `--remove-data`)
+- ⚠️ Project configurations (only with `--remove-config`)
+- ❌ Dependencies (Git, Node.js, bd) are NOT removed
+
+**Note:** The uninstall script creates backups of shell configuration files before modifying them.
+
+---
+
 ### Initialize Your First Project
 
 ```bash
