@@ -5,7 +5,7 @@ use dialoguer::{theme::ColorfulTheme, Confirm, Input, MultiSelect, Select};
 use std::collections::HashSet;
 use std::fs;
 
-use crate::config::{KnConfig, WorkspaceStandard};
+use crate::config::{KnConfig, OpenCodeConfig, WorkspaceStandard};
 use crate::core::{kn_home, symlinks};
 use crate::models::agent::AgentMetadata;
 
@@ -203,7 +203,57 @@ impl InitCommand {
 
         println!("  {} Symlinks created", "✓".green());
 
-        // 9. Create AGENTS.md if it doesn't exist
+        // 9. Generate .opencode/opencode.json for OpenCode workspace
+        if matches!(
+            workspace_standard,
+            WorkspaceStandard::OpenCode | WorkspaceStandard::Both
+        ) {
+            println!(
+                "\n{}",
+                "📄 Generating .opencode/opencode.json...".bright_cyan()
+            );
+
+            let opencode_dir = current_dir.join(".opencode");
+            let opencode_json = opencode_dir.join("opencode.json");
+
+            // Create .opencode directory
+            fs::create_dir_all(&opencode_dir).context("Failed to create .opencode directory")?;
+
+            // Generate OpenCode config
+            let opencode_config = if let Some(mcp_config) = &config.mcp {
+                // If project has MCPs configured, generate with them
+                match OpenCodeConfig::generate_from_project(mcp_config) {
+                    Ok(cfg) => cfg,
+                    Err(e) => {
+                        println!("  {} Failed to generate MCP config: {}", "⚠".yellow(), e);
+                        OpenCodeConfig::new()
+                    }
+                }
+            } else {
+                // Empty config with just schema
+                OpenCodeConfig::new()
+            };
+
+            // Save config
+            opencode_config
+                .save(&opencode_json)
+                .context("Failed to save .opencode/opencode.json")?;
+
+            if let Some(mcp) = &opencode_config.mcp {
+                println!(
+                    "  {} Created .opencode/opencode.json with {} MCPs",
+                    "✓".green(),
+                    mcp.len()
+                );
+            } else {
+                println!(
+                    "  {} Created .opencode/opencode.json (no MCPs)",
+                    "✓".green()
+                );
+            }
+        }
+
+        // 10. Create AGENTS.md if it doesn't exist
         let agents_md_path = current_dir.join("AGENTS.md");
         if !agents_md_path.exists() {
             let agents_md_content = self.generate_agents_md(&project_name, &selected_agents);
@@ -213,7 +263,7 @@ impl InitCommand {
             println!("  {} AGENTS.md already exists", "⚠".yellow());
         }
 
-        // 10. Summary
+        // 11. Summary
         println!("\n{}", "✓ Initialization complete!".bright_green().bold());
         println!("\n{}", "Summary:".bright_white().bold());
         println!("  Project: {}", project_name.bright_yellow());
@@ -223,9 +273,20 @@ impl InitCommand {
 
         println!("\n{}", "Next steps:".bright_white().bold());
         println!("  1. Review kn.toml and customize as needed");
-        println!("  2. Run: kn sync (to update symlinks)");
+
+        if matches!(
+            workspace_standard,
+            WorkspaceStandard::OpenCode | WorkspaceStandard::Both
+        ) {
+            println!("  2. Review .opencode/opencode.json for MCP configuration");
+            println!("  3. Add MCPs: kn mcp install <name> && kn mcp add <name>");
+            println!("  4. Run: kn sync (to update symlinks and configs)");
+        } else {
+            println!("  2. Run: kn sync (to update symlinks)");
+        }
+
         if !all_skills.is_empty() {
-            println!("  3. Ensure skills are installed: kn skills list");
+            println!("  5. Ensure skills are installed: kn skills list");
         }
 
         Ok(())
