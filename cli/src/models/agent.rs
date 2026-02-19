@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct AgentMetadata {
     pub name: String,
     pub id_prefix: String,
@@ -14,19 +14,6 @@ pub struct AgentMetadata {
     pub recommended_skills: Vec<String>,
     #[serde(default)]
     pub tags: Vec<String>,
-}
-
-impl Default for AgentMetadata {
-    fn default() -> Self {
-        Self {
-            name: String::new(),
-            id_prefix: String::new(),
-            description: String::new(),
-            required_skills: Vec::new(),
-            recommended_skills: Vec::new(),
-            tags: Vec::new(),
-        }
-    }
 }
 
 impl AgentMetadata {
