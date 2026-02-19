@@ -158,29 +158,41 @@ impl InitCommand {
             }
         }
 
-        // 5. Auto-install required skills
+        // 5. Verify required skills are available
         if !required_skills.is_empty() {
-            println!(
-                "\n{}",
-                format!(
-                    "📦 Auto-installing {} required skills...",
-                    required_skills.len()
-                )
-                .bright_cyan()
-            );
+            println!("\n{}", "📦 Checking required skills...".bright_cyan());
 
+            let mut missing_skills = Vec::new();
             for skill in &required_skills {
                 // Check if already installed in ~/.kn/skills/
                 let skill_path = kn_home::skills_dir()?.join(skill);
                 if skill_path.exists() {
                     println!("  {} {}", "✓".green(), skill.bright_white());
                 } else {
-                    println!(
-                        "  {} {} (not found in ~/.kn/skills/)",
-                        "⚠".yellow(),
-                        skill.yellow()
-                    );
+                    println!("  {} {} (missing)", "⚠".yellow(), skill.bright_white());
+                    missing_skills.push(skill.as_str());
                 }
+            }
+
+            if !missing_skills.is_empty() {
+                println!(
+                    "\n  {} {} skills missing from ~/.kn/skills/",
+                    "⚠".yellow(),
+                    missing_skills.len()
+                );
+                println!(
+                    "  {} These skills should have been installed automatically.",
+                    "ℹ".bright_blue()
+                );
+                println!(
+                    "  {} Try running: {}",
+                    "💡".bright_yellow(),
+                    "kn update".yellow().bold()
+                );
+                println!(
+                    "  {} Or reinstall kn using the latest install.sh",
+                    "💡".bright_yellow()
+                );
             }
         }
 
@@ -192,10 +204,14 @@ impl InitCommand {
             let rec_names: Vec<String> = rec_vec.iter().map(|s| s.to_string()).collect();
 
             if !rec_names.is_empty() {
+                println!("\n{}", "📚 Optional recommended skills:".bright_cyan());
+                println!(
+                    "  {} These are optional but may improve agent performance",
+                    "ℹ".bright_blue()
+                );
+
                 let selections = MultiSelect::with_theme(&ColorfulTheme::default())
-                    .with_prompt(
-                        "Select optional recommended skills (Space to select, Enter to confirm)",
-                    )
+                    .with_prompt("Select skills to add (Space to select, Enter to skip)")
                     .items(&rec_names)
                     .interact()?;
 
@@ -358,31 +374,62 @@ impl InitCommand {
         println!("  Project: {}", project_name.bright_yellow());
         println!("  Workspace: {:?}", workspace_standard);
         println!("  Agents: {}", selected_agents.len());
-        println!("  Skills: {}", all_skills.len());
+        println!("  Skills configured: {}", all_skills.len());
+
+        // Check how many skills are actually installed
+        let skills_dir = kn_home::skills_dir()?;
+        let installed_count = all_skills
+            .iter()
+            .filter(|s| skills_dir.join(s).exists())
+            .count();
+        let missing_count = all_skills.len() - installed_count;
+
+        if missing_count > 0 {
+            println!(
+                "  {} Skills missing: {} (should be auto-installed)",
+                "⚠".yellow(),
+                missing_count
+            );
+        }
 
         println!("\n{}", "Next steps:".bright_white().bold());
         println!("  1. Review kn.toml and customize as needed");
+
+        if missing_count > 0 {
+            println!("  2. Reinstall kn to get missing skills:");
+            println!("     curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash");
+            println!("     or run: kn update");
+        }
 
         if matches!(
             workspace_standard,
             WorkspaceStandard::OpenCode | WorkspaceStandard::Both
         ) {
-            println!("  2. Review .opencode/opencode.json for MCP configuration");
+            println!(
+                "  {}. Review .opencode/opencode.json for MCP configuration",
+                if missing_count > 0 { 3 } else { 2 }
+            );
         }
 
         if matches!(
             workspace_standard,
             WorkspaceStandard::Antigravity | WorkspaceStandard::Both
         ) {
-            println!("  3. Review .gemini/antigravity/mcp_config.json for MCP configuration");
+            println!(
+                "  {}. Review .gemini/antigravity/mcp_config.json for MCP configuration",
+                if missing_count > 0 { 4 } else { 3 }
+            );
         }
 
-        println!("  4. Add MCPs: kn mcp install <name> && kn mcp add <name>");
-        println!("  5. Run: kn sync (to update symlinks and configs)");
-
-        if !all_skills.is_empty() {
-            println!("  6. Ensure skills are installed: kn skills list");
-        }
+        let next_step = if missing_count > 0 { 5 } else { 4 };
+        println!(
+            "  {}. Add MCPs: kn mcp install <name> && kn mcp add <name>",
+            next_step
+        );
+        println!(
+            "  {}. Run: kn sync (to update symlinks and configs)",
+            next_step + 1
+        );
 
         Ok(())
     }

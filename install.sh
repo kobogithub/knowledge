@@ -652,6 +652,79 @@ install_kn() {
     return 0
 }
 
+# Populate ~/.kn/ with agents, skills, and MCP directories
+setup_kn_resources() {
+    header "Setting up kn resources"
+    
+    local kn_home="$HOME/.kn"
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    
+    info "Creating ~/.kn directory structure..."
+    mkdir -p "$kn_home"/{agents,skills,mcps}
+    
+    # Copy agents
+    if [[ -d "$script_dir/agents" ]]; then
+        info "Installing agents to ~/.kn/agents/..."
+        
+        # Copy each agent directory
+        for agent_dir in "$script_dir/agents"/*; do
+            if [[ -d "$agent_dir" ]]; then
+                local agent_name=$(basename "$agent_dir")
+                local dest="$kn_home/agents/$agent_name"
+                
+                # Create or update agent directory
+                mkdir -p "$dest"
+                cp -r "$agent_dir"/* "$dest/" 2>/dev/null || true
+                
+                if [[ -f "$dest/AGENTS.md" ]]; then
+                    success "Installed agent: $agent_name"
+                fi
+            fi
+        done
+    else
+        warn "agents/ directory not found - skipping agent installation"
+        warn "Agents will need to be installed manually"
+    fi
+    
+    # Copy skills
+    if [[ -d "$script_dir/skills" ]]; then
+        info "Installing skills to ~/.kn/skills/..."
+        
+        # Copy each skill directory
+        for skill_dir in "$script_dir/skills"/*; do
+            if [[ -d "$skill_dir" ]]; then
+                local skill_name=$(basename "$skill_dir")
+                local dest="$kn_home/skills/$skill_name"
+                
+                # Create or update skill directory
+                mkdir -p "$dest"
+                cp -r "$skill_dir"/* "$dest/" 2>/dev/null || true
+                
+                if [[ -f "$dest/SKILL.md" ]]; then
+                    success "Installed skill: $skill_name"
+                fi
+            fi
+        done
+    else
+        warn "skills/ directory not found - skipping skill installation"
+        warn "Skills will need to be installed manually"
+    fi
+    
+    # Create MCPs directory (actual MCPs installed on-demand)
+    mkdir -p "$kn_home/mcps"
+    info "Created ~/.kn/mcps/ (MCP servers will be installed on-demand)"
+    
+    success "Resource setup complete"
+    echo ""
+    info "Resources installed to ~/.kn/:"
+    echo "  - Agents: ~/.kn/agents/"
+    echo "  - Skills: ~/.kn/skills/"
+    echo "  - MCPs:   ~/.kn/mcps/ (installed on-demand)"
+    echo ""
+    
+    return 0
+}
+
 # Add kn to PATH in shell configuration
 add_to_shell_config() {
     if [[ "$NO_MODIFY_PATH" == true ]]; then
@@ -835,6 +908,11 @@ main() {
     if ! install_kn; then
         cleanup
         exit 1
+    fi
+    
+    # Setup kn resources (agents, skills, MCPs)
+    if ! setup_kn_resources; then
+        warn "Resource setup had issues, but kn is installed"
     fi
     
     # Add to shell PATH configuration
