@@ -4,13 +4,39 @@ This document describes the release process for the Knowledge Framework CLI (`kn
 
 ## Overview
 
-Our release process is automated via GitHub Actions and produces:
+Our release process produces:
 - ✅ Pre-compiled binaries for Linux, macOS, and Windows (x86_64 and ARM64)
 - ✅ Debian packages (.deb) for Ubuntu/Debian
 - ✅ RPM packages (.rpm) for Fedora, RHEL, Rocky, AlmaLinux
 - ✅ Homebrew formula updates
 - ✅ Checksums (SHA256) for all artifacts
 - ✅ GitHub Release with release notes
+
+### Binary Naming Convention
+
+**IMPORTANT**: Release assets must follow this exact naming convention for `kn update` to work:
+
+```
+kn-{os}-{arch}.tar.gz
+```
+
+Where:
+- `{os}` = `linux`, `macos`, or `windows`
+- `{arch}` = `x86_64` or `aarch64`
+
+**Required asset names:**
+- `kn-linux-x86_64.tar.gz`
+- `kn-linux-aarch64.tar.gz`
+- `kn-macos-x86_64.tar.gz`
+- `kn-macos-aarch64.tar.gz`
+- `kn-windows-x86_64.zip`
+
+**Optional** (for Rust standards compatibility):
+- `kn-v{version}-x86_64-unknown-linux-gnu.tar.gz`
+- `kn-v{version}-aarch64-unknown-linux-gnu.tar.gz`
+- etc.
+
+The `kn update` command specifically looks for the simple format (`kn-{os}-{arch}.tar.gz`).
 
 ---
 
@@ -178,19 +204,37 @@ If the automated process fails, you can build and upload manually:
 
 ### 1. Build Binaries
 
+**CRITICAL**: Binary archives must use the exact naming convention for `kn update` to work.
+
 ```bash
 # Linux x86_64
 cargo build --release --target x86_64-unknown-linux-gnu
-tar czf kn-linux-x86_64.tar.gz -C cli/target/x86_64-unknown-linux-gnu/release kn
+cd cli/target/release
+tar czf kn-linux-x86_64.tar.gz kn
+cd ../../..
 
-# macOS x86_64 (on macOS)
+# macOS x86_64 (on macOS or with cross)
 cargo build --release --target x86_64-apple-darwin
-tar czf kn-macos-x86_64.tar.gz -C cli/target/x86_64-apple-darwin/release kn
+cd cli/target/x86_64-apple-darwin/release
+tar czf kn-macos-x86_64.tar.gz kn
+cd ../../../..
 
-# Windows (on Windows or with cross)
+# macOS ARM64 (on Apple Silicon or with cross)
+cargo build --release --target aarch64-apple-darwin
+cd cli/target/aarch64-apple-darwin/release
+tar czf kn-macos-aarch64.tar.gz kn
+cd ../../../..
+
+# Windows x86_64 (on Windows or with cross)
 cargo build --release --target x86_64-pc-windows-msvc
-zip kn-windows-x86_64.zip cli/target/x86_64-pc-windows-msvc/release/kn.exe
+cd cli/target/x86_64-pc-windows-msvc/release
+zip kn-windows-x86_64.zip kn.exe
+cd ../../../..
 ```
+
+**Naming format**: `kn-{os}-{arch}.tar.gz` (or `.zip` for Windows)
+- ✅ Correct: `kn-linux-x86_64.tar.gz`
+- ❌ Wrong: `kn-v0.3.0-x86_64-unknown-linux-gnu.tar.gz`
 
 ### 2. Build Packages
 
@@ -222,10 +266,13 @@ gh release create v0.2.0 \
   --notes-file release-notes.md \
   kn-linux-x86_64.tar.gz \
   kn-macos-x86_64.tar.gz \
+  kn-macos-aarch64.tar.gz \
   kn-windows-x86_64.zip \
-  ../kn_0.2.0-1_amd64.deb \
-  ~/rpmbuild/RPMS/x86_64/kn-0.2.0-1.*.rpm \
   checksums.txt
+
+# IMPORTANT: Asset names must match exactly:
+# - kn-{os}-{arch}.tar.gz format
+# - Required for `kn update` to work
 ```
 
 ---
@@ -383,7 +430,8 @@ sudo dnf install ./kn-0.2.0-1.*.rpm
 | Version | Date | Notes |
 |---------|------|-------|
 | v0.1.0 | 2026-02-18 | Initial release |
-| v0.2.0 | TBD | (Next release) |
+| v0.2.0 | 2026-02-18 | Global ~/.kn/ architecture |
+| v0.3.0 | 2026-02-19 | Enhanced installation & testing |
 
 See [CHANGELOG.md](./CHANGELOG.md) for detailed changes.
 
