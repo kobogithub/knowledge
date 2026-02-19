@@ -84,27 +84,65 @@ impl InitCommand {
         let available_agents = kn_home::list_installed_agents_with_metadata()?;
 
         let selected_agents = if self.yes {
-            // In non-interactive mode, use no agents by default
-            Vec::new()
+            // In non-interactive mode, use planner only
+            available_agents
+                .iter()
+                .filter(|a| a.name == "planner")
+                .collect()
         } else if available_agents.is_empty() {
-            println!("{}", "  ℹ No agents found in ~/.kn/agents/".bright_blue());
-            println!("  Run 'kn agents install <path>' to install agents first.");
+            println!("{}", "  ⚠ No agents found in ~/.kn/agents/".yellow());
+            println!("  Install agents first: kn agents install <path>");
             Vec::new()
         } else {
-            let agent_names: Vec<String> = available_agents
+            // Separate planner from other agents
+            let planner_agent = available_agents.iter().find(|a| a.name == "planner");
+            let other_agents: Vec<&AgentMetadata> = available_agents
                 .iter()
-                .map(|a| format!("{} - {}", a.name, a.description))
+                .filter(|a| a.name != "planner")
                 .collect();
 
-            let selections = MultiSelect::with_theme(&ColorfulTheme::default())
-                .with_prompt("Select agents to enable (Space to select, Enter to confirm)")
-                .items(&agent_names)
-                .interact()?;
+            if other_agents.is_empty() {
+                // Only planner available
+                if let Some(planner) = planner_agent {
+                    println!(
+                        "{}",
+                        "  ✓ Planner agent will be included (mandatory)".green()
+                    );
+                    vec![planner]
+                } else {
+                    println!(
+                        "{}",
+                        "  ⚠ Planner agent not found in ~/.kn/agents/".yellow()
+                    );
+                    Vec::new()
+                }
+            } else {
+                // Show selection for other agents
+                let agent_names: Vec<String> = other_agents
+                    .iter()
+                    .map(|a| format!("{} - {}", a.name, a.description))
+                    .collect();
 
-            selections
-                .into_iter()
-                .map(|i| &available_agents[i])
-                .collect()
+                println!(
+                    "{}",
+                    "  ℹ Planner agent will be included automatically (mandatory)".bright_blue()
+                );
+
+                let selections = MultiSelect::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Select additional agents (Space to select, Enter to confirm)")
+                    .items(&agent_names)
+                    .interact()?;
+
+                let mut selected: Vec<&AgentMetadata> =
+                    selections.into_iter().map(|i| other_agents[i]).collect();
+
+                // Always include planner at the beginning
+                if let Some(planner) = planner_agent {
+                    selected.insert(0, planner);
+                }
+
+                selected
+            }
         };
 
         // 4. Auto-detect required skills from selected agents

@@ -129,6 +129,28 @@ kn update                        # Update to latest version
 
 ---
 
+### Initial Setup
+
+After installing the CLI, you need to populate `~/.kn/` with agents, skills, and MCPs:
+
+```bash
+# Clone this repository (if you haven't already)
+git clone https://github.com/kobogithub/knowledge.git
+cd knowledge
+
+# Run the setup script to install all global resources
+./setup-kn.sh
+```
+
+**What this does:**
+- ✅ Creates `~/.kn/agents/` with all available agents (planner, frontend, backend, devops, qa, rust)
+- ✅ Creates `~/.kn/skills/` (skills are installed on-demand)
+- ✅ Creates `~/.kn/mcps/` (MCPs are installed on-demand)
+
+**Note:** You only need to run this once. After that, all projects can reuse these global resources.
+
+---
+
 #### 🔨 Manual Installation (From Source)
 
 If you prefer to build from source or need to customize the installation:
