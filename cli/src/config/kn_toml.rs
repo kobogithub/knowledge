@@ -5,6 +5,7 @@ use std::fs;
 use std::path::Path;
 
 use super::workspace::WorkspaceStandard;
+use crate::commands::mcp::ProjectMcpConfig;
 use crate::models::AgentMetadata;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -14,6 +15,8 @@ pub struct KnConfig {
     pub skills: SkillsSection,
     #[serde(default)]
     pub agents: HashMap<String, AgentConfig>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mcp: Option<ProjectMcpConfig>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -48,6 +51,7 @@ impl KnConfig {
             },
             skills: SkillsSection::default(),
             agents: HashMap::new(),
+            mcp: None,
         }
     }
 

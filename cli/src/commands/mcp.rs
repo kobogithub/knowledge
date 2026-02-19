@@ -6,91 +6,109 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
+use crate::config::KnConfig;
+use crate::core::kn_home;
+use crate::models::mcp::McpMetadata;
+
 #[derive(Subcommand, Debug)]
 pub enum McpCommands {
-    /// Add an MCP server to the project configuration
-    Add {
-        /// Server name or npx package (e.g., 'rust-docs' or '@modelcontextprotocol/server-postgres')
+    /// Install an MCP server globally to ~/.kn/mcps/
+    Install {
+        /// MCP name (preset name, npm package, or local path)
         name: String,
 
-        /// Optional custom command to run the server
+        /// Custom MCP name (for npm packages or local paths)
+        #[arg(long)]
+        as_name: Option<String>,
+
+        /// Custom command executable
         #[arg(short, long)]
         command: Option<String>,
 
-        /// Optional arguments for the server
-        #[arg(short, long, allow_hyphen_values = true)]
+        /// Custom arguments
+        #[arg(short, long)]
         args: Vec<String>,
 
-        /// Optional environment variables (key=value format)
+        /// Environment variables (KEY=value)
         #[arg(short, long)]
         env: Vec<String>,
     },
 
-    /// List configured MCP servers
-    List,
-
-    /// Remove an MCP server from configuration
-    Remove {
-        /// Server name to remove
+    /// Uninstall an MCP server from ~/.kn/mcps/
+    Uninstall {
+        /// MCP name to uninstall
         name: String,
     },
+
+    /// List all globally installed MCPs
+    List {
+        /// Show detailed information
+        #[arg(short, long)]
+        detailed: bool,
+    },
+
+    /// Show detailed information about an MCP
+    Info {
+        /// MCP name
+        name: String,
+    },
+
+    /// Add an MCP to the current project (enables it in kn.toml)
+    Add {
+        /// MCP name (must be installed in ~/.kn/mcps/)
+        name: String,
+
+        /// Custom arguments for this project
+        #[arg(short, long)]
+        args: Vec<String>,
+
+        /// Environment variables (KEY=value)
+        #[arg(short, long)]
+        env: Vec<String>,
+    },
+
+    /// Remove an MCP from the current project
+    Remove {
+        /// MCP name to remove
+        name: String,
+    },
+
+    /// Enable an MCP in the current project
+    Enable {
+        /// MCP name to enable
+        name: String,
+    },
+
+    /// Disable an MCP in the current project
+    Disable {
+        /// MCP name to disable
+        name: String,
+    },
+
+    /// List available MCP presets
+    Presets,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct KnConfig {
-    project: ProjectConfig,
+// Project-level MCP configuration in kn.toml
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ProjectMcpConfig {
     #[serde(default)]
-    agents: HashMap<String, String>,
-    #[serde(default)]
-    skills: SkillsConfig,
-    #[serde(default)]
-    beads: BeadsConfig,
-    #[serde(default)]
-    mcp: McpConfig,
-}
+    pub enabled: Vec<String>,
 
-#[derive(Debug, Serialize, Deserialize)]
-struct ProjectConfig {
-    name: String,
-    #[serde(rename = "type")]
-    project_type: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-struct SkillsConfig {
-    #[serde(default)]
-    enabled: Vec<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-struct BeadsConfig {
-    #[serde(default = "default_true")]
-    enabled: bool,
-    #[serde(default = "default_templates_dir")]
-    templates_dir: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-struct McpConfig {
-    #[serde(default)]
-    servers: HashMap<String, McpServer>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-struct McpServer {
-    command: String,
-    #[serde(default)]
-    args: Vec<String>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    env: HashMap<String, String>,
+    pub config: HashMap<String, McpProjectOverride>,
 }
 
-fn default_true() -> bool {
-    true
-}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct McpProjectOverride {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub args: Vec<String>,
 
-fn default_templates_dir() -> String {
-    ".beads/templates".to_string()
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub environment: HashMap<String, String>,
+
+    #[serde(default)]
+    pub enabled: bool,
 }
 
 pub struct McpHandler;
@@ -102,30 +120,260 @@ impl McpHandler {
 
     pub fn handle(&self, command: McpCommands) -> Result<()> {
         match command {
-            McpCommands::Add {
+            McpCommands::Install {
                 name,
+                as_name,
                 command,
                 args,
                 env,
-            } => self.add_server(&name, command, args, env),
-            McpCommands::List => self.list_servers(),
-            McpCommands::Remove { name } => self.remove_server(&name),
+            } => self.install_mcp(&name, as_name, command, args, env),
+            McpCommands::Uninstall { name } => self.uninstall_mcp(&name),
+            McpCommands::List { detailed } => self.list_mcps(detailed),
+            McpCommands::Info { name } => self.show_mcp_info(&name),
+            McpCommands::Add { name, args, env } => self.add_to_project(&name, args, env),
+            McpCommands::Remove { name } => self.remove_from_project(&name),
+            McpCommands::Enable { name } => self.enable_in_project(&name),
+            McpCommands::Disable { name } => self.disable_in_project(&name),
+            McpCommands::Presets => self.list_presets(),
         }
     }
 
-    fn add_server(
+    /// Install an MCP globally to ~/.kn/mcps/
+    fn install_mcp(
         &self,
         name: &str,
+        as_name: Option<String>,
         custom_command: Option<String>,
-        args: Vec<String>,
+        custom_args: Vec<String>,
         env_vars: Vec<String>,
     ) -> Result<()> {
-        let config_path = Path::new("kn.toml");
+        kn_home::ensure_kn_home()?;
 
-        if !config_path.exists() {
+        let mcp_name = as_name.as_ref().unwrap_or(&name.to_string()).clone();
+        let mcps_dir = kn_home::mcps_dir()?;
+        let mcp_dir = mcps_dir.join(&mcp_name);
+
+        // Parse environment variables
+        let mut env_map = HashMap::new();
+        for env in env_vars {
+            let parts: Vec<&str> = env.splitn(2, '=').collect();
+            if parts.len() != 2 {
+                return Err(anyhow!("Invalid env format: '{}'. Use KEY=VALUE", env));
+            }
+            env_map.insert(parts[0].to_string(), parts[1].to_string());
+        }
+
+        // Get or create MCP metadata
+        let metadata = if let Some(preset) = McpMetadata::from_preset(name) {
+            // Use preset as base, override if custom values provided
+            let mut meta = preset;
+
+            if let Some(cmd) = custom_command {
+                meta.command.executable = cmd;
+            }
+            if !custom_args.is_empty() {
+                meta.command.args = custom_args;
+            }
+            if !env_map.is_empty() {
+                meta.environment.extend(env_map);
+            }
+
+            meta
+        } else if let Some(cmd) = custom_command {
+            // Custom MCP configuration
+            self.create_custom_mcp(&mcp_name, &cmd, custom_args, env_map)?
+        } else if name.starts_with('@') || name.contains('/') {
+            // Assume it's an npm package
+            self.create_npm_mcp(&mcp_name, name, env_map)?
+        } else {
             return Err(anyhow!(
-                "kn.toml not found. Run 'kn init' first to initialize the project."
+                "Unknown MCP preset: '{}'. Use --command for custom MCPs or see 'kn mcp presets'",
+                name
             ));
+        };
+
+        // Create MCP directory
+        fs::create_dir_all(&mcp_dir)
+            .with_context(|| format!("Failed to create {}", mcp_dir.display()))?;
+
+        // Save mcp.toml
+        let mcp_toml_path = mcp_dir.join("mcp.toml");
+        metadata.save(&mcp_toml_path)?;
+
+        println!(
+            "{}",
+            format!("✓ Installed MCP '{}'", mcp_name).green().bold()
+        );
+        println!("\n{}", "MCP Configuration:".bright_white().bold());
+        println!("  Name: {}", metadata.mcp.name.cyan());
+        println!("  Description: {}", metadata.mcp.description);
+        println!(
+            "  Command: {}",
+            format!(
+                "{} {}",
+                metadata.command.executable,
+                metadata.command.args.join(" ")
+            )
+            .cyan()
+        );
+
+        if !metadata.environment.is_empty() {
+            println!("  Environment:");
+            for (key, value) in &metadata.environment {
+                println!("    {} = {}", key.cyan(), value.bright_black());
+            }
+        }
+
+        println!("\n{}", "Next steps:".bright_white().bold());
+        println!("  • Add to project: kn mcp add {}", mcp_name);
+        println!("  • View details: kn mcp info {}", mcp_name);
+
+        Ok(())
+    }
+
+    /// Uninstall an MCP from ~/.kn/mcps/
+    fn uninstall_mcp(&self, name: &str) -> Result<()> {
+        let mcps_dir = kn_home::mcps_dir()?;
+        let mcp_dir = mcps_dir.join(name);
+
+        if !mcp_dir.exists() {
+            return Err(anyhow!("MCP '{}' is not installed", name));
+        }
+
+        fs::remove_dir_all(&mcp_dir)
+            .with_context(|| format!("Failed to remove {}", mcp_dir.display()))?;
+
+        println!("{}", format!("✓ Uninstalled MCP '{}'", name).green().bold());
+        Ok(())
+    }
+
+    /// List all globally installed MCPs
+    fn list_mcps(&self, detailed: bool) -> Result<()> {
+        let mcps = kn_home::list_installed_mcps_with_metadata()?;
+
+        if mcps.is_empty() {
+            println!("{}", "No MCPs installed yet.".yellow());
+            println!("\n{}", "Install an MCP with:".bright_white().bold());
+            println!("  kn mcp install <preset-name>");
+            println!("\n{}", "See available presets:".bright_white().bold());
+            println!("  kn mcp presets");
+            return Ok(());
+        }
+
+        println!(
+            "{}",
+            format!("Installed MCPs ({}):", mcps.len())
+                .bright_white()
+                .bold()
+        );
+        println!();
+
+        for mcp in mcps {
+            println!("{}", format!("• {}", mcp.mcp.name).bright_cyan().bold());
+            println!("  {}", mcp.mcp.description.dimmed());
+
+            if detailed {
+                println!(
+                    "  Command: {}",
+                    format!("{} {}", mcp.command.executable, mcp.command.args.join(" ")).white()
+                );
+
+                if !mcp.environment.is_empty() {
+                    println!("  Environment:");
+                    for (key, _) in &mcp.environment {
+                        println!("    {} (configured)", key.cyan());
+                    }
+                }
+
+                if let Some(pkg) = &mcp.mcp.package {
+                    println!("  Package: {}", pkg.bright_black());
+                }
+            }
+
+            println!();
+        }
+
+        Ok(())
+    }
+
+    /// Show detailed information about an MCP
+    fn show_mcp_info(&self, name: &str) -> Result<()> {
+        let mcps_dir = kn_home::mcps_dir()?;
+        let mcp_toml = mcps_dir.join(name).join("mcp.toml");
+
+        if !mcp_toml.exists() {
+            return Err(anyhow!("MCP '{}' is not installed", name));
+        }
+
+        let metadata = McpMetadata::from_file(&mcp_toml)?;
+
+        println!(
+            "{}",
+            format!("MCP: {}", metadata.mcp.name).bright_cyan().bold()
+        );
+        println!("{}", metadata.mcp.description);
+        println!();
+
+        println!("{}", "Configuration:".bright_white().bold());
+        println!("  Type: {}", metadata.command.command_type);
+        println!("  Executable: {}", metadata.command.executable.cyan());
+        println!("  Args: {}", metadata.command.args.join(" ").cyan());
+
+        if let Some(pkg) = &metadata.mcp.package {
+            println!("  Package: {}", pkg);
+        }
+
+        println!();
+        println!("{}", "Options:".bright_white().bold());
+        println!(
+            "  Custom args: {}",
+            if metadata.config.supports_custom_args {
+                "yes".green()
+            } else {
+                "no".red()
+            }
+        );
+
+        if !metadata.config.default_args.is_empty() {
+            println!("  Default args: {}", metadata.config.default_args.join(" "));
+        }
+
+        if !metadata.config.required_env.is_empty() {
+            println!(
+                "  Required env: {}",
+                metadata.config.required_env.join(", ").yellow()
+            );
+        }
+
+        if !metadata.environment.is_empty() {
+            println!();
+            println!("{}", "Environment:".bright_white().bold());
+            for (key, value) in &metadata.environment {
+                println!("  {} = {}", key.cyan(), value.bright_black());
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Add an MCP to the current project
+    fn add_to_project(&self, name: &str, args: Vec<String>, env_vars: Vec<String>) -> Result<()> {
+        // Verify MCP is installed
+        let mcps_dir = kn_home::mcps_dir()?;
+        let mcp_dir = mcps_dir.join(name);
+
+        if !mcp_dir.exists() {
+            return Err(anyhow!(
+                "MCP '{}' is not installed. Install it first with: kn mcp install {}",
+                name,
+                name
+            ));
+        }
+
+        // Load project config
+        let config_path = Path::new("kn.toml");
+        if !config_path.exists() {
+            return Err(anyhow!("kn.toml not found. Run 'kn init' first."));
         }
 
         // Parse environment variables
@@ -133,277 +381,211 @@ impl McpHandler {
         for env in env_vars {
             let parts: Vec<&str> = env.splitn(2, '=').collect();
             if parts.len() != 2 {
-                return Err(anyhow!(
-                    "Invalid environment variable format: '{}'. Use KEY=VALUE",
-                    env
-                ));
+                return Err(anyhow!("Invalid env format: '{}'. Use KEY=VALUE", env));
             }
             env_map.insert(parts[0].to_string(), parts[1].to_string());
         }
 
-        // Get server configuration (from preset or custom)
-        let server = if let Some(cmd) = custom_command {
-            McpServer {
-                command: cmd,
-                args,
-                env: env_map,
-            }
-        } else {
-            self.get_preset_server(name, args, env_map)?
-        };
+        // Read and update config
+        let content = fs::read_to_string(config_path)?;
+        let mut config: KnConfig = toml::from_str(&content)?;
 
-        // Read current config
-        let config_content = fs::read_to_string(config_path).context("Failed to read kn.toml")?;
+        // Initialize mcp section if needed
+        if config.mcp.is_none() {
+            config.mcp = Some(ProjectMcpConfig::default());
+        }
 
-        let mut config: KnConfig =
-            toml::from_str(&config_content).context("Failed to parse kn.toml")?;
+        let mcp_config = config.mcp.as_mut().unwrap();
 
-        // Add server
-        if config.mcp.servers.contains_key(name) {
-            println!(
-                "{}",
-                format!("  ⚠ MCP server '{}' already exists, updating...", name).yellow()
+        // Add to enabled list if not already there
+        if !mcp_config.enabled.contains(&name.to_string()) {
+            mcp_config.enabled.push(name.to_string());
+        }
+
+        // Add project-specific configuration if provided
+        if !args.is_empty() || !env_map.is_empty() {
+            mcp_config.config.insert(
+                name.to_string(),
+                McpProjectOverride {
+                    args,
+                    environment: env_map,
+                    enabled: true,
+                },
             );
         }
 
-        config.mcp.servers.insert(name.to_string(), server.clone());
-
-        // Write back config
-        let new_content = toml::to_string_pretty(&config).context("Failed to serialize config")?;
-
-        fs::write(config_path, new_content).context("Failed to write kn.toml")?;
+        // Save updated config
+        let new_content = toml::to_string_pretty(&config)?;
+        fs::write(config_path, new_content)?;
 
         println!(
             "{}",
-            format!("✓ Added MCP server '{}'", name).green().bold()
+            format!("✓ Added MCP '{}' to project", name).green().bold()
         );
-        println!("\n{}", "Server configuration:".bright_white().bold());
-        println!("  Command: {}", server.command.cyan());
-        if !server.args.is_empty() {
-            println!("  Args: {}", server.args.join(" ").cyan());
-        }
-        if !server.env.is_empty() {
-            println!("  Environment:");
-            for (key, value) in &server.env {
-                println!("    {} = {}", key.cyan(), value.bright_black());
-            }
-        }
-
         println!("\n{}", "Next steps:".bright_white().bold());
-        println!("  • Run 'kn mcp list' to see all configured servers");
-        println!("  • The server will be available in OpenCode MCP integration");
+        println!("  • Run 'kn sync' to generate .opencode/opencode.json");
+        println!("  • Configure in .opencode/opencode.json if needed");
 
         Ok(())
     }
 
-    fn list_servers(&self) -> Result<()> {
+    /// Remove an MCP from the current project
+    fn remove_from_project(&self, name: &str) -> Result<()> {
         let config_path = Path::new("kn.toml");
-
         if !config_path.exists() {
-            return Err(anyhow!(
-                "kn.toml not found. Run 'kn init' first to initialize the project."
-            ));
+            return Err(anyhow!("kn.toml not found"));
         }
 
-        let config_content = fs::read_to_string(config_path).context("Failed to read kn.toml")?;
+        let content = fs::read_to_string(config_path)?;
+        let mut config: KnConfig = toml::from_str(&content)?;
 
-        let config: KnConfig =
-            toml::from_str(&config_content).context("Failed to parse kn.toml")?;
-
-        if config.mcp.servers.is_empty() {
-            println!("{}", "No MCP servers configured yet.".yellow());
-            println!("\n{}", "Add a server with:".bright_white().bold());
-            println!("  kn mcp add <server-name>");
-            println!("\n{}", "Available presets:".bright_white().bold());
-            self.print_available_presets();
-            return Ok(());
+        if let Some(mcp_config) = config.mcp.as_mut() {
+            mcp_config.enabled.retain(|n| n != name);
+            mcp_config.config.remove(name);
         }
 
-        println!("{}", "Configured MCP Servers:".bright_white().bold());
+        let new_content = toml::to_string_pretty(&config)?;
+        fs::write(config_path, new_content)?;
+
+        println!(
+            "{}",
+            format!("✓ Removed MCP '{}' from project", name)
+                .green()
+                .bold()
+        );
+        Ok(())
+    }
+
+    /// Enable an MCP in the project (if disabled)
+    fn enable_in_project(&self, name: &str) -> Result<()> {
+        self.set_mcp_enabled(name, true)
+    }
+
+    /// Disable an MCP in the project
+    fn disable_in_project(&self, name: &str) -> Result<()> {
+        self.set_mcp_enabled(name, false)
+    }
+
+    fn set_mcp_enabled(&self, name: &str, enabled: bool) -> Result<()> {
+        let config_path = Path::new("kn.toml");
+        if !config_path.exists() {
+            return Err(anyhow!("kn.toml not found"));
+        }
+
+        let content = fs::read_to_string(config_path)?;
+        let mut config: KnConfig = toml::from_str(&content)?;
+
+        if let Some(mcp_config) = config.mcp.as_mut() {
+            if let Some(override_config) = mcp_config.config.get_mut(name) {
+                override_config.enabled = enabled;
+            } else if enabled {
+                // If enabling and no config exists, just add to enabled list
+                if !mcp_config.enabled.contains(&name.to_string()) {
+                    mcp_config.enabled.push(name.to_string());
+                }
+            } else {
+                // If disabling, remove from enabled list
+                mcp_config.enabled.retain(|n| n != name);
+            }
+        }
+
+        let new_content = toml::to_string_pretty(&config)?;
+        fs::write(config_path, new_content)?;
+
+        let status = if enabled { "enabled" } else { "disabled" };
+        println!("{}", format!("✓ MCP '{}' {}", name, status).green().bold());
+        Ok(())
+    }
+
+    /// List available MCP presets
+    fn list_presets(&self) -> Result<()> {
+        println!("{}", "Available MCP Presets:".bright_white().bold());
         println!();
 
-        for (name, server) in &config.mcp.servers {
-            println!("{}", format!("• {}", name).bright_cyan().bold());
-            println!("  Command: {}", server.command.white());
-            if !server.args.is_empty() {
-                println!("  Args: {}", server.args.join(" ").bright_black());
-            }
-            if !server.env.is_empty() {
-                println!("  Environment:");
-                for (key, value) in &server.env {
-                    println!("    {} = {}", key.cyan(), value.bright_black());
+        let presets = McpMetadata::list_presets();
+        for preset_name in presets {
+            if let Some(preset) = McpMetadata::from_preset(&preset_name) {
+                println!("{}", format!("• {}", preset.mcp.name).bright_cyan().bold());
+                println!("  {}", preset.mcp.description.dimmed());
+
+                if let Some(pkg) = preset.mcp.package {
+                    println!("  Package: {}", pkg.bright_black());
                 }
+
+                if !preset.config.required_env.is_empty() {
+                    println!(
+                        "  Required env: {}",
+                        preset.config.required_env.join(", ").yellow()
+                    );
+                }
+
+                println!();
             }
-            println!();
         }
+
+        println!("{}", "Install a preset:".bright_white().bold());
+        println!("  kn mcp install <preset-name>");
+        println!();
+        println!("{}", "Or install any npm package:".bright_white().bold());
+        println!("  kn mcp install @scope/package --as-name my-mcp");
 
         Ok(())
     }
 
-    fn remove_server(&self, name: &str) -> Result<()> {
-        let config_path = Path::new("kn.toml");
+    // Helper functions
 
-        if !config_path.exists() {
-            return Err(anyhow!(
-                "kn.toml not found. Run 'kn init' first to initialize the project."
-            ));
-        }
-
-        let config_content = fs::read_to_string(config_path).context("Failed to read kn.toml")?;
-
-        let mut config: KnConfig =
-            toml::from_str(&config_content).context("Failed to parse kn.toml")?;
-
-        if !config.mcp.servers.contains_key(name) {
-            return Err(anyhow!("MCP server '{}' not found", name));
-        }
-
-        config.mcp.servers.remove(name);
-
-        let new_content = toml::to_string_pretty(&config).context("Failed to serialize config")?;
-
-        fs::write(config_path, new_content).context("Failed to write kn.toml")?;
-
-        println!(
-            "{}",
-            format!("✓ Removed MCP server '{}'", name).green().bold()
-        );
-
-        Ok(())
-    }
-
-    fn get_preset_server(
+    fn create_custom_mcp(
         &self,
         name: &str,
-        custom_args: Vec<String>,
-        custom_env: HashMap<String, String>,
-    ) -> Result<McpServer> {
-        let presets = self.get_server_presets();
-
-        if let Some(mut preset) = presets.get(name).cloned() {
-            // Override with custom args/env if provided
-            if !custom_args.is_empty() {
-                preset.args = custom_args;
-            }
-            if !custom_env.is_empty() {
-                preset.env.extend(custom_env);
-            }
-            Ok(preset)
-        } else {
-            // If not a preset, assume it's an npx package
-            let command = if name.starts_with('@') || name.contains('/') {
-                "npx".to_string()
-            } else {
-                return Err(anyhow!(
-                    "Unknown MCP server preset: '{}'. Use --command to specify a custom command, or see available presets with 'kn mcp list'",
-                    name
-                ));
-            };
-
-            let mut args = vec!["-y".to_string(), name.to_string()];
-            args.extend(custom_args);
-
-            Ok(McpServer {
-                command,
+        command: &str,
+        args: Vec<String>,
+        env: HashMap<String, String>,
+    ) -> Result<McpMetadata> {
+        Ok(McpMetadata {
+            mcp: crate::models::mcp::McpInfo {
+                name: name.to_string(),
+                description: format!("Custom MCP server: {}", name),
+                package: None,
+                version: None,
+            },
+            command: crate::models::mcp::CommandConfig {
+                command_type: "local".to_string(),
+                executable: command.to_string(),
                 args,
-                env: custom_env,
-            })
-        }
+            },
+            environment: env,
+            config: crate::models::mcp::McpConfigOptions {
+                supports_custom_args: true,
+                default_args: vec![],
+                required_env: vec![],
+            },
+        })
     }
 
-    fn get_server_presets(&self) -> HashMap<String, McpServer> {
-        let mut presets = HashMap::new();
-
-        // Filesystem server
-        presets.insert(
-            "filesystem".to_string(),
-            McpServer {
-                command: "npx".to_string(),
-                args: vec![
-                    "-y".to_string(),
-                    "@modelcontextprotocol/server-filesystem".to_string(),
-                    ".".to_string(),
-                ],
-                env: HashMap::new(),
+    fn create_npm_mcp(
+        &self,
+        name: &str,
+        package: &str,
+        env: HashMap<String, String>,
+    ) -> Result<McpMetadata> {
+        Ok(McpMetadata {
+            mcp: crate::models::mcp::McpInfo {
+                name: name.to_string(),
+                description: format!("npm package: {}", package),
+                package: Some(package.to_string()),
+                version: None,
             },
-        );
-
-        // PostgreSQL server
-        presets.insert(
-            "postgres".to_string(),
-            McpServer {
-                command: "npx".to_string(),
-                args: vec![
-                    "-y".to_string(),
-                    "@modelcontextprotocol/server-postgres".to_string(),
-                ],
-                env: {
-                    let mut env = HashMap::new();
-                    env.insert(
-                        "POSTGRES_URL".to_string(),
-                        "postgresql://localhost/mydb".to_string(),
-                    );
-                    env
-                },
+            command: crate::models::mcp::CommandConfig {
+                command_type: "local".to_string(),
+                executable: "npx".to_string(),
+                args: vec!["-y".to_string(), package.to_string()],
             },
-        );
-
-        // GitHub server
-        presets.insert(
-            "github".to_string(),
-            McpServer {
-                command: "npx".to_string(),
-                args: vec![
-                    "-y".to_string(),
-                    "@modelcontextprotocol/server-github".to_string(),
-                ],
-                env: {
-                    let mut env = HashMap::new();
-                    env.insert("GITHUB_TOKEN".to_string(), "your-token-here".to_string());
-                    env
-                },
+            environment: env,
+            config: crate::models::mcp::McpConfigOptions {
+                supports_custom_args: false,
+                default_args: vec![],
+                required_env: vec![],
             },
-        );
-
-        // Brave Search server
-        presets.insert(
-            "brave-search".to_string(),
-            McpServer {
-                command: "npx".to_string(),
-                args: vec![
-                    "-y".to_string(),
-                    "@modelcontextprotocol/server-brave-search".to_string(),
-                ],
-                env: {
-                    let mut env = HashMap::new();
-                    env.insert("BRAVE_API_KEY".to_string(), "your-api-key".to_string());
-                    env
-                },
-            },
-        );
-
-        // Puppeteer (web scraping) server
-        presets.insert(
-            "puppeteer".to_string(),
-            McpServer {
-                command: "npx".to_string(),
-                args: vec![
-                    "-y".to_string(),
-                    "@modelcontextprotocol/server-puppeteer".to_string(),
-                ],
-                env: HashMap::new(),
-            },
-        );
-
-        presets
-    }
-
-    fn print_available_presets(&self) {
-        println!("  • filesystem    - Access local files");
-        println!("  • postgres      - PostgreSQL database access");
-        println!("  • github        - GitHub API integration");
-        println!("  • brave-search  - Web search via Brave API");
-        println!("  • puppeteer     - Web scraping and browser automation");
-        println!("\nOr use any npm package with: kn mcp add @scope/package");
+        })
     }
 }

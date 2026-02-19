@@ -1,29 +1,18 @@
 {
-  "mcpServers": {
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
     "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/home/kobo/github/knowledge"
-      ]
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/home/kobo/github/knowledge"],
+      "enabled": true
     },
     "github": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
-      "env": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "enabled": true,
+      "environment": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       }
     }
-  },
-  "workspace": {
-    "name": "knowledge",
-    "type": "rust-cli",
-    "rootPath": "/home/kobo/github/knowledge",
-    "beadsEnabled": true,
-    "beadsPath": "/home/kobo/github/knowledge/.beads"
   }
 }

@@ -4,7 +4,7 @@ use colored::*;
 use std::env;
 use std::path::PathBuf;
 
-use crate::config::{KnConfig, WorkspaceStandard};
+use crate::config::{KnConfig, OpenCodeConfig, WorkspaceStandard};
 use crate::core::{kn_home, symlinks};
 
 #[derive(Args)]
@@ -152,6 +152,119 @@ impl SyncCommand {
             }
         } else {
             println!("\n{}", "No agents enabled in kn.toml".dimmed());
+        }
+
+        // Sync MCPs (generate .opencode/opencode.json)
+        if let Some(mcp_config) = &config.mcp {
+            if !mcp_config.enabled.is_empty() {
+                println!("\n{}", "MCPs:".bright_white().bold());
+
+                // Check which MCPs are installed
+                let mcps_dir = kn_home::mcps_dir()?;
+                let mut missing_mcps = Vec::new();
+                let mut existing_mcps = Vec::new();
+
+                for mcp_name in &mcp_config.enabled {
+                    let mcp_dir = mcps_dir.join(mcp_name);
+                    if mcp_dir.exists() {
+                        existing_mcps.push(mcp_name.clone());
+
+                        // Check if disabled in project config
+                        let enabled = mcp_config
+                            .config
+                            .get(mcp_name)
+                            .map(|cfg| cfg.enabled)
+                            .unwrap_or(true);
+
+                        if enabled {
+                            println!("  {} {}", "✓".green(), mcp_name);
+                        } else {
+                            println!("  {} {} {}", "○".dimmed(), mcp_name, "(disabled)".dimmed());
+                        }
+                    } else {
+                        missing_mcps.push(mcp_name.clone());
+                        println!(
+                            "  {} {} {}",
+                            "✗".red(),
+                            mcp_name,
+                            "(not found in ~/.kn/mcps/)".dimmed()
+                        );
+                    }
+                }
+
+                if !missing_mcps.is_empty() {
+                    println!(
+                        "\n{}",
+                        format!("⚠ {} MCPs missing. Install them with:", missing_mcps.len())
+                            .yellow()
+                    );
+                    for mcp in &missing_mcps {
+                        println!("  kn mcp install {}", mcp);
+                    }
+                }
+
+                // Generate .opencode/opencode.json for OpenCode workspace
+                if matches!(
+                    workspace,
+                    WorkspaceStandard::OpenCode | WorkspaceStandard::Both
+                ) {
+                    let opencode_dir = project_root.join(".opencode");
+                    let opencode_json = opencode_dir.join("opencode.json");
+
+                    // Load existing config if present to preserve other settings
+                    let mut opencode_config = if opencode_json.exists() {
+                        match OpenCodeConfig::from_file(&opencode_json) {
+                            Ok(cfg) => cfg,
+                            Err(_) => {
+                                println!(
+                                    "  {} Could not parse existing opencode.json, creating new one",
+                                    "⚠".yellow()
+                                );
+                                OpenCodeConfig::new()
+                            }
+                        }
+                    } else {
+                        OpenCodeConfig::new()
+                    };
+
+                    // Generate MCP configuration
+                    match OpenCodeConfig::generate_from_project(mcp_config) {
+                        Ok(generated) => {
+                            opencode_config.mcp = generated.mcp;
+
+                            // Save to file
+                            match opencode_config.save(&opencode_json) {
+                                Ok(_) => {
+                                    println!(
+                                        "{}",
+                                        format!(
+                                            "  ✓ Generated .opencode/opencode.json with {} MCPs",
+                                            opencode_config
+                                                .mcp
+                                                .as_ref()
+                                                .map(|m| m.len())
+                                                .unwrap_or(0)
+                                        )
+                                        .green()
+                                    );
+                                }
+                                Err(e) => {
+                                    println!(
+                                        "  {} Failed to save .opencode/opencode.json: {}",
+                                        "✗".red(),
+                                        e
+                                    );
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            println!("  {} Failed to generate MCP config: {}", "✗".red(), e);
+                        }
+                    }
+                }
+            }
+        } else {
+            println!("\n{}", "No MCPs enabled in kn.toml".dimmed());
         }
 
         println!("\n{}", "✓ Sync completed!".bright_green().bold());

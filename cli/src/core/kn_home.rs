@@ -3,6 +3,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use crate::models::agent::AgentMetadata;
+use crate::models::mcp::McpMetadata;
 
 /// Get the global kn home directory (~/.kn/)
 pub fn kn_home() -> Result<PathBuf> {
@@ -20,11 +21,17 @@ pub fn agents_dir() -> Result<PathBuf> {
     Ok(kn_home()?.join("agents"))
 }
 
+/// Get the global mcps directory (~/.kn/mcps/)
+pub fn mcps_dir() -> Result<PathBuf> {
+    Ok(kn_home()?.join("mcps"))
+}
+
 /// Ensure the global kn directory structure exists
 pub fn ensure_kn_home() -> Result<()> {
     let kn_home = kn_home()?;
     let skills = skills_dir()?;
     let agents = agents_dir()?;
+    let mcps = mcps_dir()?;
 
     fs::create_dir_all(&kn_home)
         .with_context(|| format!("Failed to create directory: {}", kn_home.display()))?;
@@ -34,6 +41,9 @@ pub fn ensure_kn_home() -> Result<()> {
 
     fs::create_dir_all(&agents)
         .with_context(|| format!("Failed to create directory: {}", agents.display()))?;
+
+    fs::create_dir_all(&mcps)
+        .with_context(|| format!("Failed to create directory: {}", mcps.display()))?;
 
     Ok(())
 }
@@ -126,6 +136,66 @@ pub fn list_installed_agents_with_metadata() -> Result<Vec<AgentMetadata>> {
     Ok(agent_metadata)
 }
 
+/// List all installed MCPs in ~/.kn/mcps/
+pub fn list_installed_mcps() -> Result<Vec<String>> {
+    let mcps = mcps_dir()?;
+
+    if !mcps.exists() {
+        return Ok(Vec::new());
+    }
+
+    let mut mcp_names = Vec::new();
+
+    for entry in fs::read_dir(&mcps)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.is_dir() {
+            // Check if it has an mcp.toml file
+            if path.join("mcp.toml").exists() {
+                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                    mcp_names.push(name.to_string());
+                }
+            }
+        }
+    }
+
+    mcp_names.sort();
+    Ok(mcp_names)
+}
+
+/// List all installed MCPs in ~/.kn/mcps/ with full metadata
+pub fn list_installed_mcps_with_metadata() -> Result<Vec<McpMetadata>> {
+    let mcps = mcps_dir()?;
+
+    if !mcps.exists() {
+        return Ok(Vec::new());
+    }
+
+    let mut mcp_metadata = Vec::new();
+
+    for entry in fs::read_dir(&mcps)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.is_dir() {
+            let mcp_toml = path.join("mcp.toml");
+            if mcp_toml.exists() {
+                match McpMetadata::from_file(&mcp_toml) {
+                    Ok(metadata) => mcp_metadata.push(metadata),
+                    Err(e) => {
+                        eprintln!("Warning: Failed to parse {}: {}", mcp_toml.display(), e);
+                    }
+                }
+            }
+        }
+    }
+
+    // Sort by name
+    mcp_metadata.sort_by(|a, b| a.mcp.name.cmp(&b.mcp.name));
+    Ok(mcp_metadata)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -146,5 +216,11 @@ mod tests {
     fn test_agents_dir_path() {
         let agents = agents_dir().unwrap();
         assert!(agents.ends_with(".kn/agents"));
+    }
+
+    #[test]
+    fn test_mcps_dir_path() {
+        let mcps = mcps_dir().unwrap();
+        assert!(mcps.ends_with(".kn/mcps"));
     }
 }
