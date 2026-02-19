@@ -10,6 +10,71 @@ use crate::config::KnConfig;
 use crate::core::kn_home;
 use crate::models::mcp::McpMetadata;
 
+// Registry API response structures
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct RegistryResponse {
+    servers: Vec<ServerEntry>,
+    metadata: RegistryMetadata,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct ServerEntry {
+    server: ServerInfo,
+    #[serde(rename = "_meta")]
+    meta: ServerMeta,
+}
+
+#[derive(Debug, Deserialize)]
+struct ServerInfo {
+    name: String,
+    description: String,
+    #[serde(default)]
+    title: Option<String>,
+    version: String,
+    #[serde(default, rename = "websiteUrl")]
+    website_url: Option<String>,
+    #[serde(default)]
+    packages: Vec<PackageInfo>,
+    #[serde(default)]
+    repository: RepositoryInfo,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct PackageInfo {
+    #[serde(rename = "registryType")]
+    registry_type: String,
+    identifier: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct RepositoryInfo {
+    #[serde(default)]
+    url: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct ServerMeta {
+    #[serde(rename = "io.modelcontextprotocol.registry/official")]
+    official: OfficialMeta,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct OfficialMeta {
+    status: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct RegistryMetadata {
+    count: usize,
+    #[serde(default, rename = "nextCursor")]
+    next_cursor: Option<String>,
+}
+
 #[derive(Subcommand, Debug)]
 pub enum McpCommands {
     /// Install an MCP server globally to ~/.kn/mcps/
@@ -91,6 +156,20 @@ pub enum McpCommands {
 
     /// List available MCP presets
     Presets,
+
+    /// Search for MCP servers in the official registry
+    Search {
+        /// Search query (searches in name and description)
+        query: String,
+
+        /// Maximum number of results to show
+        #[arg(short, long, default_value = "10")]
+        limit: usize,
+
+        /// Interactively select and install an MCP server
+        #[arg(short, long)]
+        install: bool,
+    },
 }
 
 // Project-level MCP configuration in kn.toml
@@ -146,6 +225,11 @@ impl McpHandler {
             McpCommands::Enable { name } => self.enable_in_project(&name),
             McpCommands::Disable { name } => self.disable_in_project(&name),
             McpCommands::Presets => self.list_presets(),
+            McpCommands::Search {
+                query,
+                limit,
+                install,
+            } => self.search_registry(&query, limit, install),
         }
     }
 
@@ -540,6 +624,214 @@ impl McpHandler {
         println!();
         println!("{}", "Or install any npm package:".bright_white().bold());
         println!("  kn mcp install @scope/package --as-name my-mcp");
+
+        Ok(())
+    }
+
+    /// Search for MCP servers in the official registry
+    fn search_registry(&self, query: &str, limit: usize, interactive_install: bool) -> Result<()> {
+        println!(
+            "{}",
+            format!("🔍 Searching MCP Registry for '{}'...", query)
+                .bright_cyan()
+                .bold()
+        );
+        println!();
+
+        // Fetch servers from registry
+        let url = format!(
+            "https://registry.modelcontextprotocol.io/v0/servers?limit={}",
+            limit * 2 // Fetch more to account for filtering
+        );
+
+        let client = reqwest::blocking::Client::new();
+        let response = client
+            .get(&url)
+            .timeout(std::time::Duration::from_secs(10))
+            .send()
+            .context("Failed to connect to MCP Registry")?;
+
+        if !response.status().is_success() {
+            anyhow::bail!(
+                "Registry API returned error: {} {}",
+                response.status(),
+                response.text().unwrap_or_default()
+            );
+        }
+
+        let registry_data: RegistryResponse = response
+            .json()
+            .context("Failed to parse registry response")?;
+
+        // Filter results by query (case-insensitive search in name and description)
+        let query_lower = query.to_lowercase();
+        let results: Vec<&ServerEntry> = registry_data
+            .servers
+            .iter()
+            .filter(|entry| {
+                let name_match = entry.server.name.to_lowercase().contains(&query_lower);
+                let desc_match = entry
+                    .server
+                    .description
+                    .to_lowercase()
+                    .contains(&query_lower);
+                let title_match = entry
+                    .server
+                    .title
+                    .as_ref()
+                    .map(|t| t.to_lowercase().contains(&query_lower))
+                    .unwrap_or(false);
+
+                name_match || desc_match || title_match
+            })
+            .take(limit)
+            .collect();
+
+        if results.is_empty() {
+            println!(
+                "{}",
+                format!("No MCP servers found matching '{}'", query).yellow()
+            );
+            println!();
+            println!("{}", "Try:".bright_white());
+            println!("  • A different search term");
+            println!("  • kn mcp presets  (for built-in presets)");
+            println!("  • Browse https://github.com/mcp");
+            return Ok(());
+        }
+
+        println!(
+            "{}",
+            format!("Found {} matching server(s):", results.len())
+                .bright_white()
+                .bold()
+        );
+        println!();
+
+        // Display results
+        for (idx, entry) in results.iter().enumerate() {
+            let title = entry.server.title.as_ref().unwrap_or(&entry.server.name);
+
+            println!(
+                "{} {}",
+                format!("{}.", idx + 1).bright_black(),
+                title.bright_cyan().bold()
+            );
+            println!("   Name: {}", entry.server.name.dimmed());
+            println!("   Version: {}", entry.server.version.dimmed());
+            println!("   {}", entry.server.description);
+
+            if let Some(url) = &entry.server.website_url {
+                println!("   Website: {}", url.bright_blue().underline());
+            }
+
+            if let Some(repo) = &entry.server.repository.url {
+                println!("   Repository: {}", repo.bright_black());
+            }
+
+            // Show package type if available
+            if let Some(pkg) = entry.server.packages.first() {
+                println!(
+                    "   Package: {} ({})",
+                    pkg.identifier.bright_black(),
+                    pkg.registry_type
+                );
+            }
+
+            println!();
+        }
+
+        // Interactive installation
+        if interactive_install && !results.is_empty() {
+            use dialoguer::{theme::ColorfulTheme, Select};
+
+            let selections: Vec<String> = results
+                .iter()
+                .enumerate()
+                .map(|(idx, entry)| {
+                    format!(
+                        "{}. {} - {}",
+                        idx + 1,
+                        entry.server.title.as_ref().unwrap_or(&entry.server.name),
+                        entry.server.description
+                    )
+                })
+                .collect();
+
+            let selection = Select::with_theme(&ColorfulTheme::default())
+                .with_prompt("Select an MCP server to install (or ESC to cancel)")
+                .items(&selections)
+                .default(0)
+                .interact_opt()?;
+
+            if let Some(idx) = selection {
+                let selected = results[idx];
+                self.install_from_registry(selected)?;
+            } else {
+                println!("{}", "Installation cancelled.".yellow());
+            }
+        } else if !interactive_install {
+            println!("{}", "To install an MCP server:".bright_white().bold());
+            println!("  kn mcp search <query> --install");
+            println!("  kn mcp install <npm-package> --as-name <name>");
+        }
+
+        Ok(())
+    }
+
+    /// Install an MCP server from registry entry
+    fn install_from_registry(&self, entry: &ServerEntry) -> Result<()> {
+        println!();
+        println!(
+            "{}",
+            format!(
+                "Installing '{}' (v{})...",
+                entry.server.name, entry.server.version
+            )
+            .bright_green()
+            .bold()
+        );
+
+        // Extract package identifier
+        let package = entry
+            .server
+            .packages
+            .first()
+            .ok_or_else(|| anyhow!("No package information available for this server"))?;
+
+        // For now, only support npm packages
+        if package.registry_type == "npm" {
+            // Extract package name from identifier
+            let npm_package = package.identifier.clone();
+
+            // Use the server name as the MCP name (simplified, without version)
+            let mcp_name = entry
+                .server
+                .name
+                .split('/')
+                .last()
+                .unwrap_or(&entry.server.name)
+                .to_string();
+
+            println!(
+                "{}",
+                format!("  Installing npm package: {}", npm_package).cyan()
+            );
+
+            self.install_mcp(
+                &npm_package,
+                Some(mcp_name),
+                None,
+                vec![],
+                vec![],
+                false, // Don't skip validation
+            )?;
+        } else {
+            anyhow::bail!(
+                "Unsupported package type '{}'. Currently only npm packages are supported.",
+                package.registry_type
+            );
+        }
 
         Ok(())
     }
