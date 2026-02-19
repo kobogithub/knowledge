@@ -162,8 +162,10 @@ impl UpdateCommand {
 
         // Replace current binary
         println!("  Installing new binary...");
-        fs::rename(&extracted_binary, &current_exe)
-            .context("Failed to replace current binary. Try running with sudo.")?;
+
+        // Use copy + remove instead of rename to handle cross-device scenarios
+        fs::copy(&extracted_binary, &current_exe)
+            .context("Failed to copy new binary. Try running with sudo.")?;
 
         // Clean up
         let _ = fs::remove_file(&temp_tarball);

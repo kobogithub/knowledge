@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-02-19
+
+### Fixed
+- Fixed `kn update` command failing with "Invalid cross-device link" error
+  - Changed from `fs::rename()` to `fs::copy()` to support cross-filesystem updates
+  - Now works when `/tmp` and installation directory are on different partitions
+  - Issue occurred when temporary directory was on different filesystem than target binary
+
 ## [0.3.1] - 2026-02-19
 
 ### Added
@@ -18,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Displays formatted results with version, description, website, and repository
   - Graceful fallback with helpful suggestions when no results found
   - API endpoint: `https://registry.modelcontextprotocol.io/v0/servers`
+
+### Fixed
+- Fixed GitHub Actions release workflow permissions (added `contents: write` permission)
 
 ### Examples
 ```bash
