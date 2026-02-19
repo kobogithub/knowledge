@@ -6,7 +6,9 @@ El Knowledge Framework ahora incluye un sistema de gestión centralizada de serv
 
 1. **Instalación global** de MCPs en `~/.kn/mcps/`
 2. **Configuración por proyecto** en `kn.toml`
-3. **Generación automática** de `.opencode/opencode.json` compatible con OpenCode
+3. **Generación automática** de configuraciones para múltiples workspaces:
+   - `.opencode/opencode.json` para OpenCode
+   - `.gemini/antigravity/mcp_config.json` para Gemini Code Assist
 
 ## 🏗️ Estructura de Directorios
 
@@ -89,7 +91,9 @@ enabled = true  # Puede deshabilitarse
 kn sync
 ```
 
-Genera `.opencode/opencode.json`:
+Dependiendo del `workspace_standard` en `kn.toml`, genera:
+
+#### Para OpenCode (.opencode/opencode.json):
 
 ```json
 {
@@ -111,6 +115,29 @@ Genera `.opencode/opencode.json`:
   }
 }
 ```
+
+#### Para Gemini Code Assist (.gemini/antigravity/mcp_config.json):
+
+```json
+{
+  "mcpServers": {
+    "filesystem-mcp-server": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/user/project"],
+      "env": {}
+    },
+    "github-mcp-server": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "token"
+      }
+    }
+  }
+}
+```
+
+**Nota:** El archivo `.gemini/antigravity/mcp_config.json` está en `.gitignore` porque contiene secrets.
 
 ## 🎯 Comandos CLI
 
