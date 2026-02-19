@@ -7,9 +7,16 @@ use std::process::Command;
 fn get_kn_binary() -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path.push("target");
-    path.push("debug");
-    path.push("kn");
-    path
+
+    // Check if release binary exists (from CI), otherwise use debug
+    let release_path = path.join("release").join("kn");
+    let debug_path = path.join("debug").join("kn");
+
+    if release_path.exists() {
+        release_path
+    } else {
+        debug_path
+    }
 }
 
 /// Helper to create a temporary test directory
