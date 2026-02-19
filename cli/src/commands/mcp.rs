@@ -588,7 +588,6 @@ impl McpHandler {
             Ok(output) if output.status.success() => {
                 let version_output = String::from_utf8_lossy(&output.stdout);
                 println!("{}", format!("✓ Package '{}' found", package).green());
-                
                 // Try to parse version for extra confirmation
                 if !version_output.trim().is_empty() {
                     println!("  Version: {}", version_output.trim().bright_black());

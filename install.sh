@@ -266,7 +266,8 @@ unbuffered_sed() {
         sed -nl "$@"
     else
         # Fallback: add padding to force line buffering
-        local pad="$(printf "\n%512s" "")"
+        local pad
+        pad="$(printf "\n%512s" "")"
         sed -ne "s/$/\\${pad}/" "$@"
     fi
 }
@@ -283,9 +284,11 @@ print_progress() {
     local on=$(( percent * width / 100 ))
     local off=$(( width - on ))
 
-    local filled=$(printf "%*s" "$on" "")
+    local filled
+    filled=$(printf "%*s" "$on" "")
     filled=${filled// /■}
-    local empty=$(printf "%*s" "$off" "")
+    local empty
+    empty=$(printf "%*s" "$off" "")
     empty=${empty// /･}
 
     printf "\r${ORANGE}%s%s %3d%%${NC}" "$filled" "$empty" "$percent" >&4
@@ -316,6 +319,7 @@ download_with_progress() {
     printf "\033[?25l" >&4
 
     # Ensure cleanup on exit
+    # shellcheck disable=SC2064
     trap "trap - RETURN; rm -f \"$tracefile\"; printf '\033[?25h' >&4; exec 4>&-" RETURN
 
     # Start download in background
@@ -657,7 +661,8 @@ setup_kn_resources() {
     header "Setting up kn resources"
     
     local kn_home="$HOME/.kn"
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
     info "Creating ~/.kn directory structure..."
     mkdir -p "$kn_home"/{agents,skills,mcps}
@@ -669,7 +674,8 @@ setup_kn_resources() {
         # Copy each agent directory
         for agent_dir in "$script_dir/agents"/*; do
             if [[ -d "$agent_dir" ]]; then
-                local agent_name=$(basename "$agent_dir")
+                local agent_name
+                agent_name=$(basename "$agent_dir")
                 local dest="$kn_home/agents/$agent_name"
                 
                 # Create or update agent directory
@@ -693,7 +699,8 @@ setup_kn_resources() {
         # Copy each skill directory
         for skill_dir in "$script_dir/skills"/*; do
             if [[ -d "$skill_dir" ]]; then
-                local skill_name=$(basename "$skill_dir")
+                local skill_name
+                skill_name=$(basename "$skill_dir")
                 local dest="$kn_home/skills/$skill_name"
                 
                 # Create or update skill directory
