@@ -14,7 +14,7 @@ fn get_kn_binary() -> PathBuf {
 
 /// Helper to create a temporary test directory
 fn create_test_dir(name: &str) -> PathBuf {
-    let mut path = PathBuf::from(env::temp_dir());
+    let mut path = env::temp_dir();
     path.push(format!("kn_test_{}", name));
 
     // Clean up if exists
