@@ -93,7 +93,7 @@ The easiest way to install `kn` is using our automated installer. It downloads p
 
 ```bash
 # One-line install (recommended - short URL)
-curl -fsSL https://kn.foxlabar.ar/install | bash
+curl -fsSL https://kn.foxlabar.online/install | bash
 
 # Or using full GitHub URL
 curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash

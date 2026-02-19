@@ -32,6 +32,10 @@ pub enum McpCommands {
         /// Environment variables (KEY=value)
         #[arg(short, long)]
         env: Vec<String>,
+
+        /// Skip npm package validation
+        #[arg(long)]
+        skip_validation: bool,
     },
 
     /// Uninstall an MCP server from ~/.kn/mcps/
@@ -126,7 +130,8 @@ impl McpHandler {
                 command,
                 args,
                 env,
-            } => self.install_mcp(&name, as_name, command, args, env),
+                skip_validation,
+            } => self.install_mcp(&name, as_name, command, args, env, skip_validation),
             McpCommands::Uninstall { name } => self.uninstall_mcp(&name),
             McpCommands::List { detailed } => self.list_mcps(detailed),
             McpCommands::Info { name } => self.show_mcp_info(&name),
@@ -146,6 +151,7 @@ impl McpHandler {
         custom_command: Option<String>,
         custom_args: Vec<String>,
         env_vars: Vec<String>,
+        skip_validation: bool,
     ) -> Result<()> {
         kn_home::ensure_kn_home()?;
 
@@ -184,7 +190,7 @@ impl McpHandler {
             self.create_custom_mcp(&mcp_name, &cmd, custom_args, env_map)?
         } else if name.starts_with('@') || name.contains('/') {
             // Assume it's an npm package
-            self.create_npm_mcp(&mcp_name, name, env_map)?
+            self.create_npm_mcp(&mcp_name, name, env_map, skip_validation)?
         } else {
             return Err(anyhow!(
                 "Unknown MCP preset: '{}'. Use --command for custom MCPs or see 'kn mcp presets'",
@@ -562,12 +568,60 @@ impl McpHandler {
         })
     }
 
+    /// Validate that an npm package exists
+    fn validate_npm_package(&self, package: &str, skip_validation: bool) -> Result<()> {
+        if skip_validation {
+            return Ok(());
+        }
+
+        println!(
+            "{}",
+            format!("Validating npm package '{}'...", package).cyan()
+        );
+
+        // Use npm view to check if package exists
+        let output = std::process::Command::new("npm")
+            .args(&["view", package, "version", "--json"])
+            .output();
+
+        match output {
+            Ok(output) if output.status.success() => {
+                let version_output = String::from_utf8_lossy(&output.stdout);
+                println!("{}", format!("✓ Package '{}' found", package).green());
+                
+                // Try to parse version for extra confirmation
+                if !version_output.trim().is_empty() {
+                    println!("  Version: {}", version_output.trim().bright_black());
+                }
+                Ok(())
+            }
+            Ok(output) => {
+                let error_msg = String::from_utf8_lossy(&output.stderr);
+                Err(anyhow!(
+                    "npm package '{}' not found.\n\nError: {}\n\nPlease check:\n  • Package name is correct (check npmjs.com)\n  • You have internet connection\n  • npm is properly configured",
+                    package,
+                    error_msg.trim()
+                ))
+            }
+            Err(e) => {
+                Err(anyhow!(
+                    "Failed to validate npm package (npm command failed): {}\n\nTip: You can skip validation with --skip-validation flag",
+                    e
+                ))
+            }
+        }
+    }
+
     fn create_npm_mcp(
         &self,
         name: &str,
         package: &str,
         env: HashMap<String, String>,
+        skip_validation: bool,
     ) -> Result<McpMetadata> {
+        // Validate npm package exists before creating metadata
+        self.validate_npm_package(package, skip_validation)?;
+
         Ok(McpMetadata {
             mcp: crate::models::mcp::McpInfo {
                 name: name.to_string(),

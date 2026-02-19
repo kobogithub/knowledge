@@ -5,8 +5,14 @@ use std::path::PathBuf;
 use crate::models::agent::AgentMetadata;
 use crate::models::mcp::McpMetadata;
 
-/// Get the global kn home directory (~/.kn/)
+/// Get the global kn home directory (~/.kn/ or $KN_HOME)
 pub fn kn_home() -> Result<PathBuf> {
+    // Check for KN_HOME environment variable first
+    if let Ok(kn_home_env) = std::env::var("KN_HOME") {
+        return Ok(PathBuf::from(kn_home_env));
+    }
+
+    // Fall back to ~/.kn
     let home = dirs::home_dir().context("Could not find home directory")?;
     Ok(home.join(".kn"))
 }

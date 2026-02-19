@@ -1,15 +1,15 @@
-# GitHub Pages Setup for kn.foxlabar.ar
+# GitHub Pages Setup for kn.foxlabar.online
 
 This directory contains GitHub Pages configuration for short URL redirects.
 
 ## URLs
 
-- `https://kn.foxlabar.ar/` → Project homepage (redirects to install.sh)
-- `https://kn.foxlabar.ar/install` → Install script (redirects to raw install.sh)
+- `https://kn.foxlabar.online/` → Project homepage (redirects to install.sh)
+- `https://kn.foxlabar.online/install` → Install script (redirects to raw install.sh)
 
 ## DNS Configuration Required
 
-To make this work, you need to configure DNS records for `foxlabar.ar`:
+To make this work, you need to configure DNS records for `foxlabar.online`:
 
 ### Option 1: CNAME Record (Recommended)
 ```
@@ -32,7 +32,7 @@ Value: 185.199.111.153
 
 1. Go to: https://github.com/kobogithub/knowledge/settings/pages
 2. Source: Deploy from branch `prod`
-3. Custom domain: `kn.foxlabar.ar`
+3. Custom domain: `kn.foxlabar.online`
 4. Enforce HTTPS: ✓ (after DNS propagates)
 
 ## Usage
@@ -40,7 +40,7 @@ Value: 185.199.111.153
 Once configured, users can install with:
 
 ```bash
-curl -fsSL https://kn.foxlabar.ar/install | bash
+curl -fsSL https://kn.foxlabar.online/install | bash
 ```
 
 ## Testing
