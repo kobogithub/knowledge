@@ -16,6 +16,7 @@ enabled = [
 [agents.qa]
 id = "knowledge-pu1"
 role = "qa"
+model = "anthropic/claude-sonnet-4.5"
 required_skills = [
     "bash-best-practices",
     "python-best-practices",
@@ -26,11 +27,13 @@ required_skills = [
 [agents.planner]
 id = "knowledge-x6e"
 role = "planner"
+model = "anthropic/claude-sonnet-4.5"
 required_skills = ["bd-best-practices"]
 
 [agents.rust]
 id = "knowledge-r5t"
 role = "rust"
+model = "anthropic/claude-sonnet-4.5"
 required_skills = [
     "rust-best-practices",
     "docker-best-practices",

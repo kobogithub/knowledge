@@ -2,6 +2,7 @@
 name: rust
 id_prefix: r5t
 description: Rust development expert for systems programming, CLI tools, and high-performance applications
+model: anthropic/claude-sonnet-4.5
 required_skills:
   - rust-best-practices
   - docker-best-practices
