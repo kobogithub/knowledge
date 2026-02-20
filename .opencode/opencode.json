@@ -3,6 +3,18 @@
   "mcpServers": {
     "notion": {
       "url": "https://mcp.notion.com/mcp"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--headless"]
+    },
+    "penpot": {
+      "command": "npx",
+      "args": ["penpot-mcp-server"],
+      "env": {
+        "PENPOT_ACCESS_TOKEN": "${PENPOT_ACCESS_TOKEN}",
+        "PENPOT_BASE_URL": "${PENPOT_BASE_URL}"
+      }
     }
   },
   "agent": {
@@ -34,6 +46,11 @@
     "qa": {
       "model": "github-copilot/claude-haiku-4",
       "description": "QA and testing expert for quality assurance, test automation, and bug hunting. Uses Haiku for fast test generation.",
+      "mode": "primary"
+    },
+    "uiux-tester": {
+      "model": "github-copilot/claude-sonnet-4.5",
+      "description": "UI/UX testing expert for visual fidelity, interaction testing, accessibility (WCAG), and responsive design validation. Uses Playwright and Penpot MCPs.",
       "mode": "primary"
     }
   }
