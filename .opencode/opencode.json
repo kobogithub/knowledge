@@ -7,33 +7,33 @@
   },
   "agent": {
     "planner": {
-      "model": "anthropic/claude-sonnet-4.5",
-      "description": "Project coordinator for planning, task decomposition, and agent coordination",
-      "mode": "primary"
-    },
-    "frontend": {
-      "model": "anthropic/claude-sonnet-4.5",
-      "description": "Frontend development expert for UI/UX and user interfaces",
+      "model": "github-copilot/claude-opus-4",
+      "description": "Project coordinator for planning, task decomposition, and agent coordination. Uses Opus for maximum reasoning capability.",
       "mode": "primary"
     },
     "backend": {
-      "model": "anthropic/claude-sonnet-4.5",
-      "description": "Backend development expert for APIs, databases, and business logic",
+      "model": "github-copilot/claude-opus-4",
+      "description": "Backend development expert for APIs, databases, and business logic. Uses Opus for complex architectural decisions.",
+      "mode": "primary"
+    },
+    "frontend": {
+      "model": "github-copilot/claude-sonnet-4.5",
+      "description": "Frontend development expert for UI/UX and user interfaces. Uses Sonnet for balanced performance.",
       "mode": "primary"
     },
     "rust": {
-      "model": "anthropic/claude-sonnet-4.5",
-      "description": "Rust development expert for systems programming, CLI tools, and high-performance applications",
+      "model": "github-copilot/claude-sonnet-4.5",
+      "description": "Rust development expert for systems programming, CLI tools, and high-performance applications. Uses Sonnet for balanced development.",
       "mode": "primary"
     },
     "devops": {
-      "model": "anthropic/claude-sonnet-4.5",
-      "description": "DevOps expert for infrastructure, CI/CD, deployment, and operations",
+      "model": "github-copilot/claude-sonnet-4.5",
+      "description": "DevOps expert for infrastructure, CI/CD, deployment, and operations. Uses Sonnet for infrastructure decisions.",
       "mode": "primary"
     },
     "qa": {
-      "model": "anthropic/claude-sonnet-4.5",
-      "description": "QA and testing expert for quality assurance, test automation, and bug hunting",
+      "model": "github-copilot/claude-haiku-4",
+      "description": "QA and testing expert for quality assurance, test automation, and bug hunting. Uses Haiku for fast test generation.",
       "mode": "primary"
     }
   }

@@ -2,7 +2,8 @@
 name: planner
 id_prefix: x6e
 description: Project coordinator for planning, task decomposition, and agent coordination
-model: anthropic/claude-sonnet-4.5
+model: github-copilot/claude-opus-4
+reasoning: Requires maximum reasoning for strategic planning, task decomposition, and coordination
 required_skills:
   - bd-best-practices
 recommended_skills: []

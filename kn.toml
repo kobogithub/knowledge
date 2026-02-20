@@ -13,29 +13,68 @@ enabled = [
     "github-actions-best-practices",
 ]
 
+# Planner Agent - Uses Opus for maximum reasoning
+[agents.planner]
+id = "knowledge-x6e"
+role = "planner"
+model = "github-copilot/claude-opus-4"
+required_skills = ["bd-best-practices"]
+
+# Backend Agent - Uses Opus for complex architecture decisions
+[agents.backend]
+id = "knowledge-vlf"
+role = "backend"
+model = "github-copilot/claude-opus-4"
+required_skills = [
+    "python-best-practices",
+    "supabase-postgres-best-practices",
+    "docker-best-practices",
+    "bd-best-practices",
+]
+
+# Frontend Agent - Uses Sonnet for balanced UI/UX development
+[agents.frontend]
+id = "knowledge-4yh"
+role = "frontend"
+model = "github-copilot/claude-sonnet-4.5"
+required_skills = [
+    "astro-best-practices",
+    "docker-best-practices",
+    "bd-best-practices",
+]
+
+# Rust Agent - Uses Sonnet for systems programming
+[agents.rust]
+id = "knowledge-r5t"
+role = "rust"
+model = "github-copilot/claude-sonnet-4.5"
+required_skills = [
+    "rust-best-practices",
+    "docker-best-practices",
+    "bd-best-practices",
+]
+
+# DevOps Agent - Uses Sonnet for infrastructure tasks
+[agents.devops]
+id = "knowledge-w5p"
+role = "devops"
+model = "github-copilot/claude-sonnet-4.5"
+required_skills = [
+    "docker-best-practices",
+    "bash-best-practices",
+    "terraform-best-practices",
+    "github-actions-best-practices",
+    "bd-best-practices",
+]
+
+# QA Agent - Uses Haiku for fast test generation
 [agents.qa]
 id = "knowledge-pu1"
 role = "qa"
-model = "anthropic/claude-sonnet-4.5"
+model = "github-copilot/claude-haiku-4"
 required_skills = [
     "bash-best-practices",
     "python-best-practices",
     "rust-best-practices",
-    "bd-best-practices",
-]
-
-[agents.planner]
-id = "knowledge-x6e"
-role = "planner"
-model = "anthropic/claude-sonnet-4.5"
-required_skills = ["bd-best-practices"]
-
-[agents.rust]
-id = "knowledge-r5t"
-role = "rust"
-model = "anthropic/claude-sonnet-4.5"
-required_skills = [
-    "rust-best-practices",
-    "docker-best-practices",
     "bd-best-practices",
 ]
