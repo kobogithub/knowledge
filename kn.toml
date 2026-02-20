@@ -1,0 +1,38 @@
+[project]
+name = "knowledge"
+description = ""
+workspace_standard = "opencode"
+
+[skills]
+enabled = [
+    "docker-best-practices",
+    "python-best-practices",
+    "bash-best-practices",
+    "bd-best-practices",
+    "rust-best-practices",
+    "github-actions-best-practices",
+]
+
+[agents.qa]
+id = "knowledge-pu1"
+role = "qa"
+required_skills = [
+    "bash-best-practices",
+    "python-best-practices",
+    "rust-best-practices",
+    "bd-best-practices",
+]
+
+[agents.planner]
+id = "knowledge-x6e"
+role = "planner"
+required_skills = ["bd-best-practices"]
+
+[agents.rust]
+id = "knowledge-r5t"
+role = "rust"
+required_skills = [
+    "rust-best-practices",
+    "docker-best-practices",
+    "bd-best-practices",
+]

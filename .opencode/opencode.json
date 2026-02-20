@@ -1,18 +1,40 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "mcp": {
-    "filesystem": {
-      "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/home/kobo/github/knowledge"],
-      "enabled": true
+  "mcpServers": {
+    "notion": {
+      "url": "https://mcp.notion.com/mcp"
+    }
+  },
+  "agent": {
+    "planner": {
+      "model": "anthropic/claude-sonnet-4.5",
+      "description": "Project coordinator for planning, task decomposition, and agent coordination",
+      "mode": "primary"
     },
-    "github": {
-      "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
-      "enabled": true,
-      "environment": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-      }
+    "frontend": {
+      "model": "anthropic/claude-sonnet-4.5",
+      "description": "Frontend development expert for UI/UX and user interfaces",
+      "mode": "primary"
+    },
+    "backend": {
+      "model": "anthropic/claude-sonnet-4.5",
+      "description": "Backend development expert for APIs, databases, and business logic",
+      "mode": "primary"
+    },
+    "rust": {
+      "model": "anthropic/claude-sonnet-4.5",
+      "description": "Rust development expert for systems programming, CLI tools, and high-performance applications",
+      "mode": "primary"
+    },
+    "devops": {
+      "model": "anthropic/claude-sonnet-4.5",
+      "description": "DevOps expert for infrastructure, CI/CD, deployment, and operations",
+      "mode": "primary"
+    },
+    "qa": {
+      "model": "anthropic/claude-sonnet-4.5",
+      "description": "QA and testing expert for quality assurance, test automation, and bug hunting",
+      "mode": "primary"
     }
   }
 }
