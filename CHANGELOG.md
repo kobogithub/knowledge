@@ -7,6 +7,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-02-23
+
+### Added
+
+#### New Agents
+- **Security Agent** (`knowledge-s3c`) - Application security, vulnerability scanning, SAST
+  - Skills: Trivy (container/dependency scanning), Semgrep (SAST), Gitleaks (secret detection), OWASP ZAP (API security)
+  - Model: `anthropic/claude-sonnet-4.5`
+- **UI/UX Tester Agent** (`knowledge-u7x`) - Visual fidelity, interaction testing, accessibility
+  - Skills: Pixelmatch (visual regression), Playwright (browser testing), Axe-core (WCAG accessibility), Viewport Testing (responsive design)
+  - Model: `anthropic/claude-sonnet-4.5`
+- **Finanzas Agent** (`knowledge-f1n`) - OpenRouter cost tracking, spend reports, budget controls
+  - Model: `anthropic/claude-haiku-4.5` (optimized for low-cost operations)
+
+#### New Skills (8 total)
+- `security-trivy` - Container and dependency vulnerability scanning
+- `security-semgrep` - Static Application Security Testing (SAST)
+- `security-gitleaks` - Secret detection and prevention
+- `security-owasp-zap` - API security testing
+- `uiux-pixelmatch` - Visual regression testing with pixel comparison
+- `uiux-playwright` - Browser automation for UI testing
+- `uiux-axe-core` - WCAG accessibility compliance testing
+- `uiux-viewport-testing` - Responsive design and viewport testing
+
+#### MCP Server Integration
+- **6 MCP servers configured** with per-agent scoping:
+  - `playwright` - Browser automation (Frontend, QA, UI/UX Tester)
+  - `penpot` - Design tool integration (Frontend, UI/UX Tester)
+  - `github` - Repository operations (Planner, Backend, DevOps, QA, Security)
+  - `postgres` - Database operations (Backend)
+  - `context7` - Documentation lookup (Backend, Frontend, Rust)
+  - `sentry` - Error monitoring (Backend, DevOps, QA, Security)
+- **Per-agent MCP scoping** using OpenCode's `tools` glob pattern system
+  - All MCPs disabled globally, enabled selectively per-agent
+  - Minimizes context budget usage per agent session
+- **`[mcp]` section** added to `kn.toml` configuration
+
+#### Documentation
+- `docs/AGENT_MODEL_STRATEGY.md` - Complete rewrite for OpenRouter with pricing, cost tracking strategy, and MCP distribution table
+- MCP assignments documented in each agent's `AGENTS.md` frontmatter (`mcp_servers:` field)
+
+### Changed
+
+#### LLM Provider Migration
+- **BREAKING**: Migrated from GitHub Copilot to **OpenRouter** as LLM provider
+  - `github-copilot/claude-opus-4` → `anthropic/claude-opus-4` (Planner, Backend)
+  - `github-copilot/claude-sonnet-4.5` → `anthropic/claude-sonnet-4.5` (Frontend, Rust, DevOps, Security, UI/UX Tester)
+  - `github-copilot/claude-haiku-4` → `anthropic/claude-haiku-4.5` (QA, Finanzas)
+- All 9 agent AGENTS.md files updated with new model references
+- `kn.toml` and `.opencode/opencode.json` migrated to OpenRouter model IDs
+- `OPENROUTER_API_KEY` required (added to `.env.example`)
+- Per-agent cost tracking via OpenRouter's `user` parameter
+
+#### CLI Simplification
+- **BREAKING**: Simplified to **OpenCode-only** workspace standard (Antigravity/Gemini support paused)
+  - `WorkspaceStandard` enum reduced to `OpenCode` only
+  - `Antigravity` and `Both` values still parse but map to `OpenCode` with deprecation warning
+  - `kn init` no longer prompts for workspace standard selection
+  - `kn sync` no longer generates Gemini/Antigravity configuration
+  - Symlink generation simplified to OpenCode paths only
+  - Gemini module (`config/gemini.rs`) preserved but commented out for future re-enablement
+
+#### Agent System
+- Total agents increased from 6 to **9** (added Security, UI/UX Tester, Finanzas)
+- All agents now have `mcp_servers` field in YAML frontmatter
+- Differentiated model strategy: Opus for critical agents, Sonnet for specialized, Haiku for cost-sensitive
+
+### Fixed
+- Fixed model string inconsistency: Security and UI/UX Tester had `claude-4.5-sonnet` (reversed) → corrected to `claude-sonnet-4.5`
+- Fixed config drift: Security and UI/UX Tester agents were missing from `kn.toml` and `opencode.json`
+
+## [0.4.0] - 2026-02-20
+
+### Changed
+- Version bump for differentiated model strategy per agent
+- Added model configuration to agent metadata YAML frontmatter
+- Configured Notion MCP and models per agent
+
 ## [0.3.2] - 2026-02-19
 
 ### Fixed
@@ -291,5 +369,11 @@ kn skills list
 
 ---
 
-[Unreleased]: https://github.com/kobogithub/knowledge/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/kobogithub/knowledge/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/kobogithub/knowledge/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/kobogithub/knowledge/compare/v0.3.2...v0.4.0
+[0.3.2]: https://github.com/kobogithub/knowledge/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/kobogithub/knowledge/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/kobogithub/knowledge/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/kobogithub/knowledge/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kobogithub/knowledge/releases/tag/v0.1.0
