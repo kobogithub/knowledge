@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
 use clap::Args;
 use colored::*;
-use dialoguer::{theme::ColorfulTheme, Confirm, Input, MultiSelect, Select};
+use dialoguer::{theme::ColorfulTheme, Confirm, Input, MultiSelect};
 use std::collections::HashSet;
 use std::fs;
 
-use crate::config::{GeminiConfig, KnConfig, OpenCodeConfig, WorkspaceStandard};
+use crate::config::{KnConfig, OpenCodeConfig, WorkspaceStandard};
 use crate::core::{kn_home, symlinks};
 use crate::models::agent::AgentMetadata;
 
@@ -61,24 +61,14 @@ impl InitCommand {
                 .interact_text()?
         };
 
-        // 2. Prompt: Workspace standard
-        let workspace_standard = if self.yes {
-            WorkspaceStandard::Both
-        } else {
-            let standards = vec!["OpenCode only", "Antigravity only", "Both (recommended)"];
-            let selection = Select::with_theme(&ColorfulTheme::default())
-                .with_prompt("Choose workspace standard for AI assistants")
-                .items(&standards)
-                .default(2) // "Both" is recommended
-                .interact()?;
-
-            match selection {
-                0 => WorkspaceStandard::OpenCode,
-                1 => WorkspaceStandard::Antigravity,
-                2 => WorkspaceStandard::Both,
-                _ => WorkspaceStandard::Both,
-            }
-        };
+        // 2. Workspace standard: OpenCode only (Antigravity support paused)
+        let workspace_standard = WorkspaceStandard::OpenCode;
+        println!(
+            "  {} Workspace: {} {}",
+            "ℹ".bright_blue(),
+            "OpenCode".bright_white().bold(),
+            "(only supported workspace)".dimmed()
+        );
 
         // 3. Prompt: Agent selection (multi-select)
         let available_agents = kn_home::list_installed_agents_with_metadata()?;
@@ -239,7 +229,7 @@ impl InitCommand {
         config.save(&config_path)?;
         println!("  {} Created kn.toml", "✓".green());
 
-        // 8. Create symlinks based on workspace standard
+        // 8. Create symlinks (OpenCode only)
         println!("\n{}", "🔗 Creating symlinks...".bright_cyan());
 
         // Create symlinks for all enabled skills
@@ -257,105 +247,49 @@ impl InitCommand {
 
         println!("  {} Symlinks created", "✓".green());
 
-        // 9. Generate .opencode/opencode.json for OpenCode workspace
-        if matches!(
-            workspace_standard,
-            WorkspaceStandard::OpenCode | WorkspaceStandard::Both
-        ) {
-            println!(
-                "\n{}",
-                "📄 Generating .opencode/opencode.json...".bright_cyan()
-            );
+        // 9. Generate .opencode/opencode.json
+        println!(
+            "\n{}",
+            "📄 Generating .opencode/opencode.json...".bright_cyan()
+        );
 
-            let opencode_dir = current_dir.join(".opencode");
-            let opencode_json = opencode_dir.join("opencode.json");
+        let opencode_dir = current_dir.join(".opencode");
+        let opencode_json = opencode_dir.join("opencode.json");
 
-            // Create .opencode directory
-            fs::create_dir_all(&opencode_dir).context("Failed to create .opencode directory")?;
+        // Create .opencode directory
+        fs::create_dir_all(&opencode_dir).context("Failed to create .opencode directory")?;
 
-            // Generate OpenCode config
-            let opencode_config = if let Some(mcp_config) = &config.mcp {
-                // If project has MCPs configured, generate with them
-                match OpenCodeConfig::generate_from_project(mcp_config) {
-                    Ok(cfg) => cfg,
-                    Err(e) => {
-                        println!("  {} Failed to generate MCP config: {}", "⚠".yellow(), e);
-                        OpenCodeConfig::new()
-                    }
+        // Generate OpenCode config
+        let opencode_config = if let Some(mcp_config) = &config.mcp {
+            // If project has MCPs configured, generate with them
+            match OpenCodeConfig::generate_from_project(mcp_config) {
+                Ok(cfg) => cfg,
+                Err(e) => {
+                    println!("  {} Failed to generate MCP config: {}", "⚠".yellow(), e);
+                    OpenCodeConfig::new()
                 }
-            } else {
-                // Empty config with just schema
-                OpenCodeConfig::new()
-            };
-
-            // Save config
-            opencode_config
-                .save(&opencode_json)
-                .context("Failed to save .opencode/opencode.json")?;
-
-            if let Some(mcp) = &opencode_config.mcp {
-                println!(
-                    "  {} Created .opencode/opencode.json with {} MCPs",
-                    "✓".green(),
-                    mcp.len()
-                );
-            } else {
-                println!(
-                    "  {} Created .opencode/opencode.json (no MCPs)",
-                    "✓".green()
-                );
             }
-        }
+        } else {
+            // Empty config with just schema
+            OpenCodeConfig::new()
+        };
 
-        // 9b. Generate .gemini/antigravity/mcp_config.json for Antigravity workspace
-        if matches!(
-            workspace_standard,
-            WorkspaceStandard::Antigravity | WorkspaceStandard::Both
-        ) {
+        // Save config
+        opencode_config
+            .save(&opencode_json)
+            .context("Failed to save .opencode/opencode.json")?;
+
+        if let Some(mcp) = &opencode_config.mcp {
             println!(
-                "\n{}",
-                "📄 Generating .gemini/antigravity/mcp_config.json...".bright_cyan()
+                "  {} Created .opencode/opencode.json with {} MCPs",
+                "✓".green(),
+                mcp.len()
             );
-
-            let gemini_dir = current_dir.join(".gemini").join("antigravity");
-            let gemini_json = gemini_dir.join("mcp_config.json");
-
-            // Create .gemini/antigravity directory
-            fs::create_dir_all(&gemini_dir)
-                .context("Failed to create .gemini/antigravity directory")?;
-
-            // Generate Gemini config
-            let gemini_config = if let Some(mcp_config) = &config.mcp {
-                // If project has MCPs configured, generate with them
-                match GeminiConfig::generate_from_project(mcp_config) {
-                    Ok(cfg) => cfg,
-                    Err(e) => {
-                        println!("  {} Failed to generate MCP config: {}", "⚠".yellow(), e);
-                        GeminiConfig::new()
-                    }
-                }
-            } else {
-                // Empty config
-                GeminiConfig::new()
-            };
-
-            // Save config
-            gemini_config
-                .save(&gemini_json)
-                .context("Failed to save .gemini/antigravity/mcp_config.json")?;
-
-            if !gemini_config.mcp_servers.is_empty() {
-                println!(
-                    "  {} Created .gemini/antigravity/mcp_config.json with {} MCPs",
-                    "✓".green(),
-                    gemini_config.mcp_servers.len()
-                );
-            } else {
-                println!(
-                    "  {} Created .gemini/antigravity/mcp_config.json (no MCPs)",
-                    "✓".green()
-                );
-            }
+        } else {
+            println!(
+                "  {} Created .opencode/opencode.json (no MCPs)",
+                "✓".green()
+            );
         }
 
         // 10. Create AGENTS.md if it doesn't exist
@@ -372,7 +306,7 @@ impl InitCommand {
         println!("\n{}", "✓ Initialization complete!".bright_green().bold());
         println!("\n{}", "Summary:".bright_white().bold());
         println!("  Project: {}", project_name.bright_yellow());
-        println!("  Workspace: {:?}", workspace_standard);
+        println!("  Workspace: OpenCode");
         println!("  Agents: {}", selected_agents.len());
         println!("  Skills configured: {}", all_skills.len());
 
@@ -401,27 +335,12 @@ impl InitCommand {
             println!("     or run: kn update");
         }
 
-        if matches!(
-            workspace_standard,
-            WorkspaceStandard::OpenCode | WorkspaceStandard::Both
-        ) {
-            println!(
-                "  {}. Review .opencode/opencode.json for MCP configuration",
-                if missing_count > 0 { 3 } else { 2 }
-            );
-        }
+        println!(
+            "  {}. Review .opencode/opencode.json for MCP configuration",
+            if missing_count > 0 { 3 } else { 2 }
+        );
 
-        if matches!(
-            workspace_standard,
-            WorkspaceStandard::Antigravity | WorkspaceStandard::Both
-        ) {
-            println!(
-                "  {}. Review .gemini/antigravity/mcp_config.json for MCP configuration",
-                if missing_count > 0 { 4 } else { 3 }
-            );
-        }
-
-        let next_step = if missing_count > 0 { 5 } else { 4 };
+        let next_step = if missing_count > 0 { 4 } else { 3 };
         println!(
             "  {}. Add MCPs: kn mcp install <name> && kn mcp add <name>",
             next_step

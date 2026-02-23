@@ -4,7 +4,7 @@ use colored::*;
 use std::env;
 use std::path::PathBuf;
 
-use crate::config::{GeminiConfig, KnConfig, OpenCodeConfig, WorkspaceStandard};
+use crate::config::{KnConfig, OpenCodeConfig, WorkspaceStandard};
 use crate::core::{kn_home, symlinks};
 
 #[derive(Args)]
@@ -45,8 +45,8 @@ impl SyncCommand {
         println!("  Project: {}", config.project.name.bright_white().bold());
         println!("  Workspace: {}", config.project.workspace_standard.cyan());
 
-        let workspace = WorkspaceStandard::parse(&config.project.workspace_standard)
-            .unwrap_or(WorkspaceStandard::Both);
+        let workspace =
+            WorkspaceStandard::parse(&config.project.workspace_standard).unwrap_or_default();
 
         // Sync skills
         if !config.skills.enabled.is_empty() {
@@ -203,126 +203,54 @@ impl SyncCommand {
                     }
                 }
 
-                // Generate .opencode/opencode.json for OpenCode workspace
-                if matches!(
-                    workspace,
-                    WorkspaceStandard::OpenCode | WorkspaceStandard::Both
-                ) {
-                    let opencode_dir = project_root.join(".opencode");
-                    let opencode_json = opencode_dir.join("opencode.json");
+                // Generate .opencode/opencode.json
+                let opencode_dir = project_root.join(".opencode");
+                let opencode_json = opencode_dir.join("opencode.json");
 
-                    // Load existing config if present to preserve other settings
-                    let mut opencode_config = if opencode_json.exists() {
-                        match OpenCodeConfig::from_file(&opencode_json) {
-                            Ok(cfg) => cfg,
-                            Err(_) => {
-                                println!(
-                                    "  {} Could not parse existing opencode.json, creating new one",
-                                    "⚠".yellow()
-                                );
-                                OpenCodeConfig::new()
-                            }
-                        }
-                    } else {
-                        OpenCodeConfig::new()
-                    };
-
-                    // Generate MCP configuration
-                    match OpenCodeConfig::generate_from_project(mcp_config) {
-                        Ok(generated) => {
-                            opencode_config.mcp = generated.mcp;
-
-                            // Save to file
-                            match opencode_config.save(&opencode_json) {
-                                Ok(_) => {
-                                    println!(
-                                        "{}",
-                                        format!(
-                                            "  ✓ Generated .opencode/opencode.json with {} MCPs",
-                                            opencode_config
-                                                .mcp
-                                                .as_ref()
-                                                .map(|m| m.len())
-                                                .unwrap_or(0)
-                                        )
-                                        .green()
-                                    );
-                                }
-                                Err(e) => {
-                                    println!(
-                                        "  {} Failed to save .opencode/opencode.json: {}",
-                                        "✗".red(),
-                                        e
-                                    );
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            println!("  {} Failed to generate MCP config: {}", "✗".red(), e);
+                // Load existing config if present to preserve other settings
+                let mut opencode_config = if opencode_json.exists() {
+                    match OpenCodeConfig::from_file(&opencode_json) {
+                        Ok(cfg) => cfg,
+                        Err(_) => {
+                            println!(
+                                "  {} Could not parse existing opencode.json, creating new one",
+                                "⚠".yellow()
+                            );
+                            OpenCodeConfig::new()
                         }
                     }
-                }
+                } else {
+                    OpenCodeConfig::new()
+                };
 
-                // Generate .gemini/antigravity/mcp_config.json for Antigravity workspace
-                if matches!(
-                    workspace,
-                    WorkspaceStandard::Antigravity | WorkspaceStandard::Both
-                ) {
-                    let gemini_dir = project_root.join(".gemini").join("antigravity");
-                    let gemini_json = gemini_dir.join("mcp_config.json");
+                // Generate MCP configuration
+                match OpenCodeConfig::generate_from_project(mcp_config) {
+                    Ok(generated) => {
+                        opencode_config.mcp = generated.mcp;
 
-                    // Load existing config if present to preserve manually added servers
-                    let existing_config = if gemini_json.exists() {
-                        match GeminiConfig::from_file(&gemini_json) {
-                            Ok(cfg) => Some(cfg),
-                            Err(_) => {
+                        // Save to file
+                        match opencode_config.save(&opencode_json) {
+                            Ok(_) => {
                                 println!(
-                                    "  {} Could not parse existing mcp_config.json, creating new one",
-                                    "⚠".yellow()
+                                    "{}",
+                                    format!(
+                                        "  ✓ Generated .opencode/opencode.json with {} MCPs",
+                                        opencode_config.mcp.as_ref().map(|m| m.len()).unwrap_or(0)
+                                    )
+                                    .green()
                                 );
-                                None
+                            }
+                            Err(e) => {
+                                println!(
+                                    "  {} Failed to save .opencode/opencode.json: {}",
+                                    "✗".red(),
+                                    e
+                                );
                             }
                         }
-                    } else {
-                        None
-                    };
-
-                    // Generate MCP configuration
-                    match GeminiConfig::generate_from_project(mcp_config) {
-                        Ok(mut generated) => {
-                            // Merge with existing config to preserve manually added servers
-                            if let Some(existing) = existing_config {
-                                generated.merge_with_existing(&existing);
-                            }
-
-                            // Save to file
-                            match generated.save(&gemini_json) {
-                                Ok(_) => {
-                                    println!(
-                                        "{}",
-                                        format!(
-                                            "  ✓ Generated .gemini/antigravity/mcp_config.json with {} MCPs",
-                                            generated.mcp_servers.len()
-                                        )
-                                        .green()
-                                    );
-                                }
-                                Err(e) => {
-                                    println!(
-                                        "  {} Failed to save .gemini/antigravity/mcp_config.json: {}",
-                                        "✗".red(),
-                                        e
-                                    );
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            println!(
-                                "  {} Failed to generate Gemini MCP config: {}",
-                                "✗".red(),
-                                e
-                            );
-                        }
+                    }
+                    Err(e) => {
+                        println!("  {} Failed to generate MCP config: {}", "✗".red(), e);
                     }
                 }
             }

@@ -2,7 +2,7 @@
 name: backend
 id_prefix: vlf
 description: Backend development expert for APIs, databases, and business logic
-model: github-copilot/claude-opus-4
+model: anthropic/claude-opus-4
 reasoning: Complex architecture decisions, database schema design, and security require deep reasoning
 required_skills:
   - python-best-practices

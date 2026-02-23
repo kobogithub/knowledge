@@ -99,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_add_skill() {
-        let mut config = KnConfig::new("test", WorkspaceStandard::Both);
+        let mut config = KnConfig::new("test", WorkspaceStandard::OpenCode);
         config.add_skill("rust-best-practices");
         assert_eq!(config.skills.enabled.len(), 1);
         assert!(config

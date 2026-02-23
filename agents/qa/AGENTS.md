@@ -2,7 +2,7 @@
 name: qa
 id_prefix: pu1
 description: QA and testing expert for quality assurance, test automation, and bug hunting
-model: github-copilot/claude-haiku-4
+model: anthropic/claude-haiku-4.5
 reasoning: Fast test generation and execution, cost-effective for repetitive QA tasks
 required_skills:
   - bash-best-practices

@@ -2,7 +2,7 @@
 name: planner
 id_prefix: x6e
 description: Project coordinator - ALWAYS creates task plans in Beads (bd) before any work begins. Decomposes requirements into epics and assigns work to specialized agents.
-model: github-copilot/claude-opus-4
+model: anthropic/claude-opus-4
 reasoning: Requires maximum reasoning for strategic planning, task decomposition, and coordination
 required_skills:
   - bd-best-practices

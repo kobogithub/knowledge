@@ -2,7 +2,7 @@
 name: rust
 id_prefix: r5t
 description: Rust development expert for systems programming, CLI tools, and high-performance applications
-model: github-copilot/claude-sonnet-4.5
+model: anthropic/claude-sonnet-4.5
 reasoning: Balanced performance for Rust development, good for ownership/borrowing patterns and system design
 required_skills:
   - rust-best-practices

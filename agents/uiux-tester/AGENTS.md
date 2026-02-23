@@ -2,7 +2,7 @@
 name: uiux-tester
 id_prefix: u7x
 description: UI/UX testing expert for visual fidelity, interaction testing, accessibility, and responsive design validation
-model: github-copilot/claude-4.5-sonnet
+model: anthropic/claude-sonnet-4.5
 reasoning: Visual analysis requires strong pattern recognition; Sonnet balances precision with speed for multi-viewport testing
 required_skills:
   - uiux-pixelmatch
