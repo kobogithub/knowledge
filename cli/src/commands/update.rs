@@ -151,21 +151,28 @@ impl UpdateCommand {
 
         let extracted_binary = temp_dir.join("kn");
 
-        // Make executable
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mut perms = fs::metadata(&extracted_binary)?.permissions();
-            perms.set_mode(0o755);
-            fs::set_permissions(&extracted_binary, perms)?;
-        }
-
         // Replace current binary
         println!("  Installing new binary...");
 
-        // Use copy + remove instead of rename to handle cross-device scenarios
+        // On Unix, a running binary cannot be overwritten (ETXTBSY / "Text file busy"),
+        // but it CAN be deleted (unlinked). The running process keeps its inode open,
+        // and the new file gets a fresh inode. This is the standard self-update pattern.
+        if current_exe.exists() {
+            fs::remove_file(&current_exe)
+                .context("Failed to remove current binary. Try running with sudo.")?;
+        }
+
         fs::copy(&extracted_binary, &current_exe)
-            .context("Failed to copy new binary. Try running with sudo.")?;
+            .context("Failed to install new binary. Try running with sudo.")?;
+
+        // Ensure the new binary is executable
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = fs::metadata(&current_exe)?.permissions();
+            perms.set_mode(0o755);
+            fs::set_permissions(&current_exe, perms)?;
+        }
 
         // Clean up
         let _ = fs::remove_file(&temp_tarball);
