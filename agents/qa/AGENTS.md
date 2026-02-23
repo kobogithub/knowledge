@@ -12,6 +12,16 @@ required_skills:
 recommended_skills:
   - github-actions-best-practices
   - docker-best-practices
+mcp_servers:
+  - name: playwright
+    package: "@playwright/mcp"
+    description: Browser automation for E2E testing and visual regression
+  - name: github
+    package: "@modelcontextprotocol/server-github"
+    description: GitHub API for test reports, PR checks, and CI status
+  - name: sentry
+    url: "https://mcp.sentry.dev/mcp"
+    description: Error tracking to verify bug fixes and monitor regressions
 tags:
   - qa
   - testing

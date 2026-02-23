@@ -7,6 +7,10 @@ reasoning: Requires maximum reasoning for strategic planning, task decomposition
 required_skills:
   - bd-best-practices
 recommended_skills: []
+mcp_servers:
+  - name: github
+    package: "@modelcontextprotocol/server-github"
+    description: GitHub API for PRs, issues, and repo status to coordinate work
 tags:
   - planning
   - coordination

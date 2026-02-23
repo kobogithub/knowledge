@@ -3,59 +3,128 @@
   "mcp": {
     "playwright": {
       "type": "local",
-      "command": ["npx","@playwright/mcp@latest", "--headless"],
-      "enabled": true,
+      "command": ["npx", "@playwright/mcp@latest", "--headless"],
+      "enabled": true
     },
     "penpot": {
       "type": "local",
-      "command": ["npx","penpot-mcp-server"],
+      "command": ["npx", "penpot-mcp-server"],
       "enabled": true,
       "environment": {
-        "PENPOT_ACCESS_TOKEN": "${PENPOT_ACCESS_TOKEN}",
-        "PENPOT_BASE_URL": "${PENPOT_BASE_URL}"
+        "PENPOT_ACCESS_TOKEN": "{env:PENPOT_ACCESS_TOKEN}",
+        "PENPOT_BASE_URL": "{env:PENPOT_BASE_URL}"
       }
+    },
+    "github": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "enabled": true,
+      "environment": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_TOKEN}"
+      }
+    },
+    "postgres": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-postgres"],
+      "enabled": true,
+      "environment": {
+        "POSTGRES_URL": "{env:POSTGRES_URL}"
+      }
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
+    },
+    "sentry": {
+      "type": "remote",
+      "url": "https://mcp.sentry.dev/mcp",
+      "enabled": true,
+      "oauth": {}
     }
+  },
+  "tools": {
+    "playwright_*": false,
+    "penpot_*": false,
+    "github_*": false,
+    "postgres_*": false,
+    "context7_*": false,
+    "sentry_*": false
   },
   "agent": {
     "planner": {
       "model": "anthropic/claude-opus-4",
       "description": "ALWAYS creates task plans in Beads (bd) before any work begins. Decomposes requirements into epics and assigns work to specialized agents.",
-      "mode": "primary"
+      "mode": "primary",
+      "tools": {
+        "github_*": true
+      }
     },
     "backend": {
       "model": "anthropic/claude-opus-4",
       "description": "Backend development expert for APIs, databases, and business logic. Uses Opus for complex architectural decisions.",
-      "mode": "primary"
+      "mode": "primary",
+      "tools": {
+        "github_*": true,
+        "postgres_*": true,
+        "context7_*": true,
+        "sentry_*": true
+      }
     },
     "frontend": {
       "model": "anthropic/claude-sonnet-4.5",
       "description": "Frontend development expert for UI/UX and user interfaces. Uses Sonnet for balanced performance.",
-      "mode": "primary"
+      "mode": "primary",
+      "tools": {
+        "playwright_*": true,
+        "penpot_*": true,
+        "context7_*": true
+      }
     },
     "rust": {
       "model": "anthropic/claude-sonnet-4.5",
       "description": "Rust development expert for systems programming, CLI tools, and high-performance applications. Uses Sonnet for balanced development.",
-      "mode": "primary"
+      "mode": "primary",
+      "tools": {
+        "context7_*": true
+      }
     },
     "devops": {
       "model": "anthropic/claude-sonnet-4.5",
       "description": "DevOps expert for infrastructure, CI/CD, deployment, and operations. Uses Sonnet for infrastructure decisions.",
-      "mode": "primary"
+      "mode": "primary",
+      "tools": {
+        "github_*": true,
+        "sentry_*": true
+      }
     },
     "qa": {
       "model": "anthropic/claude-haiku-4.5",
       "description": "QA and testing expert for quality assurance, test automation, and bug hunting. Uses Haiku for fast test generation.",
-      "mode": "primary"
+      "mode": "primary",
+      "tools": {
+        "playwright_*": true,
+        "github_*": true,
+        "sentry_*": true
+      }
     },
     "security": {
       "model": "anthropic/claude-sonnet-4.5",
       "description": "Application security expert for vulnerability scanning, SAST, secret detection, and API security testing. Uses Sonnet for security analysis.",
-      "mode": "primary"
+      "mode": "primary",
+      "tools": {
+        "github_*": true,
+        "sentry_*": true
+      }
     },
     "uiux-tester": {
       "model": "anthropic/claude-sonnet-4.5",
       "description": "UI/UX testing expert for visual fidelity, interaction testing, accessibility (WCAG), and responsive design validation. Uses Playwright and Penpot MCPs.",
-      "mode": "primary"
+      "mode": "primary",
+      "tools": {
+        "playwright_*": true,
+        "penpot_*": true
+      }
     },
     "finanzas": {
       "model": "anthropic/claude-haiku-4.5",

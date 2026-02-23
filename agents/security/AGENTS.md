@@ -15,6 +15,13 @@ recommended_skills:
   - python-best-practices
   - bash-best-practices
   - github-actions-best-practices
+mcp_servers:
+  - name: github
+    package: "@modelcontextprotocol/server-github"
+    description: GitHub API for security advisories, dependency alerts, and code scanning
+  - name: sentry
+    url: "https://mcp.sentry.dev/mcp"
+    description: Error tracking for security incident analysis
 tags:
   - security
   - appsec

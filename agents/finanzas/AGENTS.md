@@ -9,6 +9,7 @@ required_skills:
   - bash-best-practices
 recommended_skills:
   - python-best-practices
+mcp_servers: []
 tags:
   - finanzas
   - costs

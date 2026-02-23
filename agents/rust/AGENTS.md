@@ -11,6 +11,10 @@ required_skills:
 recommended_skills:
   - github-actions-best-practices
   - bash-best-practices
+mcp_servers:
+  - name: context7
+    url: "https://mcp.context7.com/mcp"
+    description: Documentation search for Rust crates and APIs
 tags:
   - rust
   - systems

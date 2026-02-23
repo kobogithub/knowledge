@@ -10,6 +10,16 @@ required_skills:
   - bd-best-practices
 recommended_skills:
   - github-actions-best-practices
+mcp_servers:
+  - name: playwright
+    package: "@playwright/mcp"
+    description: Browser automation for screenshots, interaction, and visual testing
+  - name: penpot
+    package: "penpot-mcp-server"
+    description: Access Penpot designs for design tokens and component specs
+  - name: context7
+    url: "https://mcp.context7.com/mcp"
+    description: Documentation search for Astro, Tailwind, and frontend frameworks
 tags:
   - frontend
   - ui

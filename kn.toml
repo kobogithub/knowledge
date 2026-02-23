@@ -13,6 +13,14 @@ enabled = [
     "github-actions-best-practices",
 ]
 
+[mcp]
+enabled = [
+    "playwright",
+    "penpot",
+    "github",
+    "postgres",
+]
+
 # Planner Agent - Uses Opus for maximum reasoning
 [agents.planner]
 id = "knowledge-x6e"

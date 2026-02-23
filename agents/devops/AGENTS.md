@@ -14,6 +14,13 @@ recommended_skills:
   - supabase-postgres-best-practices
   - aws-best-practices
   - kubernetes-best-practices
+mcp_servers:
+  - name: github
+    package: "@modelcontextprotocol/server-github"
+    description: GitHub API for CI/CD workflows, Actions, and deployment status
+  - name: sentry
+    url: "https://mcp.sentry.dev/mcp"
+    description: Error tracking for deployment issues and production monitoring
 tags:
   - devops
   - infrastructure

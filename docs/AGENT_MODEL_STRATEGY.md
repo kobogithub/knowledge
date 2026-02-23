@@ -88,6 +88,10 @@ The model configuration is defined in three places:
    name: backend
    model: anthropic/claude-opus-4
    reasoning: Complex architecture decisions...
+   mcp_servers:
+     - name: github
+       package: "@modelcontextprotocol/server-github"
+       description: GitHub API for PRs, issues, and code reviews
    ---
    ```
 
@@ -95,6 +99,9 @@ The model configuration is defined in three places:
    ```toml
    [agents.backend]
    model = "anthropic/claude-opus-4"
+
+   [mcp]
+   enabled = ["playwright", "penpot", "github", "postgres"]
    ```
 
 3. **.opencode/opencode.json** (OpenCode integration)
@@ -102,11 +109,56 @@ The model configuration is defined in three places:
    {
      "agent": {
        "backend": {
-         "model": "anthropic/claude-opus-4"
+         "model": "anthropic/claude-opus-4",
+         "tools": {
+           "github_*": true,
+           "postgres_*": true,
+           "context7_*": true,
+           "sentry_*": true
+         }
        }
      }
    }
    ```
+
+## MCP Server Assignments
+
+All MCPs are declared globally and disabled by default via `tools: { "mcp_*": false }`.
+Each agent enables only the MCPs it needs via per-agent `tools` configuration.
+
+### Available MCPs
+
+| MCP | Type | Package/URL | Description |
+|-----|------|-------------|-------------|
+| playwright | local | `@playwright/mcp` | Browser automation, screenshots, DOM inspection |
+| penpot | local | `penpot-mcp-server` | Design tokens, component specs from Penpot |
+| github | local | `@modelcontextprotocol/server-github` | GitHub API (PRs, issues, repos, Actions) |
+| postgres | local | `@modelcontextprotocol/server-postgres` | PostgreSQL read-only access, schema inspection |
+| context7 | remote | `https://mcp.context7.com/mcp` | Documentation search for frameworks/libraries |
+| sentry | remote | `https://mcp.sentry.dev/mcp` | Error tracking and production issue analysis |
+
+### Per-Agent Distribution
+
+| Agent | playwright | penpot | github | postgres | context7 | sentry |
+|-------|:----------:|:------:|:------:|:--------:|:--------:|:------:|
+| Planner | | | ✅ | | | |
+| Backend | | | ✅ | ✅ | ✅ | ✅ |
+| Frontend | ✅ | ✅ | | | ✅ | |
+| Rust | | | | | ✅ | |
+| DevOps | | | ✅ | | | ✅ |
+| QA | ✅ | | ✅ | | | ✅ |
+| Security | | | ✅ | | | ✅ |
+| UI/UX Tester | ✅ | ✅ | | | | |
+| Finanzas | | | | | | |
+
+### Design Rationale
+
+- **Context budget**: Each MCP adds tokens to context. Agents with Haiku (QA, Finanzas) get minimal MCPs.
+- **Least privilege**: Agents only get MCPs directly relevant to their work.
+- **playwright**: Only for agents doing browser/visual testing (Frontend, QA, UI/UX Tester).
+- **postgres**: Only Backend — the only agent that inspects DB schemas directly.
+- **context7**: For agents that frequently consult framework documentation (Backend, Frontend, Rust).
+- **sentry**: For agents that diagnose production errors (Backend, DevOps, QA, Security).
 
 ## Cost Tracking with OpenRouter
 

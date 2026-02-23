@@ -13,6 +13,19 @@ recommended_skills:
   - bash-best-practices
   - kubernetes-best-practices
   - terraform-best-practices
+mcp_servers:
+  - name: github
+    package: "@modelcontextprotocol/server-github"
+    description: GitHub API for PRs, issues, and code reviews
+  - name: postgres
+    package: "@modelcontextprotocol/server-postgres"
+    description: PostgreSQL read-only access for schema inspection and queries
+  - name: context7
+    url: "https://mcp.context7.com/mcp"
+    description: Documentation search for frameworks and libraries
+  - name: sentry
+    url: "https://mcp.sentry.dev/mcp"
+    description: Error tracking and issue analysis in production
 tags:
   - backend
   - api
