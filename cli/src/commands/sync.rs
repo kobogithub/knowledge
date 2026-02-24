@@ -199,44 +199,6 @@ impl SyncCommand {
             );
         }
 
-        // Sync workflows
-        println!("\n{}", "Workflows:".bright_white().bold());
-        let workflows_source = kn_home::workflows_dir()?;
-        let workflows_target = project_root.join(".github/workflows");
-
-        if workflows_source.exists() {
-            fs::create_dir_all(&workflows_target)?;
-            let mut wf_count = 0;
-
-            let workflow_files = ["auto-tag-dev.yml", "auto-tag-prod.yml"];
-            for wf in &workflow_files {
-                let source = workflows_source.join(wf);
-                let dest = workflows_target.join(wf);
-                if source.exists() {
-                    if !dest.exists() {
-                        fs::copy(&source, &dest)?;
-                        println!("  {} {} {}", "✓".green(), wf, "(new)".dimmed());
-                        wf_count += 1;
-                    } else {
-                        println!("  {} {}", "✓".green(), wf);
-                    }
-                }
-            }
-
-            if wf_count > 0 {
-                println!(
-                    "{}",
-                    format!("  ✓ Installed {} new workflow(s)", wf_count).green()
-                );
-            }
-        } else {
-            println!(
-                "  {} {}",
-                "ℹ".bright_blue(),
-                "No workflows in ~/.kn/workflows/ (install with: kn update)".dimmed()
-            );
-        }
-
         // Sync MCPs (generate .opencode/opencode.json)
         if let Some(mcp_config) = &config.mcp {
             if !mcp_config.enabled.is_empty() {

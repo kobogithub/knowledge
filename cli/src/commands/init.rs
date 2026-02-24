@@ -286,37 +286,7 @@ impl InitCommand {
             );
         }
 
-        // 8.6. Install GitHub Actions workflows
-        println!(
-            "\n{}",
-            "⚙ Installing GitHub Actions workflows...".bright_cyan()
-        );
-        let workflows_source = kn_home::workflows_dir()?;
-        let workflows_target = current_dir.join(".github/workflows");
-        fs::create_dir_all(&workflows_target)?;
-
-        let workflow_files = ["auto-tag-dev.yml", "auto-tag-prod.yml"];
-        let mut wf_count = 0;
-        for wf in &workflow_files {
-            let source = workflows_source.join(wf);
-            let dest = workflows_target.join(wf);
-            if source.exists() && !dest.exists() {
-                fs::copy(&source, &dest)?;
-                wf_count += 1;
-            }
-        }
-        if wf_count > 0 {
-            println!("  {} Installed {} workflow(s)", "✓".green(), wf_count);
-        } else if !workflows_source.exists() {
-            println!(
-                "  {} No workflows found in ~/.kn/workflows/ (install with: kn update)",
-                "ℹ".bright_blue()
-            );
-        } else {
-            println!("  {} Workflows already installed", "ℹ".bright_blue());
-        }
-
-        // 8.7. Create dev branch if it doesn't exist
+        // 8.6. Create dev branch if it doesn't exist
         println!("\n{}", "🌿 Setting up branching strategy...".bright_cyan());
 
         let is_git = Command::new("git")
@@ -534,8 +504,8 @@ git push
 ## Git Branching Strategy
 
 ```
-prod (stable releases, auto-tagged vX.Y.Z)
-  └─ dev (integration, auto-tagged vX.Y.Z-rc.N)
+prod (stable releases)
+  └─ dev (integration)
       └─ epic/<epic-id> (epic integration branch)
           └─ <epic-id>/<agent-role> (agent work branch)
 ```

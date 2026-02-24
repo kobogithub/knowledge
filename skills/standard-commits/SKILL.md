@@ -4,9 +4,9 @@ Conventional Commits, Semantic Versioning, and Git Branching Strategy for Knowle
 
 ## Overview
 
-This skill defines the canonical standards for commit messages, version numbering, branch naming, and CI/CD auto-tagging across all projects managed by `kn` (Knowledge Framework).
+This skill defines the canonical standards for commit messages, version numbering, and branch naming across all projects managed by `kn` (Knowledge Framework).
 
-Every agent MUST follow these conventions. Non-conforming commits will break auto-tagging and may be rejected by CI.
+Every agent MUST follow these conventions. Non-conforming commits may be rejected by CI.
 
 ---
 
@@ -209,9 +209,9 @@ gh pr create \
   --title "feat: implement user authentication (knowledge-j3a)" \
   --body "Epic: knowledge-j3a - Complete user authentication system"
 
-# 7. Merge to dev triggers auto-tag-dev (RC tag)
+# 7. Merge to dev
 # 8. When ready for release, create PR: dev -> prod
-# 9. Merge to prod triggers auto-tag-prod (stable tag)
+# 9. Merge to prod and tag manually
 ```
 
 ### Workflow: Hotfix
@@ -245,7 +245,7 @@ git commit -m "chore: prepare release v1.5.0"
 # 3. PR to prod
 gh pr create --base prod --head release/v1.5.0 --title "release: v1.5.0"
 
-# 4. Merge triggers auto-tag-prod -> v1.5.0 tag -> release workflow
+# 4. Merge and tag release manually
 ```
 
 ---
@@ -312,17 +312,7 @@ gh pr create --base prod --head release/v1.5.0 --title "release: v1.5.0"
 | Workflow            | Trigger                  | Action                              |
 |---------------------|--------------------------|-------------------------------------|
 | `ci.yml`            | Push/PR to dev, prod     | Run tests, clippy, fmt              |
-| `auto-tag-dev.yml`  | Push to dev              | Analyze commits, create RC tag      |
-| `auto-tag-prod.yml` | Push to prod             | Analyze commits, create stable tag  |
 | `release.yml`       | Tag `v*`                 | Build binaries, create GH Release   |
-
-### Auto-Tag Loop Prevention
-
-Both auto-tag workflows skip execution if the push was made by `github-actions[bot]` to prevent infinite loops:
-
-```yaml
-if: github.actor != 'github-actions[bot]'
-```
 
 ---
 

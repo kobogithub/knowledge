@@ -665,7 +665,7 @@ setup_kn_resources() {
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
     info "Creating ~/.kn directory structure..."
-    mkdir -p "$kn_home"/{agents,skills,mcps,formulas,workflows}
+    mkdir -p "$kn_home"/{agents,skills,mcps,formulas}
     
     # Copy agents
     if [[ -d "$script_dir/agents" ]]; then
@@ -733,21 +733,6 @@ setup_kn_resources() {
         warn "formulas/ directory not found - skipping formula installation"
     fi
     
-    # Copy GitHub Actions workflows
-    if [[ -d "$script_dir/.github/workflows" ]]; then
-        info "Installing workflow templates to ~/.kn/workflows/..."
-        
-        for wf_file in auto-tag-dev.yml auto-tag-prod.yml; do
-            local source="$script_dir/.github/workflows/$wf_file"
-            if [[ -f "$source" ]]; then
-                cp "$source" "$kn_home/workflows/$wf_file"
-                success "Installed workflow: $wf_file"
-            fi
-        done
-    else
-        warn "workflows/ directory not found - skipping workflow installation"
-    fi
-    
     # Create MCPs directory (actual MCPs installed on-demand)
     mkdir -p "$kn_home/mcps"
     info "Created ~/.kn/mcps/ (MCP servers will be installed on-demand)"
@@ -758,7 +743,6 @@ setup_kn_resources() {
     echo "  - Agents:    ~/.kn/agents/"
     echo "  - Skills:    ~/.kn/skills/"
     echo "  - Formulas:  ~/.kn/formulas/"
-    echo "  - Workflows: ~/.kn/workflows/"
     echo "  - MCPs:      ~/.kn/mcps/ (installed on-demand)"
     echo ""
     

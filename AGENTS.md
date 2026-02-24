@@ -84,8 +84,8 @@ All agents MUST follow the branching strategy. See skill `standard-commits` for 
 ### Branch Hierarchy
 
 ```
-prod (stable releases, auto-tagged vX.Y.Z)
-  └─ dev (integration, auto-tagged vX.Y.Z-rc.N)
+prod (stable releases)
+  └─ dev (integration)
       └─ epic/<epic-id> (epic integration branch)
           └─ <epic-id>/<agent-role> (agent work branch)
 ```

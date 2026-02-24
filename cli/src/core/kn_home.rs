@@ -37,11 +37,6 @@ pub fn formulas_dir() -> Result<PathBuf> {
     Ok(kn_home()?.join("formulas"))
 }
 
-/// Get the global workflows directory (~/.kn/workflows/)
-pub fn workflows_dir() -> Result<PathBuf> {
-    Ok(kn_home()?.join("workflows"))
-}
-
 /// Ensure the global kn directory structure exists
 pub fn ensure_kn_home() -> Result<()> {
     let kn_home = kn_home()?;
@@ -49,7 +44,6 @@ pub fn ensure_kn_home() -> Result<()> {
     let agents = agents_dir()?;
     let mcps = mcps_dir()?;
     let formulas = formulas_dir()?;
-    let workflows = workflows_dir()?;
 
     fs::create_dir_all(&kn_home)
         .with_context(|| format!("Failed to create directory: {}", kn_home.display()))?;
@@ -65,9 +59,6 @@ pub fn ensure_kn_home() -> Result<()> {
 
     fs::create_dir_all(&formulas)
         .with_context(|| format!("Failed to create directory: {}", formulas.display()))?;
-
-    fs::create_dir_all(&workflows)
-        .with_context(|| format!("Failed to create directory: {}", workflows.display()))?;
 
     Ok(())
 }
@@ -279,11 +270,5 @@ mod tests {
     fn test_formulas_dir_path() {
         let formulas = formulas_dir().unwrap();
         assert!(formulas.ends_with(".kn/formulas"));
-    }
-
-    #[test]
-    fn test_workflows_dir_path() {
-        let workflows = workflows_dir().unwrap();
-        assert!(workflows.ends_with(".kn/workflows"));
     }
 }
