@@ -809,7 +809,7 @@ impl McpHandler {
                 .server
                 .name
                 .split('/')
-                .last()
+                .next_back()
                 .unwrap_or(&entry.server.name)
                 .to_string();
 

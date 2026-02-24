@@ -5,9 +5,10 @@ use std::fmt;
 ///
 /// Currently only OpenCode is supported. Antigravity (Google Gemini) support
 /// is paused and may be re-enabled in a future version.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum WorkspaceStandard {
+    #[default]
     OpenCode,
     // NOTE: Antigravity support is paused. These variants are preserved
     // for backward compatibility when deserializing existing kn.toml files,
@@ -21,12 +22,6 @@ impl fmt::Display for WorkspaceStandard {
         match self {
             WorkspaceStandard::OpenCode => write!(f, "opencode"),
         }
-    }
-}
-
-impl Default for WorkspaceStandard {
-    fn default() -> Self {
-        Self::OpenCode
     }
 }
 
