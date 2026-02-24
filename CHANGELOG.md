@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-02-24
+
+### Added
+
+#### 5-Phase Workflow Framework
+- **Structured 5-phase lifecycle** for all significant work across 9 agents:
+  1. **Exploration** — Investigation, ADRs, proposals (`bd create -t decision`, `bd query`, `bd kv`, `bd todo add`)
+  2. **Specification** — Formal plan with epics, formulas, acceptance criteria (`bd formula list`, `bd cook`, `bd lint`, `bd graph`)
+  3. **Task Planning** — Decomposition, assignment, dependency DAGs (`bd mol pour`, `bd swarm`, `bd slot`, `bd count`)
+  4. **Implementation** — Coordinated execution with monitoring (`bd agent state`, `bd heartbeat`, `bd merge-slot`, `bd audit`)
+  5. **Verification** — Testing, approval gates, formal closure (`bd gate resolve`, `bd preflight`, `bd orphans`, `bd epic close-eligible`)
+
+#### Workflow Formula Templates (4)
+- `mol-feature.formula.json` — 8-step feature workflow across multiple agents
+- `mol-bugfix.formula.json` — 4-step bugfix with root cause analysis and regression testing
+- `mol-spike.formula.json` — 3-step time-boxed technical investigation
+- `mol-release.formula.json` — 6-step release workflow with quality gates
+
+#### Merge-Slot Infrastructure
+- Created `knowledge-merge-slot` bead (`gt:slot`) for serialized push coordination
+- Prevents race conditions when multiple agents push concurrently
+
+#### Phase Labels
+- Standardized labels: `phase:exploration`, `phase:specification`, `phase:planning`, `phase:implementation`, `phase:verification`
+
+### Changed
+
+#### Agent Documentation
+- All 9 agent AGENTS.md files updated with "Protocolo de 5 Fases" section
+- Planner AGENTS.md expanded with `mol pour`, `bd kv`, `bd lint`, `bd graph`, `swarm`, `slot`, `count`, `distill`, `agent state`, `gates`, `preflight`, `orphans`
+- Root AGENTS.md updated with 5-phase framework table, phase labels, and merge-slot protocol in Quick Reference
+
+#### Skills
+- `bd-best-practices` skill completely rewritten from placeholder to comprehensive 5-phase framework manual
+
+#### Documentation
+- README.md and README_ES.md updated to reflect 9 agents, 5-phase framework, v0.6.0 status
+- Project structure updated with formulas directory, all 11 skills, and 9 agent directories
+- Roadmap updated: Phase 3 (Multi-Agent & Workflow) marked as completed
+
 ## [0.5.1] - 2026-02-23
 
 ### Fixed
@@ -378,7 +418,8 @@ kn skills list
 
 ---
 
-[Unreleased]: https://github.com/kobogithub/knowledge/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/kobogithub/knowledge/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/kobogithub/knowledge/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/kobogithub/knowledge/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/kobogithub/knowledge/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/kobogithub/knowledge/compare/v0.3.2...v0.4.0
