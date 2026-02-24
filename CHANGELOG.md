@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-02-24
+
+### Changed
+
+#### Conventional Commit Types (10 types)
+- **Added** `perf` (performance optimization → PATCH bump)
+- **Added** `build` (Cargo.toml, Dockerfiles, install scripts → PATCH bump)
+- **Added** `ci` (GitHub Actions, workflows → PATCH bump)
+- **Removed** `hotfix` (redundant — urgency conveyed by `hotfix/` branch pattern, not commit type; use `fix` instead)
+
+#### Agent Documentation
+- All 9 agent AGENTS.md files updated with 10-type commit table and role-specific commit examples
+- Root AGENTS.md: fixed residual "Auto-Tagging" section → "Tagging (Manual)" with correct manual workflow
+
+#### `kn init` Console Summary
+- Updated types list from 7 to 10 (`feat | fix | refactor | perf | build | ci | chore | docs | style | test`)
+- Fixed auto-tagging text → manual tagging instructions
+
+### Removed
+- `standard_commits_datalake.md` — Fully superseded by `skills/standard-commits/SKILL.md`
+
 ## [0.7.0] - 2026-02-24
 
 ### Added

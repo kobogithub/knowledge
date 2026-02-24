@@ -431,9 +431,11 @@ impl InitCommand {
 
         println!("\n{}", "📋 Conventional Commits:".bright_white().bold());
         println!("  Format: <type>(<scope>): <message>");
-        println!("  Types: feat | fix | refactor | chore | docs | test | style");
+        println!(
+            "  Types: feat | fix | refactor | perf | build | ci | chore | docs | style | test"
+        );
         println!("  Breaking changes: Add '!' before ':' (e.g., feat!: breaking change)");
-        println!("  Auto-tagging: dev → vX.Y.Z-rc.N | prod → vX.Y.Z");
+        println!("  Tagging: manual — git tag -a vX.Y.Z -m \"message\" && git push origin vX.Y.Z");
 
         Ok(())
     }
