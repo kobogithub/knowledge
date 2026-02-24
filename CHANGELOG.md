@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-02-24
+
+### Added
+
+#### Git Branching Strategy & Semantic Versioning
+- **Branch hierarchy**: `prod ← dev ← epic/<id> ← <id>/<agent-role>` with clear ownership rules
+- **Conventional commits enforcement**: All commit messages must follow `<type>(<scope>): <message>` format
+- **Auto-tagging via GitHub Actions**:
+  - `auto-tag-dev.yml` — Creates `vX.Y.Z-rc.N` release candidate tags on push to `dev`
+  - `auto-tag-prod.yml` — Creates stable `vX.Y.Z` tags on push to `prod`, triggers release workflow
+- **SemVer bump rules**: `feat` → MINOR, `fix/refactor/chore/docs/test/style` → PATCH, `!` → MAJOR
+- **Loop prevention**: Workflows skip execution when pusher is `github-actions[bot]`
+
+#### Standard Commits Skill
+- New skill `standard-commits` (`skills/standard-commits/SKILL.md`) — Comprehensive guide covering conventional commits format, SemVer rules, branch hierarchy, tag strategy, PR review workflow, agent commit rules, and CI/CD integration
+
+#### PR Review Workflow
+- New formula `mol-review.formula.json` — 6-step PR review cycle: triage → fix-backend → fix-frontend → fix-devops → verify-fixes → merge-gate
+- Planner AGENTS.md extended with full PR review workflow section: `gh` CLI commands for reading comments, creating issues from reviews, approving/merging PRs
+
+#### Enhanced `kn init`
+- **Step 8.5**: Copies formulas from `~/.kn/formulas/` to `.beads/formulas/` during project initialization
+- **Step 8.6**: Installs GitHub Actions auto-tag workflows from `~/.kn/workflows/` to `.github/workflows/`
+- **Step 8.7**: Creates `dev` branch from current branch if it doesn't exist
+- Summary now shows conventional commits reference
+- AGENTS.md template includes branching strategy and conventional commits table
+
+#### Distribution Pipeline
+- `install.sh` now copies formulas and workflows to `~/.kn/formulas/` and `~/.kn/workflows/` during installation
+- `kn sync` now syncs formulas and workflows from `~/.kn/` to the project (non-destructive, only copies missing files)
+- New `formulas_dir()`, `workflows_dir()`, and `list_installed_formulas()` functions in `kn_home.rs`
+
+### Changed
+
+#### Formulas (v2)
+- `mol-feature.formula.json` — Added `create-branches` and `create-pr-epic-to-dev` steps for branching workflow
+- `mol-bugfix.formula.json` — Added `create-branch` and `create-pr` steps with hotfix support
+- `mol-release.formula.json` — Added `create-release-branch` and `create-pr-to-prod` steps with auto-tag integration
+
+#### Agent Documentation
+- All 9 agent AGENTS.md files updated with "Git Branching Strategy & Conventional Commits" section (branch hierarchy, workflow commands, commit type table)
+- Root AGENTS.md updated with branching rules table and auto-tagging information
+- Fixed missing YAML frontmatter `---` delimiter in `agents/rust/AGENTS.md`
+
+#### CI/CD
+- `ci.yml` updated to trigger on `dev` branch (push and pull_request)
+
 ## [0.6.0] - 2026-02-24
 
 ### Added
