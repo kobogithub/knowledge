@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use clap::Args;
 use colored::*;
 use std::env;
+use std::fs;
 use std::path::PathBuf;
 
 use crate::config::{KnConfig, OpenCodeConfig, WorkspaceStandard};
@@ -152,6 +153,88 @@ impl SyncCommand {
             }
         } else {
             println!("\n{}", "No agents enabled in kn.toml".dimmed());
+        }
+
+        // Sync formulas
+        println!("\n{}", "Formulas:".bright_white().bold());
+        let formulas_source = kn_home::formulas_dir()?;
+        let formulas_target = project_root.join(".beads/formulas");
+
+        if formulas_source.exists() {
+            fs::create_dir_all(&formulas_target)?;
+            let mut formula_count = 0;
+
+            for entry in fs::read_dir(&formulas_source)? {
+                let entry = entry?;
+                let path = entry.path();
+                if path.extension().and_then(|e| e.to_str()) == Some("json")
+                    && path
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .is_some_and(|n| n.ends_with(".formula.json"))
+                {
+                    let name = path.file_name().unwrap().to_string_lossy().to_string();
+                    let dest = formulas_target.join(&name);
+                    if !dest.exists() {
+                        fs::copy(&path, &dest)?;
+                        println!("  {} {} {}", "✓".green(), name, "(new)".dimmed());
+                        formula_count += 1;
+                    } else {
+                        println!("  {} {}", "✓".green(), name);
+                    }
+                }
+            }
+
+            if formula_count > 0 {
+                println!(
+                    "{}",
+                    format!("  ✓ Installed {} new formula(s)", formula_count).green()
+                );
+            }
+        } else {
+            println!(
+                "  {} {}",
+                "ℹ".bright_blue(),
+                "No formulas in ~/.kn/formulas/ (install with: kn update)".dimmed()
+            );
+        }
+
+        // Sync workflows
+        println!("\n{}", "Workflows:".bright_white().bold());
+        let workflows_source = kn_home::workflows_dir()?;
+        let workflows_target = project_root.join(".github/workflows");
+
+        if workflows_source.exists() {
+            fs::create_dir_all(&workflows_target)?;
+            let mut wf_count = 0;
+
+            let workflow_files = ["auto-tag-dev.yml", "auto-tag-prod.yml"];
+            for wf in &workflow_files {
+                let source = workflows_source.join(wf);
+                let dest = workflows_target.join(wf);
+                if source.exists() {
+                    if !dest.exists() {
+                        fs::copy(&source, &dest)?;
+                        println!("  {} {} {}", "✓".green(), wf, "(new)".dimmed());
+                        wf_count += 1;
+                    } else {
+                        println!("  {} {}", "✓".green(), wf);
+                    }
+                }
+            }
+
+            if wf_count > 0 {
+                println!(
+                    "{}",
+                    format!("  ✓ Installed {} new workflow(s)", wf_count).green()
+                );
+            }
+        } else {
+            println!(
+                "  {} {}",
+                "ℹ".bright_blue(),
+                "No workflows in ~/.kn/workflows/ (install with: kn update)".dimmed()
+            );
         }
 
         // Sync MCPs (generate .opencode/opencode.json)

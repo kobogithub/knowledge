@@ -665,7 +665,7 @@ setup_kn_resources() {
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
     info "Creating ~/.kn directory structure..."
-    mkdir -p "$kn_home"/{agents,skills,mcps}
+    mkdir -p "$kn_home"/{agents,skills,mcps,formulas,workflows}
     
     # Copy agents
     if [[ -d "$script_dir/agents" ]]; then
@@ -717,6 +717,37 @@ setup_kn_resources() {
         warn "Skills will need to be installed manually"
     fi
     
+    # Copy formulas
+    if [[ -d "$script_dir/.beads/formulas" ]]; then
+        info "Installing formulas to ~/.kn/formulas/..."
+        
+        for formula_file in "$script_dir/.beads/formulas"/*.formula.json; do
+            if [[ -f "$formula_file" ]]; then
+                local formula_name
+                formula_name=$(basename "$formula_file")
+                cp "$formula_file" "$kn_home/formulas/$formula_name"
+                success "Installed formula: $formula_name"
+            fi
+        done
+    else
+        warn "formulas/ directory not found - skipping formula installation"
+    fi
+    
+    # Copy GitHub Actions workflows
+    if [[ -d "$script_dir/.github/workflows" ]]; then
+        info "Installing workflow templates to ~/.kn/workflows/..."
+        
+        for wf_file in auto-tag-dev.yml auto-tag-prod.yml; do
+            local source="$script_dir/.github/workflows/$wf_file"
+            if [[ -f "$source" ]]; then
+                cp "$source" "$kn_home/workflows/$wf_file"
+                success "Installed workflow: $wf_file"
+            fi
+        done
+    else
+        warn "workflows/ directory not found - skipping workflow installation"
+    fi
+    
     # Create MCPs directory (actual MCPs installed on-demand)
     mkdir -p "$kn_home/mcps"
     info "Created ~/.kn/mcps/ (MCP servers will be installed on-demand)"
@@ -724,9 +755,11 @@ setup_kn_resources() {
     success "Resource setup complete"
     echo ""
     info "Resources installed to ~/.kn/:"
-    echo "  - Agents: ~/.kn/agents/"
-    echo "  - Skills: ~/.kn/skills/"
-    echo "  - MCPs:   ~/.kn/mcps/ (installed on-demand)"
+    echo "  - Agents:    ~/.kn/agents/"
+    echo "  - Skills:    ~/.kn/skills/"
+    echo "  - Formulas:  ~/.kn/formulas/"
+    echo "  - Workflows: ~/.kn/workflows/"
+    echo "  - MCPs:      ~/.kn/mcps/ (installed on-demand)"
     echo ""
     
     return 0
