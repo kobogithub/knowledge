@@ -8,6 +8,7 @@ use std::fs;
 use crate::config::{KnConfig, OpenCodeConfig, WorkspaceStandard};
 use crate::core::{kn_home, symlinks};
 use crate::models::agent::AgentMetadata;
+use std::process::Command;
 
 #[derive(Args)]
 pub struct InitCommand {
@@ -247,6 +248,114 @@ impl InitCommand {
 
         println!("  {} Symlinks created", "✓".green());
 
+        // 8.5. Copy formulas from ~/.kn/formulas/ to .beads/formulas/
+        println!("\n{}", "📜 Installing formulas...".bright_cyan());
+        let formulas_source = kn_home::formulas_dir()?;
+        let formulas_target = current_dir.join(".beads/formulas");
+        if formulas_source.exists() {
+            fs::create_dir_all(&formulas_target)?;
+            let mut count = 0;
+            for entry in fs::read_dir(&formulas_source)? {
+                let entry = entry?;
+                let path = entry.path();
+                if path.extension().and_then(|e| e.to_str()) == Some("json")
+                    && path
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .is_some_and(|n| n.ends_with(".formula.json"))
+                {
+                    let dest = formulas_target.join(path.file_name().unwrap());
+                    if !dest.exists() {
+                        fs::copy(&path, &dest)?;
+                        count += 1;
+                    }
+                }
+            }
+            if count > 0 {
+                println!("  {} Installed {} formula(s)", "✓".green(), count);
+            } else {
+                println!(
+                    "  {} Formulas already installed or none available",
+                    "ℹ".bright_blue()
+                );
+            }
+        } else {
+            println!(
+                "  {} No formulas found in ~/.kn/formulas/",
+                "ℹ".bright_blue()
+            );
+        }
+
+        // 8.6. Install GitHub Actions workflows
+        println!(
+            "\n{}",
+            "⚙ Installing GitHub Actions workflows...".bright_cyan()
+        );
+        let workflows_source = kn_home::workflows_dir()?;
+        let workflows_target = current_dir.join(".github/workflows");
+        fs::create_dir_all(&workflows_target)?;
+
+        let workflow_files = ["auto-tag-dev.yml", "auto-tag-prod.yml"];
+        let mut wf_count = 0;
+        for wf in &workflow_files {
+            let source = workflows_source.join(wf);
+            let dest = workflows_target.join(wf);
+            if source.exists() && !dest.exists() {
+                fs::copy(&source, &dest)?;
+                wf_count += 1;
+            }
+        }
+        if wf_count > 0 {
+            println!("  {} Installed {} workflow(s)", "✓".green(), wf_count);
+        } else if !workflows_source.exists() {
+            println!(
+                "  {} No workflows found in ~/.kn/workflows/ (install with: kn update)",
+                "ℹ".bright_blue()
+            );
+        } else {
+            println!("  {} Workflows already installed", "ℹ".bright_blue());
+        }
+
+        // 8.7. Create dev branch if it doesn't exist
+        println!("\n{}", "🌿 Setting up branching strategy...".bright_cyan());
+
+        let is_git = Command::new("git")
+            .args(["rev-parse", "--is-inside-work-tree"])
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false);
+
+        if is_git {
+            let dev_exists = Command::new("git")
+                .args(["rev-parse", "--verify", "dev"])
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false);
+
+            if !dev_exists {
+                let create_result = Command::new("git").args(["branch", "dev"]).output();
+
+                match create_result {
+                    Ok(output) if output.status.success() => {
+                        println!("  {} Created 'dev' branch from current branch", "✓".green());
+                    }
+                    _ => {
+                        println!(
+                            "  {} Could not create 'dev' branch (no commits yet?)",
+                            "⚠".yellow()
+                        );
+                    }
+                }
+            } else {
+                println!("  {} 'dev' branch already exists", "✓".green());
+            }
+        } else {
+            println!(
+                "  {} Not a git repository, skipping branch setup",
+                "ℹ".bright_blue()
+            );
+        }
+
         // 9. Generate .opencode/opencode.json
         println!(
             "\n{}",
@@ -350,6 +459,12 @@ impl InitCommand {
             next_step + 1
         );
 
+        println!("\n{}", "📋 Conventional Commits:".bright_white().bold());
+        println!("  Format: <type>(<scope>): <message>");
+        println!("  Types: feat | fix | refactor | chore | docs | test | style");
+        println!("  Breaking changes: Add '!' before ':' (e.g., feat!: breaking change)");
+        println!("  Auto-tagging: dev → vX.Y.Z-rc.N | prod → vX.Y.Z");
+
         Ok(())
     }
 
@@ -415,6 +530,26 @@ git push
 3. **Coordination**: Use issue references to coordinate with other agents
 4. **Ownership**: You own your tasks from claim to completion
 5. **Honesty**: Only close when actually complete and tested
+
+## Git Branching Strategy
+
+```
+prod (stable releases, auto-tagged vX.Y.Z)
+  └─ dev (integration, auto-tagged vX.Y.Z-rc.N)
+      └─ epic/<epic-id> (epic integration branch)
+          └─ <epic-id>/<agent-role> (agent work branch)
+```
+
+### Conventional Commits (MANDATORY)
+
+All commit messages MUST use: `<type>(<scope>): <message>`
+
+| Type | Bump | Type | Bump |
+|------|------|------|------|
+| `feat` | MINOR | `fix` / `hotfix` | PATCH |
+| `refactor` | PATCH | `chore` | PATCH |
+| `docs` | PATCH | `test` | PATCH |
+| `style` | PATCH | `any!` (breaking) | MAJOR |
 
 ## Landing the Plane (Session Completion)
 
