@@ -112,10 +112,10 @@ kn update                        # Actualizar a la última versión
 
 El script de instalación automáticamente pobla `~/.kn/` con todos los recursos disponibles:
 
-**Qué se instala automáticamente:**
-- ✅ Todos los agentes en `~/.kn/agents/` (planner, frontend, backend, devops, qa, rust)
-- ✅ Todos los skills en `~/.kn/skills/` (11 skills de mejores prácticas)
-- ✅ Directorio MCP `~/.kn/mcps/` (MCPs se instalan bajo demanda)
+**Que se instala automaticamente:**
+- Todos los agentes en `~/.kn/agents/` (planner, frontend, backend, devops, qa, rust, security, uiux-tester, finanzas)
+- Todos los skills en `~/.kn/skills/` (11 skills de mejores practicas)
+- Directorio MCP `~/.kn/mcps/` (MCPs se instalan bajo demanda)
 
 **¡No se requiere configuración adicional!** Después de la instalación, puedes ejecutar inmediatamente `kn init` en cualquier proyecto para seleccionar qué recursos usar.
 
@@ -289,37 +289,51 @@ knowledge/
 │   ├── src/
 │   │   ├── main.rs           # Punto de entrada
 │   │   └── commands/
-│   │       ├── init.rs       # Inicialización de proyecto
-│   │       ├── skills.rs     # Gestión de skills
+│   │       ├── init.rs       # Inicializacion de proyecto
+│   │       ├── skills.rs     # Gestion de skills
 │   │       ├── beads.rs      # Plantillas de issues
-│   │       └── mcp.rs        # Gestión de servidores MCP
+│   │       ├── mcp.rs        # Gestion de servidores MCP
+│   │       ├── doctor.rs     # Verificacion de dependencias
+│   │       ├── update.rs     # Auto-actualizacion
+│   │       ├── sync.rs       # Sincronizacion de proyecto
+│   │       └── agents.rs     # Gestion de agentes
 │   ├── Cargo.toml
 │   └── README.md
-├── agents/                   # Instrucciones específicas por agente
-│   ├── planner/
-│   │   └── AGENTS.md         # Guía del agente planificador
-│   ├── frontend/
-│   │   └── AGENTS.md         # Guía del agente frontend
-│   ├── backend/
-│   │   └── AGENTS.md         # Guía del agente backend
-│   ├── rust/
-│   │   └── AGENTS.md         # Guía del agente Rust
-│   └── devops/
-│       └── AGENTS.md         # Guía del agente DevOps
-├── skills/                   # Skills de agentes IA instalados
-│   ├── astro-best-practices/
+├── agents/                   # Instrucciones por agente (9 agentes)
+│   ├── planner/AGENTS.md     # Planner — coordinacion, epics, workflow 5 fases
+│   ├── frontend/AGENTS.md    # Frontend — UI/UX, React, componentes
+│   ├── backend/AGENTS.md     # Backend — APIs, bases de datos, seguridad
+│   ├── rust/AGENTS.md        # Rust — CLI, bibliotecas, programacion de sistemas
+│   ├── devops/AGENTS.md      # DevOps — infraestructura, CI/CD, monitoreo
+│   ├── qa/AGENTS.md          # QA — testing, aseguramiento de calidad
+│   ├── security/AGENTS.md    # Security — AppSec, SAST, escaneo de vulnerabilidades
+│   ├── uiux-tester/AGENTS.md # UI/UX Tester — fidelidad visual, accesibilidad
+│   └── finanzas/AGENTS.md    # Finanzas — seguimiento de costos, presupuestos
+├── .opencode/skills/         # Skills de agentes IA instalados (11 skills)
 │   ├── bash-best-practices/
+│   ├── bd-best-practices/    # Manual de workflow de 5 fases
 │   ├── docker-best-practices/
+│   ├── github-actions-best-practices/
+│   ├── jsonnet-best-practices/
 │   ├── python-best-practices/
 │   ├── rust-best-practices/
-│   ├── supabase-postgres-best-practices/
-│   └── README.md
-├── docs/                     # Documentación
+│   ├── security-gitleaks/
+│   ├── security-owasp-zap/
+│   ├── security-semgrep/
+│   └── security-trivy/
+├── .beads/                   # Seguimiento de issues (Beads)
+│   ├── issues.jsonl          # Base de datos de issues
+│   └── formulas/             # Plantillas de workflow
+│       ├── mol-feature.formula.json
+│       ├── mol-bugfix.formula.json
+│       ├── mol-spike.formula.json
+│       └── mol-release.formula.json
+├── docs/                     # Documentacion
 │   ├── GETTING_STARTED.md
-│   └── ARCHITECTURE.md
-├── .beads/                   # Seguimiento de issues (Beads + Dolt)
-│   └── issues.jsonl          # Base de datos de issues
-├── AGENTS.md                 # Coordinación principal de agentes
+│   ├── ARCHITECTURE.md
+│   └── AGENT_MODEL_STRATEGY.md
+├── AGENTS.md                 # Coordinacion principal de agentes
+├── kn.toml                   # Configuracion del proyecto
 └── README.md                 # Este archivo
 ```
 
@@ -327,23 +341,46 @@ knowledge/
 
 ## 🤖 Flujo de Trabajo Multi-Agente
 
-Knowledge Framework usa [Beads](https://github.com/beadlist/beads) para seguimiento de issues con agentes IA especializados:
+Knowledge Framework usa [Beads](https://github.com/beadlist/beads) para seguimiento de issues con 9 agentes IA especializados:
 
 | Agente | ID | Responsabilidades |
 |--------|-----|-------------------|
-| **Planner** | `knowledge-x6e` | Coordina trabajo, crea épicas, asigna tareas |
+| **Planner** | `knowledge-x6e` | Coordina trabajo, crea epics, asigna tareas |
 | **Frontend** | `knowledge-4yh` | UI/UX, React, componentes, lado cliente |
-| **Backend** | `knowledge-vlf` | APIs, bases de datos, lógica de negocio, seguridad |
-| **Rust** | `knowledge-r5t` | Herramientas CLI, bibliotecas, programación de sistemas |
+| **Backend** | `knowledge-vlf` | APIs, bases de datos, logica de negocio, seguridad |
+| **Rust** | `knowledge-r5t` | Herramientas CLI, bibliotecas, programacion de sistemas |
 | **DevOps** | `knowledge-w5p` | Infraestructura, CI/CD, despliegue, monitoreo |
+| **QA** | `knowledge-pu1` | Testing, aseguramiento de calidad, automatizacion de pruebas |
+| **Security** | `knowledge-s3c` | AppSec, escaneo de vulnerabilidades, SAST, deteccion de secretos |
+| **UI/UX Tester** | `knowledge-u7x` | Fidelidad visual, testing de interaccion, accesibilidad (WCAG) |
+| **Finanzas** | `knowledge-f1n` | Seguimiento de costos OpenRouter, reportes de gasto, controles de presupuesto |
 
 Cada agente:
-- ✅ Tiene conocimiento y herramientas especializadas
-- ✅ Cierra sus propias tareas de forma autónoma
-- ✅ Reporta progreso de forma transparente
-- ✅ Se coordina con otros agentes
+- Tiene conocimiento y herramientas especializadas
+- Cierra sus propias tareas de forma autonoma
+- Reporta progreso de forma transparente
+- Se coordina con otros agentes via comentarios de bd
+- Sigue el flujo de trabajo estructurado de 5 fases
 
 Ver [AGENTS.md](./AGENTS.md) para instrucciones detalladas.
+
+### 🔄 Framework de Workflow en 5 Fases
+
+Todo trabajo significativo sigue un ciclo de vida estructurado en 5 fases gestionado con `bd`:
+
+| Fase | Nombre | Comandos Clave |
+|------|--------|---------------|
+| 1 | **Exploracion** | `bd create -t decision`, `bd query`, `bd kv`, `bd todo add` |
+| 2 | **Especificacion** | `bd formula list`, `bd cook`, `bd lint`, `bd graph` |
+| 3 | **Task Planning** | `bd mol pour`, `bd swarm`, `bd slot`, `bd count` |
+| 4 | **Implementacion** | `bd agent state`, `bd heartbeat`, `bd merge-slot`, `bd audit` |
+| 5 | **Verificacion** | `bd gate resolve`, `bd preflight`, `bd orphans`, `bd epic close-eligible` |
+
+**Plantillas de workflow (formulas)** disponibles para patrones comunes:
+- `mol-feature` — Workflow de 8 pasos para features con multiples agentes
+- `mol-bugfix` — 4 pasos para bugfix con analisis de causa raiz
+- `mol-spike` — 3 pasos para investigacion con tiempo limitado
+- `mol-release` — 6 pasos para release con quality gates
 
 ---
 
@@ -359,28 +396,38 @@ Ver [AGENTS.md](./AGENTS.md) para instrucciones detalladas.
 
 ## 🛣️ Hoja de Ruta
 
-### ✅ Fase 1: CLI Base (Completada - 100%)
-- [x] `kn init` - Inicialización de proyecto con auto-detección
-- [x] `kn skills install/list` - Gestión de skills
-- [x] `kn beads template` - Generación de plantillas de issues
-- [x] `kn mcp add/list/remove` - Configuración de servidores MCP
+### Fase 1: CLI Base (Completada)
+- [x] `kn init` - Inicializacion de proyecto con auto-deteccion
+- [x] `kn skills install/list` - Gestion de skills
+- [x] `kn beads template` - Generacion de plantillas de issues
+- [x] `kn mcp add/list/remove` - Configuracion de servidores MCP
+- [x] `kn doctor` - Verificacion de dependencias
+- [x] `kn update` - Mecanismo de auto-actualizacion
 
-### ✅ Fase 2: Mejoras (Completada - 100%)
-- [x] Detección mejorada de proyectos (workspaces, frameworks)
+### Fase 2: Mejoras (Completada)
+- [x] Deteccion mejorada de proyectos (workspaces, frameworks)
+- [x] Soporte de estandar de workspace (OpenCode/Antigravity/Ambos)
 - [ ] Soporte cross-platform (symlinks en Windows)
 - [ ] Suite de tests para todos los comandos
 
-### 🔮 Fase 3: Características Avanzadas
-- [ ] `kn agent create` - Generación de agentes personalizados
+### Fase 3: Multi-Agente y Workflow (Completada)
+- [x] 9 agentes especializados con MCP scoping por agente
+- [x] Framework de workflow en 5 fases (Exploracion hasta Verificacion)
+- [x] 4 plantillas de workflow formula (feature, bugfix, spike, release)
+- [x] Merge-slot para coordinacion serializada de pushes
+- [x] Skill `bd-best-practices` como manual completo de 5 fases
+
+### Fase 4: Caracteristicas Avanzadas
+- [ ] `kn agent create` - Generacion de agentes personalizados
 - [ ] `kn workflow init` - Plantillas de flujos de trabajo
-- [ ] `kn sync` - Sincronización multi-proyecto
+- [ ] `kn sync` - Sincronizacion multi-proyecto
 - [ ] Sistema de plugins para extensibilidad
 
-### 🌟 Fase 4: Ecosistema
-- [ ] Repositorio público de skills (integración con agentskills.io)
+### Fase 5: Ecosistema
+- [ ] Repositorio publico de skills (integracion con agentskills.io)
 - [ ] Dashboard web para vista general del proyecto
-- [ ] Características de colaboración en equipo
-- [ ] Analíticas e insights
+- [ ] Caracteristicas de colaboracion en equipo
+- [ ] Analiticas e insights
 
 ---
 
@@ -462,15 +509,17 @@ bd show task-id
 
 ## 📊 Estado Actual
 
-**Desarrollo del CLI**: 83% completo (5/6 tareas)
-- ✅ Inicialización de proyectos
-- ✅ Gestión de skills (install, list)
-- ✅ Plantillas de Beads (epic, task, bug, feature, chore)
-- ✅ Integración MCP
-- ✅ Detección mejorada
-- 🔄 Soporte para Windows
+**Version**: 0.5.1
 
-**Desarrollo Activo**: Agente Rust trabajando en mejoras
+**CLI**: Todos los comandos core implementados (`init`, `skills`, `beads`, `mcp`, `doctor`, `update`, `sync`, `agents`)
+
+**Agentes**: 9 agentes especializados operativos con MCP scoping por agente
+
+**Workflow**: Framework de 5 fases completamente documentado y validado end-to-end
+
+**Formulas**: 4 plantillas de workflow (feature, bugfix, spike, release)
+
+**Skills**: 11 skills de mejores practicas instalados
 
 ---
 
