@@ -64,10 +64,12 @@ gh pr create \
 | Type       | When to use                          | SemVer     |
 |------------|--------------------------------------|------------|
 | `feat`     | New functionality                    | **MINOR**  |
-| `fix`      | Bug fix                              | **PATCH**  |
-| `hotfix`   | Urgent production fix                | **PATCH**  |
+| `fix`      | Bug fix (including urgent prod fixes)| **PATCH**  |
 | `refactor` | Code restructuring, no behavior change | **PATCH** |
-| `chore`    | CI/CD, deps, scripts, maintenance    | **PATCH**  |
+| `perf`     | Performance optimization             | **PATCH**  |
+| `build`    | Build system (Cargo, Docker, install)| **PATCH**  |
+| `ci`       | CI/CD (GitHub Actions, workflows)    | **PATCH**  |
+| `chore`    | Maintenance, deps, cleanup           | **PATCH**  |
 | `docs`     | Documentation only                   | **PATCH**  |
 | `style`    | Formatting, linting                  | **PATCH**  |
 | `test`     | Test additions or changes            | **PATCH**  |
@@ -75,11 +77,15 @@ gh pr create \
 
 **Examples:**
 ```text
-feat(api): add user search endpoint
-fix(auth): resolve token expiration race condition
-refactor(db): extract connection pool module
-chore(ci): add dev branch to CI workflow
-feat(api)!: change response format to JSON:API
+feat(cli): add interactive project selector
+fix(parser): handle edge case in TOML deserialization
+refactor(core): split monolithic module into submodules
+perf(io): use buffered writer for large file output
+build(cargo): update MSRV to 1.75
+ci(actions): add cross-compilation targets
+chore(deps): bump clap to v4
+docs(lib): add module-level documentation
+feat(api)!: change config file format from TOML to YAML
 ```
 
 > **Reference**: See skill `standard-commits` for complete documentation including SemVer rules, tag strategy, and PR review workflow.

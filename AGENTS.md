@@ -108,15 +108,17 @@ All commit messages MUST use format: `<type>(<scope>): <message>`
 
 | Type | Bump | Type | Bump |
 |------|------|------|------|
-| `feat` | MINOR | `fix` / `hotfix` | PATCH |
-| `refactor` | PATCH | `chore` | PATCH |
-| `docs` | PATCH | `test` | PATCH |
-| `style` | PATCH | `any!` (breaking) | MAJOR |
+| `feat` | MINOR | `fix` | PATCH |
+| `refactor` | PATCH | `perf` | PATCH |
+| `build` | PATCH | `ci` | PATCH |
+| `chore` | PATCH | `docs` | PATCH |
+| `style` | PATCH | `test` | PATCH |
+| `any!` (breaking) | MAJOR | | |
 
-### Auto-Tagging
+### Tagging (Manual)
 
-- **Push to `dev`** → GitHub Actions creates `vX.Y.Z-rc.N` tag
-- **Push to `prod`** → GitHub Actions creates `vX.Y.Z` tag → triggers Release workflow
+- Tags are created **manually** after merging to `prod`: `git tag -a vX.Y.Z -m "message" && git push origin vX.Y.Z`
+- Pushing a `v*` tag triggers the `release.yml` workflow (binary builds, GitHub Release)
 
 ## Agent Coordination
 

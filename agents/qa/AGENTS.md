@@ -670,10 +670,12 @@ gh pr create \
 | Type       | When to use                          | SemVer     |
 |------------|--------------------------------------|------------|
 | `feat`     | New functionality                    | **MINOR**  |
-| `fix`      | Bug fix                              | **PATCH**  |
-| `hotfix`   | Urgent production fix                | **PATCH**  |
+| `fix`      | Bug fix (including urgent prod fixes)| **PATCH**  |
 | `refactor` | Code restructuring, no behavior change | **PATCH** |
-| `chore`    | CI/CD, deps, scripts, maintenance    | **PATCH**  |
+| `perf`     | Performance optimization             | **PATCH**  |
+| `build`    | Build system (Cargo, Docker, install)| **PATCH**  |
+| `ci`       | CI/CD (GitHub Actions, workflows)    | **PATCH**  |
+| `chore`    | Maintenance, deps, cleanup           | **PATCH**  |
 | `docs`     | Documentation only                   | **PATCH**  |
 | `style`    | Formatting, linting                  | **PATCH**  |
 | `test`     | Test additions or changes            | **PATCH**  |
@@ -681,11 +683,15 @@ gh pr create \
 
 **Examples:**
 ```text
-feat(api): add user search endpoint
-fix(auth): resolve token expiration race condition
-refactor(db): extract connection pool module
-chore(ci): add dev branch to CI workflow
-feat(api)!: change response format to JSON:API
+feat(e2e): add checkout flow end-to-end test suite
+fix(fixtures): resolve flaky test data seeding
+refactor(helpers): extract assertion utilities into shared module
+perf(suite): parallelize independent test groups
+build(playwright): update browser binaries
+ci(actions): add test coverage report to PR checks
+chore(snapshots): update baseline screenshots
+docs(testing): document test naming conventions
+test(auth): add edge cases for expired token handling
 ```
 
 > **Reference**: See skill `standard-commits` for complete documentation including SemVer rules, tag strategy, and PR review workflow.

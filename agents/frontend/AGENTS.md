@@ -516,10 +516,12 @@ gh pr create \
 | Type       | When to use                          | SemVer     |
 |------------|--------------------------------------|------------|
 | `feat`     | New functionality                    | **MINOR**  |
-| `fix`      | Bug fix                              | **PATCH**  |
-| `hotfix`   | Urgent production fix                | **PATCH**  |
+| `fix`      | Bug fix (including urgent prod fixes)| **PATCH**  |
 | `refactor` | Code restructuring, no behavior change | **PATCH** |
-| `chore`    | CI/CD, deps, scripts, maintenance    | **PATCH**  |
+| `perf`     | Performance optimization             | **PATCH**  |
+| `build`    | Build system (Cargo, Docker, install)| **PATCH**  |
+| `ci`       | CI/CD (GitHub Actions, workflows)    | **PATCH**  |
+| `chore`    | Maintenance, deps, cleanup           | **PATCH**  |
 | `docs`     | Documentation only                   | **PATCH**  |
 | `style`    | Formatting, linting                  | **PATCH**  |
 | `test`     | Test additions or changes            | **PATCH**  |
@@ -527,10 +529,14 @@ gh pr create \
 
 **Examples:**
 ```text
-feat(api): add user search endpoint
-fix(auth): resolve token expiration race condition
-refactor(db): extract connection pool module
-chore(ci): add dev branch to CI workflow
+feat(ui): add dark mode toggle component
+fix(form): resolve validation on empty fields
+refactor(state): extract auth context into module
+perf(render): memoize expensive list computation
+build(vite): update build config for code splitting
+ci(actions): add frontend lint check to CI
+chore(deps): upgrade React to v19
+docs(components): add JSDoc to Button component
 feat(api)!: change response format to JSON:API
 ```
 

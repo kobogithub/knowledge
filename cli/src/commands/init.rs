@@ -516,10 +516,12 @@ All commit messages MUST use: `<type>(<scope>): <message>`
 
 | Type | Bump | Type | Bump |
 |------|------|------|------|
-| `feat` | MINOR | `fix` / `hotfix` | PATCH |
-| `refactor` | PATCH | `chore` | PATCH |
-| `docs` | PATCH | `test` | PATCH |
-| `style` | PATCH | `any!` (breaking) | MAJOR |
+| `feat` | MINOR | `fix` | PATCH |
+| `refactor` | PATCH | `perf` | PATCH |
+| `build` | PATCH | `ci` | PATCH |
+| `chore` | PATCH | `docs` | PATCH |
+| `style` | PATCH | `test` | PATCH |
+| `any!` (breaking) | MAJOR | | |
 
 ## Landing the Plane (Session Completion)
 

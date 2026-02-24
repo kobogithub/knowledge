@@ -730,10 +730,12 @@ gh pr create \
 | Type       | When to use                          | SemVer     |
 |------------|--------------------------------------|------------|
 | `feat`     | New functionality                    | **MINOR**  |
-| `fix`      | Bug fix                              | **PATCH**  |
-| `hotfix`   | Urgent production fix                | **PATCH**  |
+| `fix`      | Bug fix (including urgent prod fixes)| **PATCH**  |
 | `refactor` | Code restructuring, no behavior change | **PATCH** |
-| `chore`    | CI/CD, deps, scripts, maintenance    | **PATCH**  |
+| `perf`     | Performance optimization             | **PATCH**  |
+| `build`    | Build system (Cargo, Docker, install)| **PATCH**  |
+| `ci`       | CI/CD (GitHub Actions, workflows)    | **PATCH**  |
+| `chore`    | Maintenance, deps, cleanup           | **PATCH**  |
 | `docs`     | Documentation only                   | **PATCH**  |
 | `style`    | Formatting, linting                  | **PATCH**  |
 | `test`     | Test additions or changes            | **PATCH**  |
@@ -741,11 +743,15 @@ gh pr create \
 
 **Examples:**
 ```text
-feat(api): add user search endpoint
-fix(auth): resolve token expiration race condition
-refactor(db): extract connection pool module
-chore(ci): add dev branch to CI workflow
-feat(api)!: change response format to JSON:API
+feat(a11y): add WCAG 2.2 color contrast checker
+fix(visual): resolve pixel diff false positive on retina displays
+refactor(snapshots): extract viewport config into shared preset
+perf(comparison): parallelize image diff across viewports
+build(playwright): update chromium to match CI version
+ci(actions): add visual regression check to PR pipeline
+chore(baselines): regenerate baseline screenshots after redesign
+docs(testing): document responsive breakpoint test matrix
+test(interaction): add keyboard navigation tests for modal
 ```
 
 > **Reference**: See skill `standard-commits` for complete documentation including SemVer rules, tag strategy, and PR review workflow.

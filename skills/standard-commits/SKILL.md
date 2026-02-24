@@ -29,9 +29,12 @@ All commit messages MUST follow [Conventional Commits](https://www.conventionalc
 ```text
 feat(auth): add JWT refresh token endpoint
 fix(api): resolve timeout in user lookup
-docs(readme): update installation instructions
-chore(ci): add dev branch to CI workflow
 refactor(db): extract connection pool into module
+perf(query): optimize batch insert with prepared statements
+build(cargo): update dependencies to latest compatible versions
+ci(actions): add dev branch to CI workflow
+chore(deps): clean up unused imports
+docs(readme): update installation instructions
 test(auth): add integration tests for login flow
 ```
 
@@ -51,10 +54,12 @@ Breaking changes trigger a **MAJOR** version bump.
 | Type       | Description                                    | SemVer Bump |
 |------------|------------------------------------------------|-------------|
 | `feat`     | New functionality                              | **MINOR**   |
-| `fix`      | Bug fix                                        | **PATCH**   |
-| `hotfix`   | Urgent production fix                          | **PATCH**   |
-| `refactor` | Internal change, no behavior change            | **PATCH**   |
-| `chore`    | CI/CD, scripts, dependencies, maintenance      | **PATCH**   |
+| `fix`      | Bug fix (including urgent production fixes)     | **PATCH**   |
+| `refactor` | Code restructuring, no behavior change         | **PATCH**   |
+| `perf`     | Performance optimization                       | **PATCH**   |
+| `build`    | Build system (Cargo, Docker, install scripts)  | **PATCH**   |
+| `ci`       | CI/CD configuration (GitHub Actions, workflows)| **PATCH**   |
+| `chore`    | General maintenance, dependencies, cleanup     | **PATCH**   |
 | `docs`     | Documentation changes                          | **PATCH**   |
 | `style`    | Formatting, linting, whitespace                | **PATCH**   |
 | `test`     | Test additions or modifications                | **PATCH**   |
@@ -94,7 +99,7 @@ When analyzing commits from the last tag to HEAD:
    MINOR += 1, PATCH = 0
    ```
 
-3. **If commits are `fix|hotfix|refactor|chore|docs|style|test`** -> **PATCH** bump
+3. **If commits are `fix|refactor|perf|build|ci|chore|docs|style|test`** -> **PATCH** bump
    ```
    PATCH += 1
    ```
@@ -223,12 +228,12 @@ git pull origin prod
 git checkout -b hotfix/knowledge-xyz
 git push -u origin hotfix/knowledge-xyz
 
-# 2. Fix and commit
-git commit -m "hotfix(auth): fix token expiration check"
+# 2. Fix and commit (use `fix` type — urgency is conveyed by the hotfix/ branch)
+git commit -m "fix(auth): fix token expiration check"
 git push
 
 # 3. Create PR to prod AND dev
-gh pr create --base prod --head hotfix/knowledge-xyz --title "hotfix(auth): fix token expiration"
+gh pr create --base prod --head hotfix/knowledge-xyz --title "fix(auth): fix token expiration"
 # After merge to prod, cherry-pick or merge to dev too
 ```
 

@@ -720,10 +720,12 @@ gh pr create \
 | Type       | When to use                          | SemVer     |
 |------------|--------------------------------------|------------|
 | `feat`     | New functionality                    | **MINOR**  |
-| `fix`      | Bug fix                              | **PATCH**  |
-| `hotfix`   | Urgent production fix                | **PATCH**  |
+| `fix`      | Bug fix (including urgent prod fixes)| **PATCH**  |
 | `refactor` | Code restructuring, no behavior change | **PATCH** |
-| `chore`    | CI/CD, deps, scripts, maintenance    | **PATCH**  |
+| `perf`     | Performance optimization             | **PATCH**  |
+| `build`    | Build system (Cargo, Docker, install)| **PATCH**  |
+| `ci`       | CI/CD (GitHub Actions, workflows)    | **PATCH**  |
+| `chore`    | Maintenance, deps, cleanup           | **PATCH**  |
 | `docs`     | Documentation only                   | **PATCH**  |
 | `style`    | Formatting, linting                  | **PATCH**  |
 | `test`     | Test additions or changes            | **PATCH**  |
@@ -731,11 +733,15 @@ gh pr create \
 
 **Examples:**
 ```text
-feat(api): add user search endpoint
-fix(auth): resolve token expiration race condition
-refactor(db): extract connection pool module
-chore(ci): add dev branch to CI workflow
-feat(api)!: change response format to JSON:API
+feat(scan): add Trivy container image scanning
+fix(sast): resolve false positive in SQL injection rule
+refactor(rules): consolidate Semgrep rulesets into single config
+perf(gitleaks): optimize regex patterns for large repos
+build(trivy): update vulnerability database
+ci(actions): add SAST scan to PR pipeline
+chore(deps): upgrade OWASP ZAP to latest
+docs(security): document vulnerability disclosure process
+feat(auth)!: enforce mandatory MFA on all admin endpoints
 ```
 
 > **Reference**: See skill `standard-commits` for complete documentation including SemVer rules, tag strategy, and PR review workflow.

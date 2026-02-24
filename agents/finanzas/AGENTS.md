@@ -533,10 +533,12 @@ gh pr create \
 | Type       | When to use                          | SemVer     |
 |------------|--------------------------------------|------------|
 | `feat`     | New functionality                    | **MINOR**  |
-| `fix`      | Bug fix                              | **PATCH**  |
-| `hotfix`   | Urgent production fix                | **PATCH**  |
+| `fix`      | Bug fix (including urgent prod fixes)| **PATCH**  |
 | `refactor` | Code restructuring, no behavior change | **PATCH** |
-| `chore`    | CI/CD, deps, scripts, maintenance    | **PATCH**  |
+| `perf`     | Performance optimization             | **PATCH**  |
+| `build`    | Build system (Cargo, Docker, install)| **PATCH**  |
+| `ci`       | CI/CD (GitHub Actions, workflows)    | **PATCH**  |
+| `chore`    | Maintenance, deps, cleanup           | **PATCH**  |
 | `docs`     | Documentation only                   | **PATCH**  |
 | `style`    | Formatting, linting                  | **PATCH**  |
 | `test`     | Test additions or changes            | **PATCH**  |
@@ -544,11 +546,15 @@ gh pr create \
 
 **Examples:**
 ```text
-feat(api): add user search endpoint
-fix(auth): resolve token expiration race condition
-refactor(db): extract connection pool module
-chore(ci): add dev branch to CI workflow
-feat(api)!: change response format to JSON:API
+feat(costs): add daily spend breakdown by model
+fix(report): resolve currency rounding in monthly totals
+refactor(tracker): extract OpenRouter client into module
+perf(aggregation): cache cost queries for repeated date ranges
+build(deps): update reqwest for OpenRouter API calls
+ci(actions): add budget alert check to nightly pipeline
+chore(data): archive cost data older than 90 days
+docs(budget): document cost allocation per agent
+feat(api)!: change cost report format from CSV to JSON
 ```
 
 > **Reference**: See skill `standard-commits` for complete documentation including SemVer rules, tag strategy, and PR review workflow.

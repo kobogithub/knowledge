@@ -648,10 +648,12 @@ gh pr create \
 | Type       | When to use                          | SemVer     |
 |------------|--------------------------------------|------------|
 | `feat`     | New functionality                    | **MINOR**  |
-| `fix`      | Bug fix                              | **PATCH**  |
-| `hotfix`   | Urgent production fix                | **PATCH**  |
+| `fix`      | Bug fix (including urgent prod fixes)| **PATCH**  |
 | `refactor` | Code restructuring, no behavior change | **PATCH** |
-| `chore`    | CI/CD, deps, scripts, maintenance    | **PATCH**  |
+| `perf`     | Performance optimization             | **PATCH**  |
+| `build`    | Build system (Cargo, Docker, install)| **PATCH**  |
+| `ci`       | CI/CD (GitHub Actions, workflows)    | **PATCH**  |
+| `chore`    | Maintenance, deps, cleanup           | **PATCH**  |
 | `docs`     | Documentation only                   | **PATCH**  |
 | `style`    | Formatting, linting                  | **PATCH**  |
 | `test`     | Test additions or changes            | **PATCH**  |
@@ -662,7 +664,11 @@ gh pr create \
 feat(api): add user search endpoint
 fix(auth): resolve token expiration race condition
 refactor(db): extract connection pool module
-chore(ci): add dev branch to CI workflow
+perf(query): optimize batch insert with prepared statements
+build(cargo): update dependencies for new async runtime
+ci(actions): add backend integration tests to CI
+chore(deps): clean up unused crate imports
+docs(api): document rate limiting behavior
 feat(api)!: change response format to JSON:API
 ```
 
