@@ -1,7 +1,7 @@
 {
   "formula": "mol-bugfix",
-  "version": 1,
-  "description": "Template for fixing a bug with root cause analysis and regression testing",
+  "version": 2,
+  "description": "Template for fixing a bug with branching strategy, root cause analysis and regression testing",
   "variables": {
     "name": {
       "description": "Bug name (kebab-case, e.g. 'login-timeout')",
@@ -10,6 +10,10 @@
     "description": {
       "description": "Bug description and symptoms",
       "required": true
+    },
+    "is_hotfix": {
+      "description": "Is this a production hotfix? (true/false) - determines branch base",
+      "default": "false"
     },
     "assignee": {
       "description": "Agent responsible for the fix",
@@ -22,12 +26,22 @@
   },
   "steps": [
     {
+      "id": "create-branch",
+      "title": "Crear branch para bugfix {{name}}",
+      "type": "chore",
+      "priority": 0,
+      "labels": ["branching", "bugfix", "{{name}}"],
+      "assignee": "{{assignee}}",
+      "description": "Crear branch para el bugfix. Si is_hotfix=true: git checkout prod && git checkout -b hotfix/{{name}}. Si is_hotfix=false: git checkout dev && git checkout -b task/{{name}}. Push branch: git push -u origin <branch>. Usar conventional commits (fix/hotfix type)."
+    },
+    {
       "id": "investigation",
       "title": "Investigar root cause: {{name}}",
       "type": "task",
       "priority": 0,
       "labels": ["phase:exploration", "bugfix", "{{name}}"],
       "assignee": "{{assignee}}",
+      "depends_on": ["create-branch"],
       "description": "Investigar la causa raiz de {{name}}. Reproducir el bug, identificar el codigo afectado y documentar hallazgos."
     },
     {
@@ -38,7 +52,17 @@
       "labels": ["bugfix", "{{name}}"],
       "assignee": "{{assignee}}",
       "depends_on": ["investigation"],
-      "description": "Implementar la correccion para {{name}}. Incluir unit tests que cubran el caso."
+      "description": "Implementar la correccion para {{name}}. Incluir unit tests que cubran el caso. Usar conventional commits: fix(scope): message o hotfix(scope): message."
+    },
+    {
+      "id": "create-pr",
+      "title": "Crear PR para bugfix {{name}}",
+      "type": "chore",
+      "priority": 0,
+      "labels": ["pr-review", "bugfix", "{{name}}"],
+      "assignee": "{{assignee}}",
+      "depends_on": ["fix"],
+      "description": "Crear PR hacia la branch objetivo. Si hotfix: gh pr create --base prod. Si normal: gh pr create --base dev. Incluir descripcion del root cause y la solucion."
     },
     {
       "id": "regression-test",
@@ -56,12 +80,12 @@
       "type": "task",
       "priority": 0,
       "labels": ["phase:verification", "gate", "{{name}}"],
-      "depends_on": ["regression-test"],
+      "depends_on": ["regression-test", "create-pr"],
       "gate": {
         "type": "human",
-        "description": "Confirmar que {{name}} esta resuelto en staging/production"
+        "description": "Review PR y confirmar que {{name}} esta resuelto. Si hotfix, tambien cherry-pick/merge a dev."
       },
-      "description": "Gate de verificacion humana para confirmar que el bugfix es correcto."
+      "description": "Gate de verificacion humana para confirmar que el bugfix es correcto. Merge PR tras aprobacion."
     }
   ]
 }

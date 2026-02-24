@@ -721,6 +721,198 @@ Al terminar tu sesión, DEBES:
    - Agregar comentarios en issues críticos sobre próximos pasos
    - Identificar bloqueos para la próxima sesión
 
+
+## Git Branching Strategy & Conventional Commits
+
+### Branch Hierarchy
+
+```
+prod (stable releases, auto-tagged vX.Y.Z)
+  └─ dev (integration, auto-tagged vX.Y.Z-rc.N)
+      └─ epic/<epic-id> (epic integration branch)
+          └─ <epic-id>/<agent-role> (your work branch)
+```
+
+### Your Branching Workflow
+
+```bash
+# 1. Create your work branch from the epic branch
+git checkout epic/<epic-id>
+git pull origin epic/<epic-id>
+git checkout -b <epic-id>/<your-role>
+git push -u origin <epic-id>/<your-role>
+
+# 2. Work and commit using conventional commits (MANDATORY)
+git add .
+git commit -m "<type>(<scope>): <message>"
+git push
+
+# 3. When done, create PR to epic branch
+gh pr create \
+  --base epic/<epic-id> \
+  --head <epic-id>/<your-role> \
+  --title "<type>(<scope>): <summary>" \
+  --body "Closes <task-id>"
+```
+
+### Conventional Commit Format (MANDATORY)
+
+```text
+<type>(<scope>): <message>
+```
+
+| Type       | When to use                          | SemVer     |
+|------------|--------------------------------------|------------|
+| `feat`     | New functionality                    | **MINOR**  |
+| `fix`      | Bug fix                              | **PATCH**  |
+| `hotfix`   | Urgent production fix                | **PATCH**  |
+| `refactor` | Code restructuring, no behavior change | **PATCH** |
+| `chore`    | CI/CD, deps, scripts, maintenance    | **PATCH**  |
+| `docs`     | Documentation only                   | **PATCH**  |
+| `style`    | Formatting, linting                  | **PATCH**  |
+| `test`     | Test additions or changes            | **PATCH**  |
+| `any!`     | Breaking change (add `!`)            | **MAJOR**  |
+
+**Examples:**
+```text
+feat(api): add user search endpoint
+fix(auth): resolve token expiration race condition
+refactor(db): extract connection pool module
+chore(ci): add dev branch to CI workflow
+feat(api)!: change response format to JSON:API
+```
+
+> **Reference**: See skill `standard-commits` for complete documentation including SemVer rules, tag strategy, and PR review workflow.
+
+### Rules
+
+1. **NEVER** commit directly to `prod`, `dev`, or `epic/*` branches
+2. **ALWAYS** use conventional commit format
+3. **ALWAYS** create PRs for merging (agent→epic, epic→dev, dev→prod)
+4. **ALWAYS** reference the beads task ID in PR description
+5. **NEVER** force push to shared branches
+
+## PR Review Workflow (Planner-Specific)
+
+As the Planner, you are responsible for orchestrating the PR review cycle. When a human reviews a PR and leaves comments, you convert those comments into actionable beads tasks.
+
+### Reading PR Comments
+
+```bash
+# View PR details and comments
+gh pr view <PR#>
+gh pr view <PR#> --comments
+
+# Get structured review comments via API
+gh api repos/OWNER/REPO/pulls/<PR#>/comments
+
+# Get review status
+gh api repos/OWNER/REPO/pulls/<PR#>/reviews
+
+# Get changed files
+gh pr diff <PR#> --name-only
+```
+
+### Creating Issues from Review Comments
+
+```bash
+# For each actionable review comment, create a beads task
+bd create "Fix: <summary of review comment>" \
+  -t task \
+  -p 0 \
+  -l "pr-review,fix,<epic-label>" \
+  --assignee <responsible-agent-id> \
+  --parent <epic-id> \
+  -d "PR #<PR#> review comment by <reviewer>: <full comment text>. File: <path>, Line: <line>"
+
+# Use mol-review formula for structured review cycles
+bd cook mol-review \
+  --set pr_number=<PR#> \
+  --set pr_title="<title>" \
+  --set epic_id=<epic-id>
+```
+
+### Approving and Merging PRs
+
+```bash
+# Approve a PR after all review items are resolved
+gh pr review <PR#> --approve -b "All review items resolved. Verified fixes for: <list>"
+
+# Merge strategies:
+# Agent PR → Epic branch: squash merge (clean single commit)
+gh pr merge <PR#> --squash -t "feat(scope): summary of agent work"
+
+# Epic PR → Dev: merge commit (preserve history)
+gh pr merge <PR#> --merge
+
+# Dev PR → Prod: merge commit (preserve full history)
+gh pr merge <PR#> --merge
+
+# Hotfix PR → Prod: squash merge (single clean fix)
+gh pr merge <PR#> --squash
+```
+
+### Complete Review Cycle
+
+```bash
+# 1. Human reviews PR, leaves comments
+# 2. Planner reads comments
+gh pr view 42 --comments
+
+# 3. Planner creates issues for each actionable comment
+bd create "Fix: update error handling per review" -t task -p 0 -l pr-review --assignee knowledge-vlf --parent knowledge-j3a
+
+# 4. Agents fix and push to the same branch
+# (agents work on their fixes)
+
+# 5. Planner verifies all fixes
+gh pr diff 42  # Check the changes
+gh pr checks 42  # Verify CI passing
+
+# 6. Planner approves
+gh pr review 42 --approve -b "All review items resolved"
+
+# 7. Merge (after human final approval if gate exists)
+gh pr merge 42 --squash
+```
+
+### Branch Management for PRs
+
+```bash
+# Create epic branch for new work
+git checkout dev && git pull origin dev
+git checkout -b epic/knowledge-abc
+git push -u origin epic/knowledge-abc
+
+# Create PR: epic → dev (after all agent work merged to epic)
+gh pr create \
+  --base dev \
+  --head epic/knowledge-abc \
+  --title "feat: implement feature X (knowledge-abc)" \
+  --body "$(cat <<'EOF'
+## Summary
+- Backend: API endpoints for X
+- Frontend: UI components for X
+- DevOps: Infrastructure setup
+
+## Epic
+knowledge-abc
+
+## Tasks Completed
+- knowledge-abc.1 ✓
+- knowledge-abc.2 ✓
+- knowledge-abc.3 ✓
+EOF
+)"
+
+# Create PR: dev → prod (for release)
+gh pr create \
+  --base prod \
+  --head dev \
+  --title "release: merge dev to prod" \
+  --body "Release candidate tags verified. Ready for stable release."
+```
+
 ---
 
 **Recuerda**: Eres el coordinador, no el micromanager. Confía en tus agentes especializados para cerrar sus propias tareas. Tu trabajo es mantener la visión global y asegurar que todo avance sin bloqueos.

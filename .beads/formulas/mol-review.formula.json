@@ -1,0 +1,99 @@
+{
+  "formula": "mol-review",
+  "version": 1,
+  "description": "Template for PR review cycle: human reviews PR, Planner creates issues, agents resolve, PR approved",
+  "variables": {
+    "pr_number": {
+      "description": "Pull request number",
+      "required": true
+    },
+    "pr_title": {
+      "description": "Pull request title",
+      "required": true
+    },
+    "epic_id": {
+      "description": "Epic ID this PR belongs to (e.g. knowledge-j3a)",
+      "required": true
+    },
+    "target_branch": {
+      "description": "Target branch of the PR (e.g. dev, epic/knowledge-j3a)",
+      "default": "dev"
+    },
+    "assignee_backend": {
+      "description": "Backend agent ID",
+      "default": "knowledge-vlf"
+    },
+    "assignee_frontend": {
+      "description": "Frontend agent ID",
+      "default": "knowledge-4yh"
+    },
+    "assignee_devops": {
+      "description": "DevOps agent ID",
+      "default": "knowledge-w5p"
+    }
+  },
+  "steps": [
+    {
+      "id": "review-triage",
+      "title": "Planner: Triage review comments for PR #{{pr_number}}",
+      "type": "task",
+      "priority": 0,
+      "labels": ["pr-review", "triage", "{{epic_id}}"],
+      "assignee": "knowledge-x6e",
+      "description": "Read PR #{{pr_number}} comments using gh CLI. Categorize each comment as: (1) code-fix needed, (2) refactor request, (3) question/clarification, (4) nit/style. Create child issues for actionable items. Commands: gh pr view {{pr_number}} --comments, gh api repos/OWNER/REPO/pulls/{{pr_number}}/comments"
+    },
+    {
+      "id": "fix-backend",
+      "title": "Backend: Resolve review comments for PR #{{pr_number}}",
+      "type": "task",
+      "priority": 0,
+      "labels": ["pr-review", "backend", "fix", "{{epic_id}}"],
+      "assignee": "{{assignee_backend}}",
+      "depends_on": ["review-triage"],
+      "description": "Address backend-related review comments from PR #{{pr_number}} ({{pr_title}}). Push fixes to the source branch. Reference the original review comment in commit messages."
+    },
+    {
+      "id": "fix-frontend",
+      "title": "Frontend: Resolve review comments for PR #{{pr_number}}",
+      "type": "task",
+      "priority": 0,
+      "labels": ["pr-review", "frontend", "fix", "{{epic_id}}"],
+      "assignee": "{{assignee_frontend}}",
+      "depends_on": ["review-triage"],
+      "description": "Address frontend-related review comments from PR #{{pr_number}} ({{pr_title}}). Push fixes to the source branch. Reference the original review comment in commit messages."
+    },
+    {
+      "id": "fix-devops",
+      "title": "DevOps: Resolve review comments for PR #{{pr_number}}",
+      "type": "task",
+      "priority": 1,
+      "labels": ["pr-review", "devops", "fix", "{{epic_id}}"],
+      "assignee": "{{assignee_devops}}",
+      "depends_on": ["review-triage"],
+      "description": "Address DevOps/CI-related review comments from PR #{{pr_number}} ({{pr_title}}). Push fixes to the source branch."
+    },
+    {
+      "id": "verify-fixes",
+      "title": "Planner: Verify all review fixes for PR #{{pr_number}}",
+      "type": "task",
+      "priority": 0,
+      "labels": ["pr-review", "verification", "{{epic_id}}"],
+      "assignee": "knowledge-x6e",
+      "depends_on": ["fix-backend", "fix-frontend", "fix-devops"],
+      "description": "Verify all review comments have been addressed. Check CI status. If all fixes are satisfactory, approve the PR: gh pr review {{pr_number}} --approve -b 'All review items resolved'"
+    },
+    {
+      "id": "merge-gate",
+      "title": "Gate: Human approval to merge PR #{{pr_number}}",
+      "type": "task",
+      "priority": 0,
+      "labels": ["phase:verification", "gate", "pr-review", "{{epic_id}}"],
+      "depends_on": ["verify-fixes"],
+      "gate": {
+        "type": "human",
+        "description": "Final human approval before merging PR #{{pr_number}} to {{target_branch}}"
+      },
+      "description": "Human verifies all review items resolved. Merge using: gh pr merge {{pr_number}} --squash (for agent PRs) or gh pr merge {{pr_number}} --merge (for epic PRs to dev)."
+    }
+  ]
+}

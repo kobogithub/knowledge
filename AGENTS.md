@@ -77,6 +77,47 @@ Todo trabajo significativo sigue 5 fases. Ver skill `bd-best-practices` para det
 4. **Ownership**: You own your tasks from claim to completion
 5. **Honesty**: Only close when actually complete and tested
 
+## Git Branching Strategy
+
+All agents MUST follow the branching strategy. See skill `standard-commits` for complete documentation.
+
+### Branch Hierarchy
+
+```
+prod (stable releases, auto-tagged vX.Y.Z)
+  └─ dev (integration, auto-tagged vX.Y.Z-rc.N)
+      └─ epic/<epic-id> (epic integration branch)
+          └─ <epic-id>/<agent-role> (agent work branch)
+```
+
+### Branching Rules
+
+| Branch Type    | Pattern                    | Created From | PR Target    |
+|----------------|----------------------------|--------------|--------------|
+| Production     | `prod`                     | -            | -            |
+| Integration    | `dev`                      | `prod`       | `prod`       |
+| Epic           | `epic/<epic-id>`           | `dev`        | `dev`        |
+| Agent work     | `<epic-id>/<agent-role>`   | `epic/<id>`  | `epic/<id>`  |
+| Independent    | `task/<task-id>`           | `dev`        | `dev`        |
+| Hotfix         | `hotfix/<issue-id>`        | `prod`       | `prod`+`dev` |
+| Release        | `release/v<version>`       | `dev`        | `prod`       |
+
+### Conventional Commits (MANDATORY)
+
+All commit messages MUST use format: `<type>(<scope>): <message>`
+
+| Type | Bump | Type | Bump |
+|------|------|------|------|
+| `feat` | MINOR | `fix` / `hotfix` | PATCH |
+| `refactor` | PATCH | `chore` | PATCH |
+| `docs` | PATCH | `test` | PATCH |
+| `style` | PATCH | `any!` (breaking) | MAJOR |
+
+### Auto-Tagging
+
+- **Push to `dev`** → GitHub Actions creates `vX.Y.Z-rc.N` tag
+- **Push to `prod`** → GitHub Actions creates `vX.Y.Z` tag → triggers Release workflow
+
 ## Agent Coordination
 
 ```bash

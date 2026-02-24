@@ -1,0 +1,144 @@
+# ============================================
+# Auto-Tag Prod - Stable Releases
+# Description: Analyze conventional commits since last stable tag,
+#              determine SemVer bump, and create stable tag on prod branch
+# ============================================
+name: Auto-Tag Prod (Stable)
+
+on:
+  push:
+    branches:
+      - prod
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - '.beads/**'
+
+permissions:
+  contents: write
+
+jobs:
+  auto-tag-stable:
+    name: Create Stable Tag
+    runs-on: ubuntu-latest
+    # Prevent infinite loop: skip if pushed by github-actions bot
+    if: github.actor != 'github-actions[bot]'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for tag analysis
+
+      - name: Determine version bump and create stable tag
+        id: tag
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Analyzing commits for version bump..."
+
+          # Get the latest stable tag (vX.Y.Z without -rc suffix)
+          LATEST_STABLE=$(git tag --list 'v*' --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || echo "")
+
+          if [ -z "$LATEST_STABLE" ]; then
+            echo "No stable tags found, using v0.0.0 as base"
+            LATEST_STABLE="v0.0.0"
+            COMMITS=$(git log --oneline --format='%s' 2>/dev/null || echo "")
+          else
+            echo "Latest stable tag: $LATEST_STABLE"
+            COMMITS=$(git log "${LATEST_STABLE}..HEAD" --oneline --format='%s' 2>/dev/null || echo "")
+          fi
+
+          if [ -z "$COMMITS" ]; then
+            echo "No new commits since $LATEST_STABLE"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "📝 Commits since $LATEST_STABLE:"
+          echo "$COMMITS"
+          echo ""
+
+          # Parse current version
+          VERSION="${LATEST_STABLE#v}"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+
+          # Determine bump type
+          HAS_BREAKING=false
+          HAS_FEAT=false
+          HAS_PATCH=false
+
+          while IFS= read -r commit; do
+            if echo "$commit" | grep -qE '^[a-z]+(\([^)]*\))?!:'; then
+              HAS_BREAKING=true
+            fi
+            if echo "$commit" | grep -qE '^feat(\([^)]*\))?[!]?:'; then
+              HAS_FEAT=true
+            fi
+            if echo "$commit" | grep -qE '^(fix|hotfix|refactor|chore|docs|style|test)(\([^)]*\))?[!]?:'; then
+              HAS_PATCH=true
+            fi
+          done <<< "$COMMITS"
+
+          # Calculate new version
+          if [ "$HAS_BREAKING" = true ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            BUMP="MAJOR (breaking change)"
+          elif [ "$HAS_FEAT" = true ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            BUMP="MINOR (new feature)"
+          elif [ "$HAS_PATCH" = true ]; then
+            PATCH=$((PATCH + 1))
+            BUMP="PATCH (fix/chore/etc)"
+          else
+            echo "⚠️ No conventional commits found, skipping tag"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "📊 Bump type: $BUMP"
+          echo "🏷️ New stable tag: $NEW_TAG"
+
+          # Check if this tag already exists
+          if git tag --list "$NEW_TAG" | grep -q "$NEW_TAG"; then
+            echo "⚠️ Tag $NEW_TAG already exists, skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Create and push tag
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$NEW_TAG" -m "Release: $NEW_TAG
+
+          Bump: $BUMP
+          Previous: $LATEST_STABLE
+          Commits: $(echo "$COMMITS" | wc -l | tr -d ' ')"
+
+          git push origin "$NEW_TAG"
+
+          echo "✅ Stable tag $NEW_TAG created and pushed"
+          echo "tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
+          echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
+          echo "previous=$LATEST_STABLE" >> "$GITHUB_OUTPUT"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        if: steps.tag.outputs.skip != 'true'
+        run: |
+          echo "### 🏷️ Stable Release Tagged" >> "$GITHUB_SUMMARY"
+          echo "" >> "$GITHUB_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_SUMMARY"
+          echo "| **Tag** | \`${{ steps.tag.outputs.tag }}\` |" >> "$GITHUB_SUMMARY"
+          echo "| **Bump** | ${{ steps.tag.outputs.bump }} |" >> "$GITHUB_SUMMARY"
+          echo "| **Previous** | \`${{ steps.tag.outputs.previous }}\` |" >> "$GITHUB_SUMMARY"
+          echo "| **Branch** | \`prod\` |" >> "$GITHUB_SUMMARY"
+          echo "" >> "$GITHUB_SUMMARY"
+          echo "> This tag will trigger the Release workflow to build and publish binaries." >> "$GITHUB_SUMMARY"

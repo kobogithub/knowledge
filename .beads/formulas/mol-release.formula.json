@@ -1,7 +1,7 @@
 {
   "formula": "mol-release",
-  "version": 1,
-  "description": "Template for releasing a new version with quality gates",
+  "version": 2,
+  "description": "Template for releasing a new version with branching, quality gates, and auto-tagging",
   "variables": {
     "version": {
       "description": "Version number (semver, e.g. '1.2.0')",
@@ -30,12 +30,21 @@
   },
   "steps": [
     {
+      "id": "create-release-branch",
+      "title": "Crear release branch para v{{version}}",
+      "type": "chore",
+      "priority": 0,
+      "labels": ["release", "branching", "v{{version}}"],
+      "description": "Crear branch: git checkout dev && git checkout -b release/v{{version}} && git push -u origin release/v{{version}}. Esta branch se usa para preparativos finales antes de merge a prod."
+    },
+    {
       "id": "changelog",
       "title": "Preparar CHANGELOG para v{{version}}",
       "type": "chore",
       "priority": 0,
       "labels": ["release", "v{{version}}"],
-      "description": "Actualizar CHANGELOG.md con los cambios incluidos en v{{version}}. {{description}}"
+      "depends_on": ["create-release-branch"],
+      "description": "Actualizar CHANGELOG.md con los cambios incluidos en v{{version}}. {{description}}. Commit: chore: prepare release v{{version}}"
     },
     {
       "id": "version-bump",
@@ -45,7 +54,7 @@
       "labels": ["release", "rust", "v{{version}}"],
       "assignee": "{{assignee_rust}}",
       "depends_on": ["changelog"],
-      "description": "Actualizar Cargo.toml, Cargo.lock y kn.toml a version {{version}}."
+      "description": "Actualizar Cargo.toml, Cargo.lock y kn.toml a version {{version}}. Commit: chore: bump version to {{version}}"
     },
     {
       "id": "security-audit",
@@ -68,27 +77,26 @@
       "description": "Ejecutar smoke tests: kn doctor, kn update, instalacion limpia. Verificar funcionalidad basica."
     },
     {
+      "id": "create-pr-to-prod",
+      "title": "Crear PR release/v{{version}}→prod",
+      "type": "chore",
+      "priority": 0,
+      "labels": ["release", "pr-review", "v{{version}}"],
+      "depends_on": ["security-audit", "qa-smoke"],
+      "description": "Crear PR: gh pr create --base prod --head release/v{{version}} --title 'release: v{{version}}' --body '{{description}}'. Este merge a prod triggerea auto-tag-prod.yml que crea el tag v{{version}} y dispara el release workflow."
+    },
+    {
       "id": "release-gate",
       "title": "Gate: Aprobacion de release v{{version}}",
       "type": "task",
       "priority": 0,
       "labels": ["phase:verification", "gate", "release", "v{{version}}"],
-      "depends_on": ["security-audit", "qa-smoke"],
+      "depends_on": ["create-pr-to-prod"],
       "gate": {
         "type": "human",
-        "description": "Verificacion final antes de publicar v{{version}}"
+        "description": "Verificacion final antes de merge a prod. El merge auto-genera tag v{{version}} via GitHub Actions."
       },
-      "description": "Gate de aprobacion humana. Verificar que security audit y QA smoke tests pasaron."
-    },
-    {
-      "id": "deploy",
-      "title": "DevOps: Publicar release v{{version}}",
-      "type": "chore",
-      "priority": 0,
-      "labels": ["release", "devops", "v{{version}}"],
-      "assignee": "{{assignee_devops}}",
-      "depends_on": ["release-gate"],
-      "description": "Crear tag, trigger GitHub Actions release workflow, verificar artefactos publicados."
+      "description": "Gate de aprobacion humana. Verificar que security audit y QA smoke tests pasaron. Merge PR a prod para trigger auto-tag."
     }
   ]
 }

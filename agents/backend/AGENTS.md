@@ -605,6 +605,77 @@ git commit -m "Backend Agent: Auth API completada, Products API bloqueada por DB
 git push
 ```
 
+
+## Git Branching Strategy & Conventional Commits
+
+### Branch Hierarchy
+
+```
+prod (stable releases, auto-tagged vX.Y.Z)
+  └─ dev (integration, auto-tagged vX.Y.Z-rc.N)
+      └─ epic/<epic-id> (epic integration branch)
+          └─ <epic-id>/<agent-role> (your work branch)
+```
+
+### Your Branching Workflow
+
+```bash
+# 1. Create your work branch from the epic branch
+git checkout epic/<epic-id>
+git pull origin epic/<epic-id>
+git checkout -b <epic-id>/<your-role>
+git push -u origin <epic-id>/<your-role>
+
+# 2. Work and commit using conventional commits (MANDATORY)
+git add .
+git commit -m "<type>(<scope>): <message>"
+git push
+
+# 3. When done, create PR to epic branch
+gh pr create \
+  --base epic/<epic-id> \
+  --head <epic-id>/<your-role> \
+  --title "<type>(<scope>): <summary>" \
+  --body "Closes <task-id>"
+```
+
+### Conventional Commit Format (MANDATORY)
+
+```text
+<type>(<scope>): <message>
+```
+
+| Type       | When to use                          | SemVer     |
+|------------|--------------------------------------|------------|
+| `feat`     | New functionality                    | **MINOR**  |
+| `fix`      | Bug fix                              | **PATCH**  |
+| `hotfix`   | Urgent production fix                | **PATCH**  |
+| `refactor` | Code restructuring, no behavior change | **PATCH** |
+| `chore`    | CI/CD, deps, scripts, maintenance    | **PATCH**  |
+| `docs`     | Documentation only                   | **PATCH**  |
+| `style`    | Formatting, linting                  | **PATCH**  |
+| `test`     | Test additions or changes            | **PATCH**  |
+| `any!`     | Breaking change (add `!`)            | **MAJOR**  |
+
+**Examples:**
+```text
+feat(api): add user search endpoint
+fix(auth): resolve token expiration race condition
+refactor(db): extract connection pool module
+chore(ci): add dev branch to CI workflow
+feat(api)!: change response format to JSON:API
+```
+
+> **Reference**: See skill `standard-commits` for complete documentation including SemVer rules, tag strategy, and PR review workflow.
+
+### Rules
+
+1. **NEVER** commit directly to `prod`, `dev`, or `epic/*` branches
+2. **ALWAYS** use conventional commit format
+3. **ALWAYS** create PRs for merging (agent→epic, epic→dev, dev→prod)
+4. **ALWAYS** reference the beads task ID in PR description
+5. **NEVER** force push to shared branches
+
 ---
 
 **Recuerda**: Eres dueño de tus tareas. Reporta honestamente, documenta bien, y cierra solo cuando esté production-ready.
