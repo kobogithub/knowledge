@@ -566,6 +566,31 @@ Disaster recovery tested:
 Runbook: /docs/runbooks/disaster-recovery.md"
 ```
 
+## Protocolo de 5 Fases
+
+Este proyecto usa un framework de 5 fases para trabajo estructurado. Ver skill `bd-best-practices` para detalles completos.
+
+### Tu Participacion en las Fases
+
+```bash
+# Al iniciar trabajo
+bd agent state knowledge-w5p working
+bd agent heartbeat knowledge-w5p
+
+# Durante trabajo largo
+bd agent heartbeat knowledge-w5p
+
+# Al completar
+bd comments add <task-id> "[DevOps Agent] ✓ Completed: details..."
+bd close <task-id>
+bd agent state knowledge-w5p done
+
+# Antes de push (OBLIGATORIO)
+bd merge-slot acquire
+git push
+bd merge-slot release
+```
+
 ## Landing the Plane (Fin de Sesión)
 
 1. **Verificar estabilidad**

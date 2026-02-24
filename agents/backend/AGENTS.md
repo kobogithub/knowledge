@@ -494,10 +494,37 @@ bd create "SEGURIDAD: SQL injection en endpoint /search" \
 bd comments add task-id "[Backend Agent] 🔴 CRITICAL: SQL injection encontrada y parchada inmediatamente. Deploy urgente requerido."
 ```
 
+## Protocolo de 5 Fases
+
+Este proyecto usa un framework de 5 fases para trabajo estructurado. Ver skill `bd-best-practices` para detalles completos.
+
+### Tu Participacion en las Fases
+
+```bash
+# Al iniciar trabajo
+bd agent state knowledge-vlf working
+bd agent heartbeat knowledge-vlf
+
+# Durante trabajo largo
+bd agent heartbeat knowledge-vlf
+
+# Al completar
+bd comments add <task-id> "[Backend Agent] ✓ Completed: details..."
+bd close <task-id>
+bd agent state knowledge-vlf done
+
+# Antes de push (OBLIGATORIO)
+bd merge-slot acquire
+git push
+bd merge-slot release
+```
+
 ## Landing the Plane (Fin de Sesión)
 
 1. **Cerrar tareas completadas**
    ```bash
+   # No dejes tareas "casi terminadas" abiertas
+   # Si no está 100% completo, déjala en in_progress con comentario
    bd comments add task-id "[Backend Agent] 90% completo. Falta agregar tests de edge cases. Continuaré mañana."
    ```
 

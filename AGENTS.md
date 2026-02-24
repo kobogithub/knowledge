@@ -31,11 +31,17 @@ bd agent state <agent-id> working
 
 # Report progress
 bd comments add <task-id> "[Agent Name] Progress update..."
+bd agent heartbeat <agent-id>   # Update activity timestamp
 
 # Complete your work (YOU close your own tasks)
 bd comments add <task-id> "[Agent Name] ✓ Completed: details..."
 bd close <task-id>
 bd agent state <agent-id> done
+
+# Serialize pushes with merge-slot
+bd merge-slot acquire
+git push
+bd merge-slot release
 
 # Sync with git
 bd sync
@@ -43,6 +49,25 @@ git add .beads/issues.jsonl
 git commit -m "<Agent>: description"
 git push
 ```
+
+## Framework de 5 Fases
+
+Todo trabajo significativo sigue 5 fases. Ver skill `bd-best-practices` para detalles completos.
+
+| Fase | Nombre | Comandos Clave |
+|------|--------|---------------|
+| 1 | Exploracion | `bd create -t decision`, `bd query`, `bd kv`, `bd todo add` |
+| 2 | Especificacion | `bd formula list`, `bd cook`, `bd lint`, `bd graph` |
+| 3 | Task Planning | `bd mol pour`, `bd swarm`, `bd slot`, `bd count` |
+| 4 | Implementacion | `bd agent state`, `bd heartbeat`, `bd merge-slot`, `bd audit` |
+| 5 | Verificacion | `bd gate resolve`, `bd preflight`, `bd orphans`, `bd epic close-eligible` |
+
+### Labels por Fase
+- `phase:exploration` - Investigacion y discovery
+- `phase:specification` - Especificacion y plan
+- `phase:planning` - Task planning y asignacion
+- `phase:implementation` - Implementacion activa
+- `phase:verification` - Verificacion y cierre
 
 ## Workflow Principles
 

@@ -1,0 +1,118 @@
+{
+  "formula": "mol-feature",
+  "version": 1,
+  "description": "Template for implementing a new feature across multiple agents",
+  "variables": {
+    "name": {
+      "description": "Feature name (kebab-case, e.g. 'user-auth')",
+      "required": true
+    },
+    "description": {
+      "description": "Feature description for the epic",
+      "required": true
+    },
+    "assignee_backend": {
+      "description": "Backend agent ID",
+      "default": "knowledge-vlf"
+    },
+    "assignee_frontend": {
+      "description": "Frontend agent ID",
+      "default": "knowledge-4yh"
+    },
+    "assignee_devops": {
+      "description": "DevOps agent ID",
+      "default": "knowledge-w5p"
+    },
+    "assignee_qa": {
+      "description": "QA agent ID",
+      "default": "knowledge-pu1"
+    }
+  },
+  "steps": [
+    {
+      "id": "exploration",
+      "title": "ADR: {{name}} - Evaluacion de alternativas",
+      "type": "decision",
+      "priority": 1,
+      "labels": ["phase:exploration", "adr", "{{name}}"],
+      "description": "Explorar alternativas para {{name}}. Documentar contexto, opciones evaluadas, decision y consecuencias."
+    },
+    {
+      "id": "epic",
+      "title": "{{description}}",
+      "type": "epic",
+      "priority": 1,
+      "labels": ["{{name}}", "feature"],
+      "depends_on": ["exploration"],
+      "description": "Epic principal para la implementacion de {{name}}."
+    },
+    {
+      "id": "backend-api",
+      "title": "Backend: API endpoints para {{name}}",
+      "type": "feature",
+      "priority": 0,
+      "labels": ["backend", "api", "{{name}}"],
+      "assignee": "{{assignee_backend}}",
+      "parent": "epic",
+      "depends_on": ["exploration"],
+      "description": "Implementar endpoints de API, modelos de datos y logica de negocio para {{name}}."
+    },
+    {
+      "id": "backend-logic",
+      "title": "Backend: Business logic y validaciones para {{name}}",
+      "type": "feature",
+      "priority": 1,
+      "labels": ["backend", "logic", "{{name}}"],
+      "assignee": "{{assignee_backend}}",
+      "parent": "epic",
+      "depends_on": ["backend-api"],
+      "description": "Implementar logica de negocio, validaciones y servicios para {{name}}."
+    },
+    {
+      "id": "frontend-ui",
+      "title": "Frontend: UI components para {{name}}",
+      "type": "feature",
+      "priority": 1,
+      "labels": ["frontend", "ui", "{{name}}"],
+      "assignee": "{{assignee_frontend}}",
+      "parent": "epic",
+      "depends_on": ["backend-api"],
+      "description": "Implementar componentes de UI, formularios e interacciones para {{name}}."
+    },
+    {
+      "id": "devops-infra",
+      "title": "DevOps: Infraestructura para {{name}}",
+      "type": "chore",
+      "priority": 2,
+      "labels": ["devops", "infrastructure", "{{name}}"],
+      "assignee": "{{assignee_devops}}",
+      "parent": "epic",
+      "description": "Configurar variables de entorno, secrets y recursos de infraestructura para {{name}}."
+    },
+    {
+      "id": "qa-testing",
+      "title": "QA: Tests end-to-end para {{name}}",
+      "type": "task",
+      "priority": 2,
+      "labels": ["qa", "testing", "{{name}}"],
+      "assignee": "{{assignee_qa}}",
+      "parent": "epic",
+      "depends_on": ["backend-logic", "frontend-ui"],
+      "description": "Tests de integracion y end-to-end para {{name}}. Cubrir happy path y edge cases."
+    },
+    {
+      "id": "verification-gate",
+      "title": "Gate: Verificacion humana de {{name}}",
+      "type": "task",
+      "priority": 1,
+      "labels": ["phase:verification", "gate", "{{name}}"],
+      "parent": "epic",
+      "depends_on": ["qa-testing", "devops-infra"],
+      "gate": {
+        "type": "human",
+        "description": "Verificacion manual de que {{name}} cumple los acceptance criteria"
+      },
+      "description": "Gate de verificacion humana. Requiere bd gate resolve para proceder al cierre."
+    }
+  ]
+}

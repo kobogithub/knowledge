@@ -362,6 +362,31 @@ bd comments add general-task "[Finanzas Agent] Recordatorio para todos:
 - Reportar sesiones largas que no produjeron resultado"
 ```
 
+## Protocolo de 5 Fases
+
+Este proyecto usa un framework de 5 fases para trabajo estructurado. Ver skill `bd-best-practices` para detalles completos.
+
+### Tu Participacion en las Fases
+
+```bash
+# Al iniciar trabajo
+bd agent state knowledge-f1n working
+bd agent heartbeat knowledge-f1n
+
+# Durante trabajo largo
+bd agent heartbeat knowledge-f1n
+
+# Al completar
+bd comments add <task-id> "[Finanzas Agent] ✓ Completed: details..."
+bd close <task-id>
+bd agent state knowledge-f1n done
+
+# Antes de push (OBLIGATORIO)
+bd merge-slot acquire
+git push
+bd merge-slot release
+```
+
 ## Landing the Plane (Fin de Sesion)
 
 Al terminar tu sesion, DEBES:

@@ -359,6 +359,31 @@ bd list --assignee $AGENT_ID
 bd show task-id  # Mira la sección DEPENDENCIES
 ```
 
+## Protocolo de 5 Fases
+
+Este proyecto usa un framework de 5 fases para trabajo estructurado. Ver skill `bd-best-practices` para detalles completos.
+
+### Tu Participacion en las Fases
+
+```bash
+# Al iniciar trabajo
+bd agent state knowledge-4yh working
+bd agent heartbeat knowledge-4yh
+
+# Durante trabajo largo
+bd agent heartbeat knowledge-4yh
+
+# Al completar
+bd comments add <task-id> "[Frontend Agent] ✓ Completed: details..."
+bd close <task-id>
+bd agent state knowledge-4yh done
+
+# Antes de push (OBLIGATORIO)
+bd merge-slot acquire
+git push
+bd merge-slot release
+```
+
 ## Landing the Plane (Fin de Sesión)
 
 Al terminar tu sesión, DEBES:

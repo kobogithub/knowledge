@@ -149,7 +149,37 @@ Los agentes pueden empezar a trabajar. ¿Quieres que algún agente específico c
 
 ---
 
-### 1. Crear Épicos y Descomponerlos
+### 1. Crear Epicos con Formulas (Metodo Preferido)
+
+Usa `bd mol pour` para instanciar epicos desde formulas reutilizables:
+
+```bash
+# 1. Ver formulas disponibles
+bd formula list
+
+# 2. Preview antes de crear (dry-run)
+bd cook mol-feature --var name=user-auth --var description="Sistema de autenticacion JWT" --dry-run
+
+# 3. Instanciar el epic completo con un solo comando
+bd mol pour mol-feature \
+  --var name=user-auth \
+  --var description="Sistema de autenticacion JWT"
+
+# 4. Verificar lo creado
+bd children <epic-id> --pretty
+
+# 5. Ajustar prioridades o asignaciones si es necesario
+bd update <task-id> --priority 0
+bd update <task-id> --assignee knowledge-vlf
+```
+
+**Formulas disponibles:**
+- `mol-feature` — Feature completo (8 steps: ADR, epic, backend, frontend, devops, QA, gate)
+- `mol-bugfix` — Bugfix con root cause analysis (4 steps: investigation, fix, regression, gate)
+- `mol-spike` — Investigacion time-boxed (3 steps: research, ADR, recommendation)
+- `mol-release` — Release con quality gates (6 steps: changelog, bump, security, QA, gate, deploy)
+
+### 2. Crear Épicos Manualmente (Alternativa)
 
 ```bash
 # Crear épico principal
@@ -243,7 +273,53 @@ bd children knowledge-xxx
 bd close knowledge-xxx
 ```
 
-### 6. Sincronizar con Git
+### 6. Validar Calidad con bd lint
+
+Ejecuta `bd lint` despues de crear o especificar issues para verificar que cumplen los requisitos de seccion:
+
+```bash
+# Lint de todas las issues abiertas
+bd lint
+
+# Lint de un epic especifico
+bd lint knowledge-xxx
+
+# Lint solo de features (deben tener Acceptance Criteria)
+bd lint --type feature
+
+# Lint solo de epics (deben tener Success Criteria)
+bd lint --type epic
+
+# Lint de bugs (deben tener Steps to Reproduce + Acceptance Criteria)
+bd lint --type bug
+```
+
+**Regla**: Ejecutar `bd lint` como paso obligatorio despues de crear issues con formulas (`bd cook` / `bd mol pour`). Corregir las descripciones hasta que lint pase limpio.
+
+### 7. Visualizar DAG con bd graph
+
+Usa `bd graph` para inspeccionar dependencias antes de ejecutar trabajo:
+
+```bash
+# Ver DAG de un epic en terminal
+bd graph knowledge-xxx
+
+# Vista compacta (1 linea por issue)
+bd graph --compact knowledge-xxx
+
+# Generar HTML interactivo para revision
+bd graph --html knowledge-xxx > graph.html
+
+# Ver todo el grafo de issues abiertas
+bd graph --all --compact
+
+# Exportar a SVG via Graphviz
+bd graph --dot knowledge-xxx | dot -Tsvg > graph.svg
+```
+
+**Usa esto para**: verificar que el DAG no tiene ciclos, que las dependencias son correctas, y que hay trabajo paralelizable.
+
+### 8. Sincronizar con Git
 
 ```bash
 # Después de crear/actualizar múltiples issues
@@ -251,6 +327,207 @@ bd sync
 git add .beads/issues.jsonl
 git commit -m "Planner: Crear épico de e-commerce con tareas"
 git push
+```
+
+## Persistencia de Contexto con bd kv
+
+Usa `bd kv` para guardar estado entre sesiones de trabajo, especialmente durante fases de exploración largas:
+
+```bash
+# Al iniciar exploración, registrar contexto
+bd kv set project.current-epic knowledge-xxx
+bd kv set project.current-phase phase-1-exploration
+
+# Guardar estado de exploración en curso
+bd kv set exploration.topic 'jwt-authentication'
+bd kv set exploration.phase 'alternatives'
+bd kv set exploration.decision-id 'knowledge-xxx'
+
+# Al retomar sesión, recuperar contexto
+bd kv list                          # Ver todo el contexto guardado
+bd kv get project.current-epic      # Obtener valor específico
+
+# Al completar exploración, limpiar contexto temporal
+bd kv del exploration.topic
+bd kv del exploration.phase
+bd kv del exploration.decision-id
+```
+
+**Convenciones de claves:**
+- `project.*` — Estado global del proyecto (persistente)
+- `exploration.*` — Contexto de exploración (temporal, limpiar al cerrar fase)
+- `sprint.*` — Contexto del sprint actual (temporal por sprint)
+
+## Coordinacion Paralela con bd swarm
+
+Usa swarms para coordinar el trabajo paralelo de multiples agentes sobre un epic:
+
+```bash
+# Validar que el epic tiene estructura correcta para swarming
+bd swarm validate knowledge-xxx
+
+# Crear un swarm desde un epic
+bd swarm create knowledge-xxx
+
+# Ver estado del swarm activo
+bd swarm status
+
+# Listar todos los swarms
+bd swarm list
+```
+
+## Asignacion de Trabajo con bd slot
+
+Cada agente tiene un **hook slot** que indica su tarea actual (0..1 cardinality):
+
+```bash
+# Asignar trabajo a un agente
+bd slot set knowledge-vlf hook knowledge-xxx.1
+
+# Ver slots de un agente
+bd slot show knowledge-vlf
+
+# Liberar el hook cuando termine
+bd slot clear knowledge-vlf hook
+```
+
+**Regla**: Un agente solo debe tener 1 tarea en su hook a la vez. Verificar con `bd slot show` antes de asignar.
+
+## Balanceo de Carga con bd count
+
+Usa `bd count` para verificar la distribucion de trabajo antes de asignar:
+
+```bash
+# Ver carga por agente
+bd count --by-assignee --status open
+
+# Ver carga de un agente especifico
+bd count --assignee knowledge-vlf --by-status
+
+# Ver distribucion por prioridad
+bd count --by-priority --status open
+
+# Ver distribucion por tipo
+bd count --by-type --status open
+```
+
+## Extraer Templates con bd mol distill
+
+Cuando un epic ad-hoc resulta exitoso, extrae un template reutilizable:
+
+```bash
+# Extraer formula de un epic existente
+bd mol distill knowledge-xxx my-workflow
+
+# Con variables para parametrizar
+bd mol distill knowledge-xxx my-workflow --var feature_name=auth-refactor
+
+# Preview sin crear
+bd mol distill knowledge-xxx my-workflow --dry-run
+```
+
+## Monitoreo de Agentes (Fase 4)
+
+### Estado de Agentes con bd agent state
+
+Cada agente debe reportar su estado durante el ciclo de trabajo:
+
+```bash
+# Estados disponibles: idle, spawning, running, working, stuck, done, stopped, dead
+bd agent state knowledge-vlf working    # Agente trabajando
+bd agent state knowledge-vlf done       # Agente termino
+bd agent state knowledge-vlf stuck      # Agente bloqueado
+bd agent state knowledge-vlf idle       # Agente esperando trabajo
+
+# Heartbeat para monitoreo de actividad
+bd agent heartbeat knowledge-vlf
+
+# Ver estado de un agente
+bd agent show knowledge-vlf
+```
+
+**Cada agente DEBE**:
+1. `bd agent state <id> working` al iniciar una tarea
+2. `bd agent heartbeat <id>` periodicamente durante trabajo largo
+3. `bd agent state <id> done` al completar
+4. `bd agent state <id> stuck` si esta bloqueado
+
+### Monitoreo Activo
+
+```bash
+# Detectar issues stale (sin actividad)
+bd stale
+
+# Ver issues bloqueadas
+bd blocked
+
+# Detectar moleculas completas pero no cerradas
+bd mol stale
+```
+
+### Trazabilidad con bd audit
+
+```bash
+# Registrar acciones para audit trail
+bd audit record knowledge-xxx "Deploy completado en staging"
+
+# Ver audit trail de un issue
+bd audit show knowledge-xxx
+```
+
+### Gestion de Backlog
+
+```bash
+# Diferir issues al backlog
+bd defer knowledge-xxx "Pospuesto hasta Q2"
+
+# Recuperar del backlog
+bd undefer knowledge-xxx
+```
+
+## Verificacion y Cierre (Fase 5)
+
+### Gates de Aprobacion Humana
+
+Los gates bloquean el cierre hasta verificacion manual:
+
+```bash
+# Ver gates abiertas
+bd gate list
+
+# Ver todas las gates (incluyendo cerradas)
+bd gate list --all
+
+# Resolver un gate manualmente (aprobacion)
+bd gate resolve <gate-id>
+
+# Verificar gates automaticas
+bd gate check
+```
+
+**Tipos de gate**: human (manual), timer (timeout), gh:run (GitHub CI), gh:pr (PR merge), bead (cross-rig).
+
+### Preflight Pre-merge
+
+```bash
+# Ejecutar checks pre-merge
+bd preflight --check
+
+# Verificar un issue especifico
+bd preflight knowledge-xxx
+```
+
+### Limpieza Post-implementacion
+
+```bash
+# Detectar issues huerfanas
+bd orphans
+
+# Ver epics elegibles para cierre automatico
+bd epic close-eligible
+
+# Comprimir molecula a digest para retrospectiva
+bd mol squash knowledge-xxx
 ```
 
 ## Workflow Típico

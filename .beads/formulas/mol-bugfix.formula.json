@@ -1,0 +1,67 @@
+{
+  "formula": "mol-bugfix",
+  "version": 1,
+  "description": "Template for fixing a bug with root cause analysis and regression testing",
+  "variables": {
+    "name": {
+      "description": "Bug name (kebab-case, e.g. 'login-timeout')",
+      "required": true
+    },
+    "description": {
+      "description": "Bug description and symptoms",
+      "required": true
+    },
+    "assignee": {
+      "description": "Agent responsible for the fix",
+      "required": true
+    },
+    "assignee_qa": {
+      "description": "QA agent ID",
+      "default": "knowledge-pu1"
+    }
+  },
+  "steps": [
+    {
+      "id": "investigation",
+      "title": "Investigar root cause: {{name}}",
+      "type": "task",
+      "priority": 0,
+      "labels": ["phase:exploration", "bugfix", "{{name}}"],
+      "assignee": "{{assignee}}",
+      "description": "Investigar la causa raiz de {{name}}. Reproducir el bug, identificar el codigo afectado y documentar hallazgos."
+    },
+    {
+      "id": "fix",
+      "title": "Fix: {{description}}",
+      "type": "bug",
+      "priority": 0,
+      "labels": ["bugfix", "{{name}}"],
+      "assignee": "{{assignee}}",
+      "depends_on": ["investigation"],
+      "description": "Implementar la correccion para {{name}}. Incluir unit tests que cubran el caso."
+    },
+    {
+      "id": "regression-test",
+      "title": "QA: Regression tests para {{name}}",
+      "type": "task",
+      "priority": 1,
+      "labels": ["qa", "regression", "{{name}}"],
+      "assignee": "{{assignee_qa}}",
+      "depends_on": ["fix"],
+      "description": "Verificar que el fix resuelve {{name}} y no introduce regresiones. Agregar tests de regresion."
+    },
+    {
+      "id": "verification-gate",
+      "title": "Gate: Verificar fix de {{name}}",
+      "type": "task",
+      "priority": 0,
+      "labels": ["phase:verification", "gate", "{{name}}"],
+      "depends_on": ["regression-test"],
+      "gate": {
+        "type": "human",
+        "description": "Confirmar que {{name}} esta resuelto en staging/production"
+      },
+      "description": "Gate de verificacion humana para confirmar que el bugfix es correcto."
+    }
+  ]
+}

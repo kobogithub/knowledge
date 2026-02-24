@@ -1,0 +1,94 @@
+{
+  "formula": "mol-release",
+  "version": 1,
+  "description": "Template for releasing a new version with quality gates",
+  "variables": {
+    "version": {
+      "description": "Version number (semver, e.g. '1.2.0')",
+      "required": true
+    },
+    "description": {
+      "description": "Release highlights",
+      "required": true
+    },
+    "assignee_rust": {
+      "description": "Rust agent for CLI build",
+      "default": "knowledge-r5t"
+    },
+    "assignee_devops": {
+      "description": "DevOps agent for deployment",
+      "default": "knowledge-w5p"
+    },
+    "assignee_qa": {
+      "description": "QA agent for validation",
+      "default": "knowledge-pu1"
+    },
+    "assignee_security": {
+      "description": "Security agent for audit",
+      "default": "knowledge-s3c"
+    }
+  },
+  "steps": [
+    {
+      "id": "changelog",
+      "title": "Preparar CHANGELOG para v{{version}}",
+      "type": "chore",
+      "priority": 0,
+      "labels": ["release", "v{{version}}"],
+      "description": "Actualizar CHANGELOG.md con los cambios incluidos en v{{version}}. {{description}}"
+    },
+    {
+      "id": "version-bump",
+      "title": "Rust: Bump version a {{version}}",
+      "type": "chore",
+      "priority": 0,
+      "labels": ["release", "rust", "v{{version}}"],
+      "assignee": "{{assignee_rust}}",
+      "depends_on": ["changelog"],
+      "description": "Actualizar Cargo.toml, Cargo.lock y kn.toml a version {{version}}."
+    },
+    {
+      "id": "security-audit",
+      "title": "Security: Audit pre-release v{{version}}",
+      "type": "task",
+      "priority": 0,
+      "labels": ["release", "security", "v{{version}}"],
+      "assignee": "{{assignee_security}}",
+      "depends_on": ["version-bump"],
+      "description": "Ejecutar Trivy, Semgrep y Gitleaks sobre el codigo a liberar. Verificar que no hay vulnerabilidades criticas."
+    },
+    {
+      "id": "qa-smoke",
+      "title": "QA: Smoke tests pre-release v{{version}}",
+      "type": "task",
+      "priority": 0,
+      "labels": ["release", "qa", "v{{version}}"],
+      "assignee": "{{assignee_qa}}",
+      "depends_on": ["version-bump"],
+      "description": "Ejecutar smoke tests: kn doctor, kn update, instalacion limpia. Verificar funcionalidad basica."
+    },
+    {
+      "id": "release-gate",
+      "title": "Gate: Aprobacion de release v{{version}}",
+      "type": "task",
+      "priority": 0,
+      "labels": ["phase:verification", "gate", "release", "v{{version}}"],
+      "depends_on": ["security-audit", "qa-smoke"],
+      "gate": {
+        "type": "human",
+        "description": "Verificacion final antes de publicar v{{version}}"
+      },
+      "description": "Gate de aprobacion humana. Verificar que security audit y QA smoke tests pasaron."
+    },
+    {
+      "id": "deploy",
+      "title": "DevOps: Publicar release v{{version}}",
+      "type": "chore",
+      "priority": 0,
+      "labels": ["release", "devops", "v{{version}}"],
+      "assignee": "{{assignee_devops}}",
+      "depends_on": ["release-gate"],
+      "description": "Crear tag, trigger GitHub Actions release workflow, verificar artefactos publicados."
+    }
+  ]
+}
