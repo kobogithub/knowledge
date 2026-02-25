@@ -10,7 +10,11 @@ An Architecture Decision Record captures an important architectural decision mad
 
 | # | Title | Status | Date |
 |---|-------|--------|------|
-| — | *No ADRs yet* | — | — |
+| [001](./001-rust-cli-tool.md) | Rust as Implementation Language for CLI Tool | Accepted | 2024-12-15 |
+| [002](./002-multi-agent-architecture.md) | Multi-Agent Architecture with Specialized Roles | Accepted | 2025-01-10 |
+| [003](./003-beads-issue-tracking.md) | Beads (bd) as Issue Tracking System | Accepted | 2024-12-10 |
+| [004](./004-3-tier-skill-distribution.md) | 3-Tier Skill Distribution System | Accepted | 2025-01-20 |
+| [005](./005-openrouter-llm-provider.md) | OpenRouter as Unified LLM Provider with Differentiated Models | Accepted | 2025-02-15 |
 
 <!-- Add new ADRs above this line -->
 
