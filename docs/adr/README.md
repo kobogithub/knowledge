@@ -1,0 +1,43 @@
+# Architecture Decision Records (ADRs)
+
+This directory contains Architecture Decision Records (ADRs) for the Knowledge project.
+
+## What is an ADR?
+
+An Architecture Decision Record captures an important architectural decision made along with its context and consequences. ADRs are immutable once accepted — if a decision is reversed, a new ADR supersedes the old one.
+
+## ADR Index
+
+| # | Title | Status | Date |
+|---|-------|--------|------|
+| — | *No ADRs yet* | — | — |
+
+<!-- Add new ADRs above this line -->
+
+## ADR Lifecycle
+
+```
+Proposed → Accepted → [Deprecated | Superseded by ADR-NNN]
+```
+
+- **Proposed**: Under discussion, not yet decided
+- **Accepted**: Decision made and in effect
+- **Deprecated**: No longer relevant (technology removed, feature sunset)
+- **Superseded**: Replaced by a newer ADR (always reference the new one)
+
+## Creating a New ADR
+
+1. Copy the template: `cp docs/adr/000-template.md docs/adr/NNN-title.md`
+2. Fill in all sections
+3. Update this index
+4. Create a PR or commit with: `docs(adr): add ADR-NNN title`
+
+## Template
+
+See [000-template.md](./000-template.md) for the standard ADR template.
+
+## References
+
+- [ADR GitHub Organization](https://adr.github.io/)
+- [Michael Nygard's original article](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)
+- [Beads (bd) decision issues](../) — ADRs are often extracted from `bd` issues of type `decision`

@@ -14,6 +14,7 @@ Each agent has specialized responsibilities and autonomy to close their own task
 - **[Security Agent](./agents/security/AGENTS.md)** (`knowledge-s3c`) - AppSec, vulnerability scanning, SAST, secret detection, API security
 - **[UI/UX Tester Agent](./agents/uiux-tester/AGENTS.md)** (`knowledge-u7x`) - Visual fidelity, interaction testing, accessibility (WCAG), responsive design
 - **[QA Agent](./agents/qa/AGENTS.md)** (`knowledge-pu1`) - Testing, quality assurance, bug hunting, test automation
+- **[Docs Writer Agent](./agents/docs-writer/AGENTS.md)** (`knowledge-doc`) - Technical writing, ADRs, documentation, knowledge extraction
 - **[Finanzas Agent](./agents/finanzas/AGENTS.md)** (`knowledge-f1n`) - OpenRouter cost tracking, spend reports, budget controls
 
 **Click on your role above for detailed instructions.**
