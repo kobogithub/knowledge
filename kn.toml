@@ -122,3 +122,22 @@ required_skills = [
     "bd-best-practices",
     "bash-best-practices",
 ]
+
+# Docs Writer Agent - Uses Sonnet for synthesis and writing clarity
+[agents.docs-writer]
+id = "knowledge-doc"
+role = "docs-writer"
+model = "anthropic/claude-sonnet-4.5"
+required_skills = [
+    "bd-best-practices",
+]
+
+# Biz Agent - Uses Haiku for cost-effective stakeholder reporting
+[agents.biz]
+id = "knowledge-biz"
+role = "biz"
+model = "anthropic/claude-haiku-4.5"
+required_skills = [
+    "notion-reporting-standard",
+    "bd-best-practices",
+]
