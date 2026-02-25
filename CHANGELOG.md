@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-02-25
+
+### Added
+
+#### New Agents (2)
+- **Docs Writer Agent** (`knowledge-doc`) - Technical writer for documentation, ADRs, changelogs, and persistent knowledge extraction from bd issues
+  - Model: `anthropic/claude-sonnet-4.5`
+  - Skills: `documentation-guide`, `bd-best-practices`
+  - MCP servers: `github`, `context7`
+- **Biz Agent** (`knowledge-biz`) - Stakeholder reporting, Notion dashboards, non-technical progress summaries
+  - Model: `anthropic/claude-haiku-4.5` (optimized for cost efficiency)
+  - Dual-mode output: Notion via MCP (preferred), Markdown fallback in `docs/reports/`
+  - Consumes financial data from Finanzas Agent (no duplication)
+  - Skills: `notion-reporting-standard`, `bd-best-practices`
+
+#### New Skills (2)
+- `documentation-guide` - Comprehensive guide for writing technical documentation (templates, API docs, code comment conventions)
+- `notion-reporting-standard` - Reporting standard for stakeholder dashboards (weekly status, sprint review, executive summary templates)
+
+#### ADR Infrastructure & Historical Records
+- Created `docs/adr/` directory with ADR template (`000-template.md`) and index (`README.md`)
+- **5 historical ADRs** documenting key architectural decisions:
+  - ADR-001: Rust as implementation language for CLI tool
+  - ADR-002: Multi-agent architecture with specialized roles
+  - ADR-003: Beads (bd) as git-native issue tracking system
+  - ADR-004: 3-tier skill distribution system (`skills/` → `~/.kn/skills/` → `.opencode/skills/`)
+  - ADR-005: OpenRouter as unified LLM provider with differentiated models
+
+#### Stakeholder Reporting
+- Created `docs/reports/` directory for Markdown fallback reports
+- First weekly status report (`2026-02-25-weekly-status.md`) — 98% issue completion rate, 11 agents operational
+
+### Changed
+
+#### Agent System
+- Total agents increased from 9 to **11** (added Docs Writer, Biz)
+- Total skills increased from 21 to **23** (added `documentation-guide`, `notion-reporting-standard`)
+- Agent definitions moved from `.opencode/opencode.json` to `kn.toml` (opencode.json retains only MCP configs)
+
 ## [0.7.1] - 2026-02-24
 
 ### Changed
@@ -481,7 +520,10 @@ kn skills list
 
 ---
 
-[Unreleased]: https://github.com/kobogithub/knowledge/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/kobogithub/knowledge/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/kobogithub/knowledge/compare/v0.7.1...v0.8.0
+[0.7.1]: https://github.com/kobogithub/knowledge/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/kobogithub/knowledge/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/kobogithub/knowledge/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/kobogithub/knowledge/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/kobogithub/knowledge/compare/v0.4.0...v0.5.0
