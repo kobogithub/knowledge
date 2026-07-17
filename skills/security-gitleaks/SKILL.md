@@ -336,10 +336,9 @@ bfg --replace-text secrets.txt .
 # 4. Force push (coordinar con equipo!)
 git push origin --force --all
 
-# 5. Documentar el incidente
-bd create "SECURITY: Secret expuesto y remediado" \
-  -t bug -p 0 -l security,incident \
-  -d "Secret type: [tipo]. Commited in: [hash]. Revoked and cleaned."
+# 5. Documentar el incidente como comentario en el PR/rama
+# o como entrada nueva en specs/NNN-feature/tasks.md:
+# "SECURITY: Secret expuesto y remediado. Tipo: [tipo]. Commit: [hash]. Revocado y limpiado."
 ```
 
 ### Gestion correcta de secrets
@@ -377,10 +376,10 @@ service-account.json
 *-secret.*
 ```
 
-## Reporte para Beads
+## Reporte de Hallazgos
 
 ```bash
-# Script para generar reporte compatible con bd comments
+# Script para generar reporte como comentario de PR o entrada de tasks.md
 gitleaks detect --source . --no-git --report-format json --report-path /tmp/gl.json 2>/dev/null
 
 python3 -c "

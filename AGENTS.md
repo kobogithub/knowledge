@@ -1,12 +1,12 @@
 # Agent Instructions
 
-This project uses **bd** (beads) for issue tracking with a multi-agent workflow.
+This project uses **spec-kit** (`specify-cli`, installed in `.specify/` and `.claude/skills/speckit-*`) for spec-driven development with a multi-agent workflow. Every initiative lives in a `specs/NNN-feature-name/` folder (`spec.md`, `plan.md`, `tasks.md`).
 
 ## Agent Roles
 
 Each agent has specialized responsibilities and autonomy to close their own tasks:
 
-- **[Planner Agent](./agents/planner/AGENTS.md)** (`knowledge-x6e`) - Coordinates work, creates epics, assigns tasks
+- **[Planner Agent](./agents/planner/AGENTS.md)** (`knowledge-x6e`) - Coordinates work, runs `/speckit-specify` and `/speckit-plan`, assigns sections of `tasks.md`
 - **[Frontend Agent](./agents/frontend/AGENTS.md)** (`knowledge-4yh`) - UI/UX, React, components, client-side
 - **[Backend Agent](./agents/backend/AGENTS.md)** (`knowledge-vlf`) - APIs, databases, business logic, security
 - **[Rust Agent](./agents/rust/AGENTS.md)** (`knowledge-r5t`) - CLI tools, libraries, systems programming
@@ -20,64 +20,63 @@ Each agent has specialized responsibilities and autonomy to close their own task
 
 **Click on your role above for detailed instructions.**
 
+> **Coordination model**: there is no atomic task-claiming or locking mechanism anymore
+> (that was a `bd`/beads feature, removed — see
+> [ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md)). The Planner is the single
+> assignment point: it splits `tasks.md` into sections per role/label and hands them out
+> via PR comment or directly in the file. Each agent works its own branch (see Git
+> Branching Strategy below) so collisions are avoided by branch isolation, not by locking.
+
 ## Quick Reference (All Agents)
 
 ```bash
-# Find your work
-bd ready -l <your-label>        # e.g., bd ready -l frontend
-bd list --assignee <agent-id>   # Your assigned tasks
+# New initiative (Planner runs these; see agents/planner/AGENTS.md)
+/speckit-specify <feature description>   # creates specs/NNN-feature-name/spec.md
+/speckit-clarify                          # optional, resolves ambiguity before planning
+/speckit-plan                             # creates plan.md
+/speckit-tasks                            # creates tasks.md (dependency-ordered checkboxes)
 
-# Claim and start work
-bd update <task-id> --claim     # Atomically claim task
-bd agent state <agent-id> working
+# Find your work
+# Planner assigns you a section of specs/NNN-feature-name/tasks.md (by role/label,
+# via PR comment or inline note) — there is no `bd ready`/`--claim` equivalent.
+
+# Implement your assigned tasks
+/speckit-implement                        # executes tasks.md items in order
 
 # Report progress
-bd comments add <task-id> "[Agent Name] Progress update..."
-bd agent heartbeat <agent-id>   # Update activity timestamp
+# Mark your checkboxes [x] in tasks.md as you complete them, and leave progress
+# notes as PR comments — there is no separate comments/heartbeat command.
 
-# Complete your work (YOU close your own tasks)
-bd comments add <task-id> "[Agent Name] ✓ Completed: details..."
-bd close <task-id>
-bd agent state <agent-id> done
-
-# Serialize pushes with merge-slot
-bd merge-slot acquire
-git push
-bd merge-slot release
-
-# Sync with git
-bd sync
-git add .beads/issues.jsonl
-git commit -m "<Agent>: description"
+# Push your work (no merge-slot serialization anymore — rely on your own branch)
 git push
 ```
 
 ## Framework de 5 Fases
 
-Todo trabajo significativo sigue 5 fases. Ver skill `bd-best-practices` para detalles completos.
+Todo trabajo significativo sigue 5 fases, mapeadas a los comandos de spec-kit
+(`.claude/skills/speckit-*`):
 
 | Fase | Nombre | Comandos Clave |
 |------|--------|---------------|
-| 1 | Exploracion | `bd create -t decision`, `bd query`, `bd kv`, `bd todo add` |
-| 2 | Especificacion | `bd formula list`, `bd cook`, `bd lint`, `bd graph` |
-| 3 | Task Planning | `bd mol pour`, `bd swarm`, `bd slot`, `bd count` |
-| 4 | Implementacion | `bd agent state`, `bd heartbeat`, `bd merge-slot`, `bd audit` |
-| 5 | Verificacion | `bd gate resolve`, `bd preflight`, `bd orphans`, `bd epic close-eligible` |
+| 1 | Exploracion | `/speckit-constitution` (una vez por proyecto), `/speckit-clarify` |
+| 2 | Especificacion | `/speckit-specify` |
+| 3 | Task Planning | `/speckit-plan`, `/speckit-tasks` |
+| 4 | Implementacion | `/speckit-implement` |
+| 5 | Verificacion | `/speckit-analyze`, `/speckit-checklist` |
 
-### Labels por Fase
-- `phase:exploration` - Investigacion y discovery
-- `phase:specification` - Especificacion y plan
-- `phase:planning` - Task planning y asignacion
-- `phase:implementation` - Implementacion activa
-- `phase:verification` - Verificacion y cierre
+### Convencion de Fase por Rama/PR
+
+Ya no hay labels `phase:*` en un tracker — usar el nombre de rama y la seccion de
+`tasks.md` para señalar en que fase esta el trabajo (ej. rama `003-oauth2/backend`
+trabajando la seccion "US1" de `specs/003-oauth2/tasks.md`).
 
 ## Workflow Principles
 
-1. **Autonomy**: Each agent closes their own tasks when complete
-2. **Transparency**: Report progress through comments
-3. **Coordination**: Use issue references to coordinate with other agents
-4. **Ownership**: You own your tasks from claim to completion
-5. **Honesty**: Only close when actually complete and tested
+1. **Autonomy**: Each agent marks its own checkboxes done in `tasks.md` when complete
+2. **Transparency**: Report progress through PR comments
+3. **Coordination**: Reference the spec folder (`specs/NNN-feature-name/`) to coordinate with other agents
+4. **Ownership**: You own your assigned `tasks.md` section from assignment to completion
+5. **Honesty**: Only check off a task when actually complete and tested
 
 ## Git Branching Strategy
 
@@ -88,8 +87,8 @@ All agents MUST follow the branching strategy. See skill `standard-commits` for 
 ```
 prod (stable releases)
   └─ dev (integration)
-      └─ epic/<epic-id> (epic integration branch)
-          └─ <epic-id>/<agent-role> (agent work branch)
+      └─ epic/<feature-id> (feature integration branch — <feature-id> = specs/NNN-feature-name folder)
+          └─ <feature-id>/<agent-role> (agent work branch)
 ```
 
 ### Branching Rules
@@ -98,10 +97,10 @@ prod (stable releases)
 |----------------|----------------------------|--------------|--------------|
 | Production     | `prod`                     | -            | -            |
 | Integration    | `dev`                      | `prod`       | `prod`       |
-| Epic           | `epic/<epic-id>`           | `dev`        | `dev`        |
-| Agent work     | `<epic-id>/<agent-role>`   | `epic/<id>`  | `epic/<id>`  |
-| Independent    | `task/<task-id>`           | `dev`        | `dev`        |
-| Hotfix         | `hotfix/<issue-id>`        | `prod`       | `prod`+`dev` |
+| Feature        | `epic/<feature-id>`        | `dev`        | `dev`        |
+| Agent work     | `<feature-id>/<agent-role>`| `epic/<id>`  | `epic/<id>`  |
+| Independent    | `task/<short-desc>`        | `dev`        | `dev`        |
+| Hotfix         | `hotfix/<short-desc>`      | `prod`       | `prod`+`dev` |
 | Release        | `release/v<version>`       | `dev`        | `prod`       |
 
 ### Conventional Commits (MANDATORY)
@@ -124,20 +123,19 @@ All commit messages MUST use format: `<type>(<scope>): <message>`
 
 ## Agent Coordination
 
-```bash
-# Reference other agents in comments
-bd comments add task-id "[Frontend Agent] @knowledge-x6e Need clarification..."
-bd comments add task-id "[Backend Agent] Blocked by devops-task-id"
+```text
+# Reference other agents in PR comments
+[Frontend Agent] @knowledge-x6e Need clarification on specs/003-oauth2/spec.md...
+[Backend Agent] Blocked by devops — see specs/003-oauth2/tasks.md US2
 
-# Create tasks for other agents
-bd create "Setup staging database" \
-  -t chore -p 1 -l devops \
-  --assignee knowledge-w5p
-
-# Check agent status
-bd list -l "gt:agent"           # All agents
-bd agent show <agent-id>         # Specific agent
+# Ask the Planner for new work items
+# The Planner adds a new checkbox/section to the relevant tasks.md and
+# notifies the assigned role by PR comment or direct handoff note.
 ```
+
+There is no automatic agent-status registry anymore. If you need to know what another
+agent is doing, check their open PRs/branches or ask directly — there is no `bd agent
+show`/`bd list -l "gt:agent"` equivalent.
 
 ## Landing the Plane (Session Completion)
 
@@ -145,23 +143,21 @@ bd agent show <agent-id>         # Specific agent
 
 **MANDATORY WORKFLOW:**
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
+1. **Note remaining work** - Add unchecked items to the relevant `tasks.md`, or leave a PR comment for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
+3. **Update tasks.md** - Check off finished items, leave in-progress ones unchecked
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
    git pull --rebase
-   bd sync
    git push
    git status  # MUST show "up to date with origin"
    ```
 5. **Clean up** - Clear stashes, prune remote branches
 6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+7. **Hand off** - Provide context for next session (PR comment or session notes)
 
 **CRITICAL RULES:**
 - Work is NOT complete until `git push` succeeds
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
-

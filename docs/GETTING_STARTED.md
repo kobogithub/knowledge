@@ -6,7 +6,7 @@ Welcome! This guide will walk you through setting up and using the Knowledge Fra
 
 - **Rust 1.93+** - [Install Rust](https://rustup.rs/)
 - **Git** - For version control
-- **Beads** (optional) - [Install bd CLI](https://github.com/beadlist/beads) for issue tracking
+- **uv** + **specify-cli** (optional) - [Install spec-kit](https://github.com/github/spec-kit) for the spec-driven workflow (`specify init . --integration claude`)
 
 ## Installation
 
@@ -89,10 +89,6 @@ implementation = "myproject-xyz"
 [skills]
 enabled = ["typescript", "react-19"]
 
-[beads]
-enabled = true
-templates_dir = ".beads/templates"
-
 [mcp]
 servers = ["rust-docs", "mdn-web-docs"]
 ```
@@ -171,6 +167,11 @@ kn skills install ./my-custom-skill/SKILL.md
 ```
 
 ## Generating Issue Templates
+
+> These `kn beads template` commands generate standalone markdown templates and are
+> independent of the spec-kit workflow below — they are not part of the current agent
+> coordination model (see [ADR-006](./adr/006-adopt-speckit-remove-beads.md)) and are kept
+> here only because the CLI subcommand still exists.
 
 ### Creating Templates
 
@@ -277,43 +278,48 @@ args = ["-y", "@modelcontextprotocol/server-postgres"]
 POSTGRES_URL = "postgresql://localhost/mydb"
 ```
 
-## Working with Beads (Issue Tracking)
+## Working with Spec-Kit (Spec-Driven Workflow)
 
-### Setup Beads
+### Setup Spec-Kit
 
 ```bash
-# Initialize beads in your project
-bd init
+# Install specify-cli (requires uv)
+uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
 
-# Create your first issue
-bd create "Setup CI/CD pipeline" --type task -p 1 -l devops
+# Initialize spec-kit in your project (Claude Code integration)
+specify init . --integration claude
+
+# Verify
+specify check
 ```
+
+This creates `.specify/` (templates, scripts, constitution) and installs the
+`/speckit-*` skills under `.claude/skills/`.
 
 ### Agent Workflow
 
 ```bash
-# Find available work
-bd ready -l rust
+# Create a new initiative
+/speckit-specify Build authentication system with JWT
 
-# Claim a task
-bd update task-id --claim
+# Plan and break down into tasks
+/speckit-plan
+/speckit-tasks
 
-# Report progress
-bd comments add task-id "[Rust Agent] Working on implementation..."
-
-# Complete the task
-bd close task-id
+# Implement
+/speckit-implement
 ```
+
+Each initiative lives in `specs/NNN-feature-name/` (`spec.md`, `plan.md`, `tasks.md`).
+There is no atomic task claiming — the Planner agent splits `tasks.md` by role, and each
+agent marks its own checkboxes as it completes them. See `AGENTS.md` for the full
+multi-agent workflow.
 
 ### Syncing with Git
 
 ```bash
-# Sync beads to JSONL
-bd sync
-
-# Commit changes
-git add .beads/issues.jsonl
-git commit -m "Update issues"
+git add specs/
+git commit -m "docs(spec): add authentication system spec"
 git push
 ```
 
@@ -334,31 +340,26 @@ kn skills install typescript
 kn skills install react-19
 kn skills install fastapi-best-practices
 
-# 4. Setup issue tracking
-bd init
+# 4. Setup spec-kit
+specify init . --integration claude
 
-# 5. Create templates
-mkdir -p .beads/templates
-kn beads template epic -o .beads/templates/epic.md
-kn beads template task -o .beads/templates/task.md
+# 5. Create your first spec
+/speckit-specify Build authentication system with JWT
 
-# 6. Plan your work
-kn beads template epic > planning/mvp.md
-# Edit planning/mvp.md
+# 6. Plan and break into tasks
+/speckit-plan
+/speckit-tasks
 
-# 7. Create issues from your plan
-bd create "Build authentication system" --type epic -p 0
+# 7. Review the generated specs/001-authentication-system/tasks.md
 
 # 8. Start coding!
-bd ready -l backend
-bd update auth-task-id --claim
-# ... code ...
-bd close auth-task-id
+# Work your assigned section of tasks.md on your own branch
+git checkout -b 001-authentication-system/backend
+# ... code, marking checkboxes in tasks.md as you go ...
 
-# 9. Sync and commit
-bd sync
+# 9. Commit and push
 git add .
-git commit -m "Initial setup with Knowledge Framework"
+git commit -m "feat(auth): implement JWT authentication"
 git push
 ```
 
@@ -393,10 +394,6 @@ implementation = "agent-id-2" # Implementation agent ID
 
 [skills]
 enabled = ["skill1", "skill2"] # Installed skills list
-
-[beads]
-enabled = true                 # Enable beads integration
-templates_dir = ".beads/templates" # Templates location
 
 [mcp]
 servers = ["server1", "server2"] # MCP servers for docs

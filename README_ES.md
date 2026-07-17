@@ -341,7 +341,7 @@ knowledge/
 
 ## 🤖 Flujo de Trabajo Multi-Agente
 
-Knowledge Framework usa [Beads](https://github.com/beadlist/beads) para seguimiento de issues con 9 agentes IA especializados:
+Knowledge Framework usa [GitHub Spec Kit](https://github.com/github/spec-kit) para desarrollo spec-first con 9 agentes IA especializados:
 
 | Agente | ID | Responsabilidades |
 |--------|-----|-------------------|
@@ -357,30 +357,27 @@ Knowledge Framework usa [Beads](https://github.com/beadlist/beads) para seguimie
 
 Cada agente:
 - Tiene conocimiento y herramientas especializadas
-- Cierra sus propias tareas de forma autonoma
-- Reporta progreso de forma transparente
-- Se coordina con otros agentes via comentarios de bd
-- Sigue el flujo de trabajo estructurado de 5 fases
+- Marca sus propios checkboxes en `tasks.md` de forma autonoma
+- Reporta progreso de forma transparente via comentarios de PR
+- Se coordina con otros agentes a traves del Planner (sin claiming atomico — ver [ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md))
+- Sigue el flujo de trabajo estructurado de spec-kit
 
 Ver [AGENTS.md](./AGENTS.md) para instrucciones detalladas.
 
-### 🔄 Framework de Workflow en 5 Fases
+### 🔄 Workflow de Spec-Kit
 
-Todo trabajo significativo sigue un ciclo de vida estructurado en 5 fases gestionado con `bd`:
+Todo trabajo significativo sigue el ciclo de spec-kit, instalado como skills de Claude Code (`.claude/skills/speckit-*`):
 
 | Fase | Nombre | Comandos Clave |
 |------|--------|---------------|
-| 1 | **Exploracion** | `bd create -t decision`, `bd query`, `bd kv`, `bd todo add` |
-| 2 | **Especificacion** | `bd formula list`, `bd cook`, `bd lint`, `bd graph` |
-| 3 | **Task Planning** | `bd mol pour`, `bd swarm`, `bd slot`, `bd count` |
-| 4 | **Implementacion** | `bd agent state`, `bd heartbeat`, `bd merge-slot`, `bd audit` |
-| 5 | **Verificacion** | `bd gate resolve`, `bd preflight`, `bd orphans`, `bd epic close-eligible` |
+| 1 | **Exploracion** | `/speckit-constitution` (una vez por proyecto), `/speckit-clarify` |
+| 2 | **Especificacion** | `/speckit-specify` |
+| 3 | **Task Planning** | `/speckit-plan`, `/speckit-tasks` |
+| 4 | **Implementacion** | `/speckit-implement` |
+| 5 | **Verificacion** | `/speckit-analyze`, `/speckit-checklist` |
 
-**Plantillas de workflow (formulas)** disponibles para patrones comunes:
-- `mol-feature` — Workflow de 8 pasos para features con multiples agentes
-- `mol-bugfix` — 4 pasos para bugfix con analisis de causa raiz
-- `mol-spike` — 3 pasos para investigacion con tiempo limitado
-- `mol-release` — 6 pasos para release con quality gates
+Cada iniciativa vive en su propia carpeta `specs/NNN-feature-name/` (`spec.md`, `plan.md`,
+`tasks.md`), git-diffable e independiente de cualquier issue tracker.
 
 ---
 
@@ -434,7 +431,7 @@ Todo trabajo significativo sigue un ciclo de vida estructurado en 5 fases gestio
 ## 🔧 Stack Tecnológico
 
 - **CLI**: Rust (clap, reqwest, serde)
-- **Seguimiento de Issues**: Beads + Dolt
+- **Workflow Spec-Driven**: [GitHub Spec Kit](https://github.com/github/spec-kit) (`.specify/`, `specs/NNN-feature-name/`)
 - **Formato de Skills**: Markdown + frontmatter YAML
 - **Configuración**: TOML
 - **Agentes**: Flujo de trabajo multi-agente IA (Claude, GPT-4, etc.)
@@ -490,20 +487,21 @@ cargo fmt --check
 cargo clippy
 ```
 
-### Crear Issues
+### Crear Iniciativas
 
-Usa Beads para seguimiento de issues:
+Usa spec-kit para proponer un cambio:
 
 ```bash
-# Listar issues
-bd list
+# Crear una spec para tu contribucion
+/speckit-specify Agregar soporte para X
 
-# Crear un nuevo issue
-bd create "Título" --type task -p 1 -l rust
-
-# Ver detalles de un issue
-bd show task-id
+# Planificar y descomponer en tareas
+/speckit-plan
+/speckit-tasks
 ```
+
+Esto crea `specs/NNN-tu-feature/` con `spec.md`, `plan.md` y `tasks.md` — revisalo y
+abri un PR contra esa carpeta antes de implementar.
 
 ---
 
@@ -515,9 +513,7 @@ bd show task-id
 
 **Agentes**: 9 agentes especializados operativos con MCP scoping por agente
 
-**Workflow**: Framework de 5 fases completamente documentado y validado end-to-end
-
-**Formulas**: 4 plantillas de workflow (feature, bugfix, spike, release)
+**Workflow**: ciclo spec-driven de spec-kit, completamente documentado en `AGENTS.md` (ver [ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md))
 
 **Skills**: 11 skills de mejores practicas instalados
 

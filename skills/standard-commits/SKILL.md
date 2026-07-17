@@ -75,8 +75,8 @@ feat(auth): add OAuth2 integration
 Implement OAuth2 authorization code flow with Google and GitHub providers.
 Includes token refresh, scope validation, and session management.
 
-Closes: knowledge-abc.3
-Co-authored-by: Backend Agent <knowledge-vlf@beads>
+Closes: specs/003-oauth2-integration
+Co-authored-by: Backend Agent <knowledge-vlf@anthropic>
 ```
 
 ---
@@ -266,7 +266,7 @@ gh pr create --base prod --head release/v1.5.0 --title "release: v1.5.0"
    gh pr view <PR#> --comments
    gh api repos/OWNER/REPO/pulls/<PR#>/comments
    ```
-4. **Planner creates issues** in beads for each review item
+4. **Planner adds review items** as new entries in the relevant `specs/NNN-feature/tasks.md`
 5. **Agents resolve** the review items and push fixes
 6. **Planner verifies** fixes and approves the PR:
    ```bash
@@ -291,7 +291,7 @@ gh pr create --base prod --head release/v1.5.0 --title "release: v1.5.0"
 
 - Use conventional commit format for EVERY commit
 - Include scope when the change is in a specific module
-- Reference beads issue ID in commit body or PR description
+- Reference the spec folder (`specs/NNN-feature-name/`) in commit body or PR description
 - Push to your agent branch, never directly to epic/dev/prod
 
 ### MUST NOT

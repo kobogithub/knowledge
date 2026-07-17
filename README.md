@@ -408,7 +408,7 @@ knowledge/
 
 ## 🤖 Multi-Agent Workflow
 
-Knowledge Framework uses [Beads](https://github.com/beadlist/beads) for issue tracking with 9 specialized AI agents:
+Knowledge Framework uses [GitHub Spec Kit](https://github.com/github/spec-kit) for spec-driven development with 9 specialized AI agents:
 
 | Agent | ID | Responsibilities |
 |-------|-----|-----------------|
@@ -424,30 +424,27 @@ Knowledge Framework uses [Beads](https://github.com/beadlist/beads) for issue tr
 
 Each agent:
 - Has specialized knowledge and tools
-- Closes their own tasks autonomously
-- Reports progress transparently
-- Coordinates with other agents via bd comments
-- Follows the structured 5-phase workflow
+- Marks its own checkboxes in `tasks.md` autonomously
+- Reports progress transparently via PR comments
+- Coordinates with other agents through the Planner (no atomic claiming — see [ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md))
+- Follows the structured spec-kit workflow
 
 See [AGENTS.md](./AGENTS.md) for detailed instructions.
 
-### 🔄 5-Phase Workflow Framework
+### 🔄 Spec-Kit Workflow
 
-All significant work follows a structured 5-phase lifecycle managed through `bd`:
+All significant work follows the spec-kit cycle, installed as Claude Code skills (`.claude/skills/speckit-*`):
 
 | Phase | Name | Key Commands |
 |-------|------|-------------|
-| 1 | **Exploration** | `bd create -t decision`, `bd query`, `bd kv`, `bd todo add` |
-| 2 | **Specification** | `bd formula list`, `bd cook`, `bd lint`, `bd graph` |
-| 3 | **Task Planning** | `bd mol pour`, `bd swarm`, `bd slot`, `bd count` |
-| 4 | **Implementation** | `bd agent state`, `bd heartbeat`, `bd merge-slot`, `bd audit` |
-| 5 | **Verification** | `bd gate resolve`, `bd preflight`, `bd orphans`, `bd epic close-eligible` |
+| 1 | **Exploration** | `/speckit-constitution` (once per project), `/speckit-clarify` |
+| 2 | **Specification** | `/speckit-specify` |
+| 3 | **Task Planning** | `/speckit-plan`, `/speckit-tasks` |
+| 4 | **Implementation** | `/speckit-implement` |
+| 5 | **Verification** | `/speckit-analyze`, `/speckit-checklist` |
 
-**Workflow templates (formulas)** are available for common patterns:
-- `mol-feature` — 8-step feature workflow across multiple agents
-- `mol-bugfix` — 4-step bugfix with root cause analysis
-- `mol-spike` — 3-step time-boxed investigation
-- `mol-release` — 6-step release with quality gates
+Each initiative lives in its own `specs/NNN-feature-name/` folder (`spec.md`, `plan.md`,
+`tasks.md`), git-diffable and independent of any issue tracker.
 
 ---
 
@@ -501,7 +498,7 @@ All significant work follows a structured 5-phase lifecycle managed through `bd`
 ## 🔧 Technology Stack
 
 - **CLI**: Rust (clap, reqwest, serde)
-- **Issue Tracking**: Beads + Dolt
+- **Spec-Driven Workflow**: [GitHub Spec Kit](https://github.com/github/spec-kit) (`.specify/`, `specs/NNN-feature-name/`)
 - **Skills Format**: Markdown + YAML frontmatter
 - **Config**: TOML
 - **Agents**: Multi-agent AI workflow (Claude, GPT-4, etc.)
@@ -557,20 +554,21 @@ cargo fmt --check
 cargo clippy
 ```
 
-### Creating Issues
+### Creating Initiatives
 
-Use Beads for issue tracking:
+Use spec-kit to propose a change:
 
 ```bash
-# List issues
-bd list
+# Create a spec for your contribution
+/speckit-specify Add support for X
 
-# Create a new issue
-bd create "Title" --type task -p 1 -l rust
-
-# View issue details
-bd show task-id
+# Plan and break into tasks
+/speckit-plan
+/speckit-tasks
 ```
+
+This creates `specs/NNN-your-feature/` with `spec.md`, `plan.md`, and `tasks.md` — review
+and open a PR against it before implementing.
 
 ---
 
@@ -582,9 +580,7 @@ bd show task-id
 
 **Agents**: 9 specialized agents operational with per-agent MCP scoping
 
-**Workflow**: 5-phase framework fully documented and validated end-to-end
-
-**Formulas**: 4 workflow templates (feature, bugfix, spike, release)
+**Workflow**: spec-kit spec-driven cycle, fully documented in `AGENTS.md` (see [ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md))
 
 **Skills**: 11 best-practice skills installed
 

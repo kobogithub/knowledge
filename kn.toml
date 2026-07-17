@@ -8,7 +8,6 @@ enabled = [
     "docker-best-practices",
     "python-best-practices",
     "bash-best-practices",
-    "bd-best-practices",
     "rust-best-practices",
     "github-actions-best-practices",
 ]
@@ -26,7 +25,7 @@ enabled = [
 id = "knowledge-x6e"
 role = "planner"
 model = "anthropic/claude-opus-4"
-required_skills = ["bd-best-practices"]
+required_skills = []
 
 # Backend Agent - Uses Opus for complex architecture decisions
 [agents.backend]
@@ -37,7 +36,6 @@ required_skills = [
     "python-best-practices",
     "supabase-postgres-best-practices",
     "docker-best-practices",
-    "bd-best-practices",
 ]
 
 # Frontend Agent - Uses Sonnet for balanced UI/UX development
@@ -48,7 +46,6 @@ model = "anthropic/claude-sonnet-4.5"
 required_skills = [
     "astro-best-practices",
     "docker-best-practices",
-    "bd-best-practices",
 ]
 
 # Rust Agent - Uses Sonnet for systems programming
@@ -59,7 +56,6 @@ model = "anthropic/claude-sonnet-4.5"
 required_skills = [
     "rust-best-practices",
     "docker-best-practices",
-    "bd-best-practices",
 ]
 
 # DevOps Agent - Uses Sonnet for infrastructure tasks
@@ -72,7 +68,6 @@ required_skills = [
     "bash-best-practices",
     "terraform-best-practices",
     "github-actions-best-practices",
-    "bd-best-practices",
 ]
 
 # QA Agent - Uses Haiku for fast test generation
@@ -84,7 +79,6 @@ required_skills = [
     "bash-best-practices",
     "python-best-practices",
     "rust-best-practices",
-    "bd-best-practices",
 ]
 
 # Security Agent - Uses Sonnet for security analysis
@@ -97,7 +91,6 @@ required_skills = [
     "security-semgrep",
     "security-gitleaks",
     "security-owasp-zap",
-    "bd-best-practices",
 ]
 
 # UI/UX Tester Agent - Uses Sonnet for visual testing
@@ -110,7 +103,6 @@ required_skills = [
     "uiux-playwright",
     "uiux-axe-core",
     "uiux-viewport-testing",
-    "bd-best-practices",
 ]
 
 # Finanzas Agent - Uses Haiku for cost-effective financial reporting
@@ -119,7 +111,6 @@ id = "knowledge-f1n"
 role = "finanzas"
 model = "anthropic/claude-haiku-4.5"
 required_skills = [
-    "bd-best-practices",
     "bash-best-practices",
 ]
 
@@ -128,9 +119,7 @@ required_skills = [
 id = "knowledge-doc"
 role = "docs-writer"
 model = "anthropic/claude-sonnet-4.5"
-required_skills = [
-    "bd-best-practices",
-]
+required_skills = []
 
 # Biz Agent - Uses Haiku for cost-effective stakeholder reporting
 [agents.biz]
@@ -139,5 +128,4 @@ role = "biz"
 model = "anthropic/claude-haiku-4.5"
 required_skills = [
     "notion-reporting-standard",
-    "bd-best-practices",
 ]

@@ -159,9 +159,16 @@ Markdown content with instructions, examples, best practices.
 - Skills installed to `skills/{skill-name}/SKILL.md`
 - Tracked in `kn.toml` under `[skills].enabled`
 
-### 4. Beads Integration
+### 4. Beads Integration (deprecated — CLI utility only)
 
-**Location**: `.beads/` (per-project)
+> **Deprecated for the agent workflow.** As of [ADR-006](./adr/006-adopt-speckit-remove-beads.md),
+> the multi-agent workflow no longer uses `bd`/`.beads/` for coordination or issue tracking —
+> see "Spec-Kit Integration" below for the current workflow. The `kn beads template` CLI
+> subcommand documented here is still present in the Rust source as a standalone markdown
+> template generator; removing it from the CLI is tracked as a separate follow-up task, not
+> yet done, so this section is left for reference until that code is removed.
+
+**Location**: `.beads/` (per-project, no longer created by the agent workflow)
 
 **Purpose**: Git-like issue tracking with Dolt backend
 
@@ -172,18 +179,45 @@ Markdown content with instructions, examples, best practices.
 └── *.db              # Dolt database files
 ```
 
-**Why Beads?**
-- Git-like workflow for issues
-- Version controlled (commit, push, pull)
-- Dolt backend = SQL + Git
-- JSONL export for portability
-- Agent-native design
-
-**Template System**:
+**Template System** (still available via `kn beads template`, code not yet removed):
 - 5 template types: epic, task, bug, feature, chore
 - Embeded in CLI as const strings
 - Structured sections for consistency
 - Markdown format with checklists
+
+### 4.5. Spec-Kit Integration
+
+**Location**: `.specify/` (framework config) and `specs/NNN-feature-name/` (per initiative)
+
+**Purpose**: Spec-first development — one folder per feature/initiative, generated and
+driven by the `specify-cli` tool via Claude Code skills (`.claude/skills/speckit-*`)
+
+**Data Format**:
+```
+.specify/
+├── memory/constitution.md   # Project governing principles
+├── templates/                # spec/plan/tasks/checklist templates
+├── scripts/                  # bash helpers (create-new-feature.sh, etc.)
+└── workflows/speckit/        # workflow registry
+
+specs/
+└── NNN-feature-name/
+    ├── spec.md    # What to build (from /speckit-specify)
+    ├── plan.md    # Technical design (from /speckit-plan)
+    └── tasks.md   # Dependency-ordered checkboxes (from /speckit-tasks)
+```
+
+**Why Spec-Kit?**
+- Plain markdown, git-diffable, no companion database or binary required
+- Portable across AI coding agents (Claude, Copilot, Codex, etc.) via `--integration`
+- Cycle enforced by convention (`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` →
+  `/speckit-implement`), not by a CLI-enforced gate — see `AGENTS.md` for how the 11 agent
+  roles use it
+
+**Coordination model**: no atomic claiming or locking (unlike the old `bd merge-slot`).
+The Planner agent splits `tasks.md` into sections per role; each agent works its own git
+branch. See [ADR-006](./adr/006-adopt-speckit-remove-beads.md) for the full rationale and
+accepted risks.
 
 ### 5. MCP (Model Context Protocol) Integration
 

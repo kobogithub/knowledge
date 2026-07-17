@@ -64,7 +64,7 @@ What other options were evaluated? Why were they rejected?
 ## References
 
 <!--
-- [bd issue](beads://knowledge-xxx) - Original decision issue
+- specs/NNN-feature-name/spec.md - Original spec/plan where the decision surfaced
 - [PR #N](link) - Implementation pull request
 - [External doc](link) - Relevant external documentation
 -->

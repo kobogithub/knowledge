@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Migrated the multi-agent workflow from Beads (`bd`) to GitHub Spec Kit** (`specify-cli`).
+  See [ADR-006](docs/adr/006-adopt-speckit-remove-beads.md) for the full rationale.
+  - Removed `.beads/` and the `bd-best-practices` skill; dropped `bd-best-practices` from
+    `kn.toml` and all 12 agent role definitions.
+  - Rewrote `AGENTS.md` (root) and all 11 `agents/<role>/AGENTS.md` to use the spec-kit
+    cycle (`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`)
+    instead of `bd` claim/comment/close commands.
+  - Remapped `notion-reporting-standard`, `security-gitleaks`, and `uiux-playwright`
+    skills off of Beads-specific reporting formats.
+  - Marked [ADR-002](docs/adr/002-multi-agent-architecture.md) and
+    [ADR-003](docs/adr/003-beads-issue-tracking.md) as superseded by ADR-006.
+  - **Not included in this change**: the `kn` CLI's own Rust integration with `bd`
+    (`kn beads` subcommand, the `bd` dependency check in `kn doctor`, formula copying in
+    `init`/`sync`) — tracked as a separate follow-up, since it's compiled code with its
+    own test surface.
+
 ## [0.8.0] - 2026-02-25
 
 ### Added

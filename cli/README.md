@@ -156,7 +156,7 @@ role = "rust"
 required_skills = ["rust-best-practices", "docker-best-practices"]
 
 [skills]
-enabled = ["rust-best-practices", "docker-best-practices", "bd-best-practices"]
+enabled = ["rust-best-practices", "docker-best-practices"]
 ```
 
 ### Sync Project Symlinks
@@ -323,13 +323,12 @@ required_skills = ["rust-best-practices", "docker-best-practices"]
 [agents.planner]
 id = "my-project-x6e"
 role = "planner"
-required_skills = ["bd-best-practices"]
+required_skills = []
 
 [skills]
 enabled = [
   "rust-best-practices",
-  "docker-best-practices",
-  "bd-best-practices"
+  "docker-best-practices"
 ]
 ```
 

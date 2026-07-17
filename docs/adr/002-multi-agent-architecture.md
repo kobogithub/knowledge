@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR-006](./006-adopt-speckit-remove-beads.md)
 
 ## Date
 

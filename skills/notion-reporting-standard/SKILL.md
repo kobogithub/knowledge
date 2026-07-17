@@ -16,30 +16,41 @@ Estandar para reportes de avance dirigidos a stakeholders no tecnicos. Define ma
 
 ## Overview
 
-Este skill define como convertir datos tecnicos de bd (beads) en reportes de negocio comprensibles para stakeholders que no tienen conocimientos de desarrollo. Soporta dos modos de output:
+Este skill define como convertir el estado tecnico de spec-kit (`specs/NNN-feature-name/{spec,plan,tasks}.md`) en reportes de negocio comprensibles para stakeholders que no tienen conocimientos de desarrollo. Soporta dos modos de output:
 
 - **Modo Notion**: Actualiza dashboards en Notion via MCP
 - **Modo Markdown** (fallback): Genera reportes en `/docs/reports/` cuando Notion no esta disponible
 
-## Reglas de Mapeo: Beads → Reporte
+## Reglas de Mapeo: Spec-Kit → Reporte
 
-### Estado de Epics
+### Estado de Iniciativas (carpetas `specs/NNN-feature-name/`)
 
-| Estado Beads | Estado Reporte | Emoji | Significado para Stakeholder |
-|-------------|---------------|-------|------------------------------|
-| `open` | En Planificacion | ⏳ | El equipo esta diseñando la solucion |
-| `in_progress` | En Desarrollo | 🏗️ | Se esta construyendo activamente |
-| `blocked` | Requiere Atencion | 🚨 | Necesitamos algo del cliente o hay un impedimento |
-| `closed` | Completado | ✅ | Listo para usar o revisar |
+No hay un campo de estado explicito como en un issue tracker — el estado se infiere de que
+artefactos existen dentro de la carpeta de la spec y de cuantos checkboxes de `tasks.md`
+estan marcados:
 
-### Prioridades
+| Señal en `specs/NNN-feature-name/` | Estado Reporte | Emoji | Significado para Stakeholder |
+|-------------------------------------|---------------|-------|------------------------------|
+| Solo `spec.md` (sin `plan.md`/`tasks.md`) | En Planificacion | ⏳ | El equipo esta diseñando la solucion |
+| `plan.md` + `tasks.md` generados, con checkboxes `[ ]`/`[x]` mezclados | En Desarrollo | 🏗️ | Se esta construyendo activamente |
+| Reportado manualmente por un agente (sin señal automatica — ver nota) | Requiere Atencion | 🚨 | Necesitamos algo del cliente o hay un impedimento |
+| Todos los checkboxes de `tasks.md` marcados `[x]` | Completado | ✅ | Listo para usar o revisar |
 
-| Prioridad Beads | Prioridad Reporte | Emoji | Significado |
-|-----------------|-------------------|-------|-------------|
-| `P0` | Critico / Bloqueante | 🚨 | Afecta directamente la entrega |
-| `P1` | Alta Prioridad | ⭐ | Importante para esta fase |
-| `P2` | Normal | 📋 | Progreso planificado |
-| `P3` | Baja | 📌 | Mejora futura |
+**Nota**: a diferencia de un issue tracker, spec-kit no tiene un estado "blocked" automatico.
+El Biz Agent depende de que el agente que encuentra el impedimento lo señale explicitamente
+(comentario de PR o entrada en `tasks.md`) para poder reportarlo como 🚨.
+
+### Prioridad (orden de User Stories)
+
+spec-kit no tiene un campo de prioridad numerico. La prioridad implicita es el orden de las
+User Stories dentro de `tasks.md` (US1, US2, US3...): US1 es el corte minimo viable, las
+siguientes son incrementales. Reportar como "Historia N de M" en vez de P0-P3:
+
+| Posicion en `tasks.md` | Prioridad Reporte | Emoji | Significado |
+|-------------------------|-------------------|-------|-------------|
+| US1 (primera historia) | Alcance Minimo | ⭐ | Lo indispensable para la entrega |
+| US2, US3... | Incremental | 📋 | Mejoras planificadas sobre el minimo |
+| Tarea marcada `[P]` fuera de una user story | Paralelizable | 📌 | No bloquea al resto del plan |
 
 ### Traduccion de Terminos Tecnicos
 
@@ -166,16 +177,16 @@ Distribucion por area:
 
 ## Notion Dashboard Structure
 
-### Base de datos principal: Project Epics
+### Base de datos principal: Project Features
 
 | Propiedad | Tipo | Descripcion |
 |-----------|------|-------------|
-| Epic Name | Title | Nombre del epic en lenguaje de negocio |
+| Feature Name | Title | Nombre de la feature en lenguaje de negocio |
 | Status | Select | ⏳ En Planificacion / 🏗️ En Desarrollo / ✅ Completado / 🚨 Requiere Atencion |
-| Progress | Number (%) | Porcentaje de sub-tareas cerradas |
-| Priority | Select | 🚨 Critico / ⭐ Alta / 📋 Normal / 📌 Baja |
+| Progress | Number (%) | Porcentaje de checkboxes marcados en `tasks.md` |
+| Priority | Select | ⭐ Alcance Minimo / 📋 Incremental / 📌 Paralelizable |
 | Last Updated | Date | Fecha de ultima actualizacion |
-| Beads ID | Text | ID del epic en bd (referencia interna) |
+| Spec Folder | Text | Ruta `specs/NNN-feature-name/` (referencia interna) |
 | Notes | Rich Text | Resumen ejecutivo del estado actual |
 
 ### Pagina: Resumen Ejecutivo
@@ -213,9 +224,9 @@ docs/reports/YYYY-MM-DD-sprint-report.md
 2. [Hito 2]
 3. [Hito 3]
 
-## 📊 Estado de Epics
+## 📊 Estado de Features
 
-| Epic | Progreso | Estado |
+| Feature | Progreso | Estado |
 |------|----------|--------|
 | [Nombre] | ██████░░░░ 60% | 🏗️ En Desarrollo |
 | [Nombre] | ██████████ 100% | ✅ Completado |
@@ -246,7 +257,7 @@ docs/reports/YYYY-MM-DD-sprint-report.md
 5. **No tecnico**: Si un stakeholder necesita Google para entender un termino, esta mal escrito
 6. **Accionable**: Todo blocker debe incluir que necesitamos del stakeholder
 7. **Consistente**: Mismo formato y estructura en cada reporte
-8. **Trazable**: Siempre referenciar el Beads ID internamente para que el equipo pueda cruzar datos
+8. **Trazable**: Siempre referenciar la carpeta de spec (`specs/NNN-feature-name/`) internamente para que el equipo pueda cruzar datos
 
 ## Anti-patterns
 

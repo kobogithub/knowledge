@@ -11,10 +11,11 @@ An Architecture Decision Record captures an important architectural decision mad
 | # | Title | Status | Date |
 |---|-------|--------|------|
 | [001](./001-rust-cli-tool.md) | Rust as Implementation Language for CLI Tool | Accepted | 2024-12-15 |
-| [002](./002-multi-agent-architecture.md) | Multi-Agent Architecture with Specialized Roles | Accepted | 2025-01-10 |
-| [003](./003-beads-issue-tracking.md) | Beads (bd) as Issue Tracking System | Accepted | 2024-12-10 |
+| [002](./002-multi-agent-architecture.md) | Multi-Agent Architecture with Specialized Roles | Superseded by [006](./006-adopt-speckit-remove-beads.md) | 2025-01-10 |
+| [003](./003-beads-issue-tracking.md) | Beads (bd) as Issue Tracking System | Superseded by [006](./006-adopt-speckit-remove-beads.md) | 2024-12-10 |
 | [004](./004-3-tier-skill-distribution.md) | 3-Tier Skill Distribution System | Accepted | 2025-01-20 |
 | [005](./005-openrouter-llm-provider.md) | OpenRouter as Unified LLM Provider with Differentiated Models | Accepted | 2025-02-15 |
+| [006](./006-adopt-speckit-remove-beads.md) | Adopt GitHub Spec Kit, Remove Beads (bd) | Accepted | 2026-07-17 |
 
 <!-- Add new ADRs above this line -->
 
@@ -44,4 +45,4 @@ See [000-template.md](./000-template.md) for the standard ADR template.
 
 - [ADR GitHub Organization](https://adr.github.io/)
 - [Michael Nygard's original article](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)
-- [Beads (bd) decision issues](../) — ADRs are often extracted from `bd` issues of type `decision`
+- `specs/NNN-feature-name/` initiatives — ADRs are often extracted from decisions surfaced during `/speckit-plan` or `/speckit-clarify`

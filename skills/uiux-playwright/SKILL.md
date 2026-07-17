@@ -350,10 +350,10 @@ PASO 4: Hover sobre link de navegacion
 
 ## Reporte de Resultados
 
-### Formato para Beads
+### Formato de reporte (comentario de PR)
 
-```bash
-bd comments add task-id "[UI/UX Tester] Interaction Test Report:
+```text
+[UI/UX Tester] Interaction Test Report:
 Page: /dashboard
 Browser: Chromium (headless)
 Viewport: 1440x900
@@ -369,19 +369,17 @@ Test Results:
   ✅ Console: No JS errors
 
 Total: 7/8 passing
-Issue: Keyboard tab order needs fix (skips search input)"
+Issue: Keyboard tab order needs fix (skips search input)
 ```
 
-### Formato de bug report
+### Formato de entrada en tasks.md
 
-```bash
-bd create "Interaction: Tab order skips search input in /dashboard" \
-  -t bug -p 1 -l uiux,interaction,frontend,a11y \
-  --assignee knowledge-4yh \
-  -d "Playwright test: Pressing Tab from sidebar-toggle should focus search-input, but it skips to first-filter instead.
-Expected tab order: sidebar-toggle -> search-input -> status-filter -> ...
-Actual tab order: sidebar-toggle -> status-filter -> ...
-Fix: Add proper tabindex to search input or restructure DOM order."
+```markdown
+- [ ] Fix: Tab order skips search input in /dashboard (a11y)
+  Playwright test: Pressing Tab from sidebar-toggle should focus search-input, but it skips to first-filter instead.
+  Expected tab order: sidebar-toggle -> search-input -> status-filter -> ...
+  Actual tab order: sidebar-toggle -> status-filter -> ...
+  Fix: Add proper tabindex to search input or restructure DOM order.
 ```
 
 ## Mejores Practicas
