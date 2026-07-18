@@ -2,237 +2,140 @@
 
 ## For Users
 
-### Install from Homebrew (when available)
+### Install from Homebrew
+
+`kn` is published via a custom tap at
+[kobogithub/homebrew-knowledge](https://github.com/kobogithub/homebrew-knowledge).
 
 ```bash
-# Add the Knowledge Framework tap
 brew tap kobogithub/knowledge
+brew install kobogithub/knowledge/kn
+```
 
-# Install kn
-brew install kn
+> **Use the fully-qualified name.** `kn` already exists in `homebrew-core` — it's the
+> [Knative client CLI](https://github.com/knative/client), an unrelated tool. Plain
+> `brew install kn` will install *that* one instead of ours. Always use
+> `kobogithub/knowledge/kn`.
 
-# Verify installation
+### First-time setup
+
+Skills and agent templates ship inside the formula, but Homebrew sandboxes `$HOME` during
+install, so it can't write to `~/.kn/` automatically. `brew install` prints the exact
+commands to run once after installing (also reproduced here):
+
+```bash
+mkdir -p ~/.kn/{skills,agents}
+cp -R "$(brew --prefix)/opt/kn/share/kn/skills/." ~/.kn/skills/
+cp -R "$(brew --prefix)/opt/kn/share/kn/agents/." ~/.kn/agents/
+```
+
+### Verify
+
+```bash
+kn --version
 kn doctor
 ```
 
 ### Optional Dependencies
 
-```bash
-# Install bd (beads) for issue tracking
-brew install bd
+`kn doctor` checks for these, but they're not required to use the CLI itself:
 
-# Install dolt for Beads database (optional)
-brew install dolt
+```bash
+# Node.js — only needed for skills that assume a JS/TS toolchain
+brew install node
+
+# bd (beads) — legacy, only used by the `kn beads template` subcommand.
+# Not part of the current agent workflow (see docs/adr/006-adopt-speckit-remove-beads.md).
+cargo install bd
 ```
 
 ---
 
 ## For Maintainers
 
-### Publishing to Homebrew
+### How the formula is built
 
-#### 1. Create a GitHub Release
+`Formula/kn.rb` in this repo is the source of truth; a copy lives in the
+[homebrew-knowledge](https://github.com/kobogithub/homebrew-knowledge) tap repo
+(`Formula/kn.rb` there too — that's what Homebrew actually reads).
 
-```bash
-# Tag the release
-git tag -a v0.1.0 -m "Release v0.1.0"
-git push origin v0.1.0
+It does **not** compile from source. It downloads the precompiled per-arch binary tarball
+already published by `release.yml` for the tag (`kn-macos-arm64.tar.gz`,
+`kn-macos-x86_64.tar.gz`, `kn-linux-x86_64.tar.gz`), plus a `resource "assets"` block that
+pulls the tagged source archive just for `skills/`, `agents/`, and `docs/` (no build step
+needed for those — they're markdown/JSON).
 
-# GitHub will automatically create a tarball at:
-# https://github.com/kobogithub/knowledge/archive/refs/tags/v0.1.0.tar.gz
-```
-
-#### 2. Calculate SHA256
-
-```bash
-# Download the tarball
-curl -L https://github.com/kobogithub/knowledge/archive/refs/tags/v0.1.0.tar.gz -o kn-0.1.0.tar.gz
-
-# Calculate SHA256
-sha256sum kn-0.1.0.tar.gz
-# or on macOS:
-shasum -a 256 kn-0.1.0.tar.gz
-```
-
-#### 3. Update Formula
-
-Edit `Formula/kn.rb`:
-- Update `url` with the correct version
-- Update `sha256` with the calculated hash
-- Update version in `Cargo.toml` if needed
-
-#### 4. Test Locally
+### Releasing a new version
 
 ```bash
-# Install from local formula
-brew install --build-from-source Formula/kn.rb
+# 1. Cut the release as usual (creates the binaries via release.yml)
+git tag -a v0.9.0 -m "Release v0.9.0"
+git push origin v0.9.0
 
-# Test the installation
-kn doctor
-kn --version
+# 2. Once release.yml has published the binaries, get the real hashes:
+curl -sL "https://github.com/kobogithub/knowledge/releases/download/v0.9.0/checksums.txt"
 
-# Run formula tests
-brew test kn
+# 3. Compute the source-archive hash (for the `assets` resource):
+curl -sL "https://github.com/kobogithub/knowledge/archive/refs/tags/v0.9.0.tar.gz" | shasum -a 256
 
-# Audit the formula
-brew audit --strict kn
-```
+# 4. Update Formula/kn.rb in THIS repo:
+#    - version "0.9.0"
+#    - the three binary url/sha256 pairs (macOS arm64/x86_64, Linux x86_64)
+#    - the `resource "assets"` url/sha256
 
-#### 5. Create Homebrew Tap (First Time Only)
+# 5. Test locally before publishing (see below)
 
-```bash
-# Create a new repository: homebrew-knowledge
-# https://github.com/kobogithub/homebrew-knowledge
-
-# Add the formula
-cp Formula/kn.rb /path/to/homebrew-knowledge/Formula/kn.rb
-cd /path/to/homebrew-knowledge
+# 6. Copy the updated formula to the tap repo and push
+cp Formula/kn.rb ../homebrew-knowledge/Formula/kn.rb
+cd ../homebrew-knowledge
 git add Formula/kn.rb
-git commit -m "Add kn formula v0.1.0"
+git commit -m "kn 0.9.0"
 git push
 ```
 
-#### 6. Users Can Now Install
+### Testing Locally
+
+Homebrew (6.x+) requires formulae to live in a tap — you can't `brew install --formula
+./Formula/kn.rb` directly against a bare file anymore. Test against the real tap:
 
 ```bash
+brew untap kobogithub/knowledge 2>/dev/null
 brew tap kobogithub/knowledge
-brew install kn
-```
+brew install kobogithub/knowledge/kn
 
----
-
-## Homebrew Formula Structure
-
-The formula in `Formula/kn.rb` includes:
-
-- **Dependencies**: Rust (build-time), Node.js, Git
-- **Installation**: Builds kn from source using Cargo
-- **Resources**: Installs skills and agent templates to share directory
-- **Tests**: Verifies kn runs and responds to commands
-- **Caveats**: Shows post-install instructions to users
-
----
-
-## Testing the Formula
-
-### Local Testing
-
-```bash
-# Install from local formula
-brew install --build-from-source ./Formula/kn.rb
-
-# Test that it works
+kn --version
 kn doctor
-kn init --help
-kn skills list
 
-# Uninstall
 brew uninstall kn
 ```
 
-### CI Testing (GitHub Actions)
-
-Create `.github/workflows/homebrew-test.yml`:
-
-```yaml
-name: Test Homebrew Formula
-
-on:
-  push:
-    branches: [prod, main]
-  pull_request:
-
-jobs:
-  test-formula:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Install from formula
-        run: brew install --build-from-source ./Formula/kn.rb
-      
-      - name: Test kn
-        run: |
-          kn --version
-          kn doctor
-          kn init --help
-      
-      - name: Audit formula
-        run: brew audit --strict ./Formula/kn.rb
-```
-
----
-
-## Publishing to Official Homebrew
-
-To publish to the official Homebrew repository (homebrew-core):
-
-1. **Meet Requirements**:
-   - Stable 1.0+ release
-   - Significant user base
-   - Good documentation
-   - Automated tests
-
-2. **Submit PR**:
-   ```bash
-   # Fork homebrew-core
-   # Add Formula/kn.rb
-   # Create PR to Homebrew/homebrew-core
-   ```
-
-3. **Homebrew Guidelines**:
-   - https://docs.brew.sh/Formula-Cookbook
-   - https://docs.brew.sh/Acceptable-Formulae
-
-For now, we use a **tap** (kobogithub/knowledge) which is easier to manage.
-
----
-
-## Updating the Formula
-
-When releasing a new version:
-
-```bash
-# 1. Update version in Cargo.toml
-# 2. Create new release tag
-git tag -a v0.2.0 -m "Release v0.2.0"
-git push origin v0.2.0
-
-# 3. Calculate new SHA256
-curl -L https://github.com/kobogithub/knowledge/archive/refs/tags/v0.2.0.tar.gz | shasum -a 256
-
-# 4. Update Formula/kn.rb:
-#    - url with new version
-#    - sha256 with new hash
-
-# 5. Test and commit
-brew install --build-from-source ./Formula/kn.rb
-brew test kn
-git add Formula/kn.rb
-git commit -m "Update kn formula to v0.2.0"
-git push
-```
-
----
-
-## Troubleshooting
+To iterate on formula changes without pushing every time, edit the tap's local clone
+directly (`brew tap` clones it under `$(brew --repo kobogithub/knowledge)`), then
+`brew install`/`brew postinstall` against it — push to the tap repo only once it works.
 
 ### Common Issues
 
-**Build fails with "cargo not found"**:
-- Ensure `depends_on "rust" => :build` is in formula
-- User needs to install Rust: `brew install rust`
+**`brew install kn` installs the wrong thing**: expected — see the name-collision note
+above. Always use `kobogithub/knowledge/kn`.
 
-**Skills not found after installation**:
-- Check that skills are installed to `#{share}/kn/skills`
-- Users can verify with: `ls $(brew --prefix)/share/kn/skills`
+**Skills/agents missing after install**: expected — Homebrew's install/`post_install`
+sandbox blocks writes to `$HOME` (confirmed by testing: `Dir.home` resolves to a private
+tmp path during `post_install`, not the real home). The formula relies on `caveats` to
+tell the user to copy `share/kn/{skills,agents}` into `~/.kn/` themselves, matching what
+`install.sh`'s `setup_kn_resources()` does outside Homebrew's sandbox.
 
-**kn doctor shows missing dependencies**:
-- This is expected! Not all deps are installed via formula
-- Users should run `kn doctor` and follow instructions
-- Or run `./install.sh` for automated setup
+**Build fails / "cargo not found"**: shouldn't happen — this formula doesn't build from
+source. If you see this, someone reverted it to a `cargo install`-based formula; re-check
+`Formula/kn.rb` uses `on_macos`/`on_linux` binary URLs, not `depends_on "rust" => :build`.
 
 ---
+
+## Publishing to Official Homebrew (homebrew-core)
+
+Not planned for now — a custom tap is simpler to manage for a project at this stage, and
+`homebrew-core` already has an unrelated `kn` (Knative), which would need a different
+formula name to even be considered. Revisit only if this tool grows a broad enough user
+base to justify it.
 
 ## Resources
 

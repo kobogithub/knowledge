@@ -1,38 +1,53 @@
 class Kn < Formula
   desc "CLI tool for AI-assisted development workflows"
   homepage "https://github.com/kobogithub/knowledge"
-  url "https://github.com/kobogithub/knowledge/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "" # Will be filled when creating a release
+  version "0.8.0"
   license "MIT"
-  head "https://github.com/kobogithub/knowledge.git", branch: "prod"
 
-  depends_on "rust" => :build
-  depends_on "node"
-  depends_on "git"
+  on_macos do
+    on_arm do
+      url "https://github.com/kobogithub/knowledge/releases/download/v0.8.0/kn-macos-arm64.tar.gz"
+      sha256 "df43908085da7020398f20896a164828def5d74f06805fade3f49bd5e39d7885"
+    end
+    on_intel do
+      url "https://github.com/kobogithub/knowledge/releases/download/v0.8.0/kn-macos-x86_64.tar.gz"
+      sha256 "c4a55e5f6c72e307f1115f1e112834575fffa114738a9d55fce4371d25aa8263"
+    end
+  end
+
+  on_linux do
+    url "https://github.com/kobogithub/knowledge/releases/download/v0.8.0/kn-linux-x86_64.tar.gz"
+    sha256 "31052652ac1227f1d62a247859ddd2406cdc0e58e65242a88e15d917d5f2905c"
+  end
+
+  # Skills, agent templates and docs aren't in the binary release tarballs,
+  # so pull them from the tagged source archive instead of compiling anything.
+  resource "assets" do
+    url "https://github.com/kobogithub/knowledge/archive/refs/tags/v0.8.0.tar.gz"
+    sha256 "df181e0b72341a881e9bb5b9a22ac3ee65c3027cd50309da7934760acfe1e204"
+  end
 
   def install
-    # Build the kn CLI
-    cd "cli" do
-      system "cargo", "install", "--locked", "--root", prefix, "--path", "."
-    end
+    bin.install "kn"
 
-    # Install skills
-    (share/"kn/skills").install Dir["skills/*"]
-    
-    # Install agent templates
-    (share/"kn/agents").install Dir["agents/*"]
-    
-    # Install installation scripts as documentation
-    doc.install "install.sh", "install.ps1"
-    
-    # Install README and docs
-    doc.install "README.md", "README_ES.md"
-    doc.install Dir["docs/*"] if Dir.exist?("docs")
+    resource("assets").stage do
+      (share/"kn/skills").install Dir["skills/*"]
+      (share/"kn/agents").install Dir["agents/*"]
+      doc.install "README.md", "README_ES.md"
+      doc.install Dir["docs/*"] if Dir.exist?("docs")
+    end
   end
 
   def caveats
     <<~EOS
       The Knowledge Framework CLI has been installed!
+
+      Homebrew sandboxes $HOME during install, so this formula can't write to
+      ~/.kn/ automatically. Populate it once with:
+
+        mkdir -p ~/.kn/{skills,agents}
+        cp -R #{share}/kn/skills/. ~/.kn/skills/
+        cp -R #{share}/kn/agents/. ~/.kn/agents/
 
       To verify installation and check dependencies:
         kn doctor
@@ -41,18 +56,12 @@ class Kn < Formula
         cd your-project/
         kn init
 
-      Skills have been installed to:
-        #{share}/kn/skills
-
-      Agent templates are available at:
-        #{share}/kn/agents
-
       Documentation is available at:
         #{doc}
 
-      Optional dependencies:
-      - bd (beads): brew install bd  # For issue tracking
-      - dolt: brew install dolt       # For Beads database (optional)
+      Optional dependencies (checked by `kn doctor`, not required for the CLI itself):
+      - Node.js: for skills that assume a JS/TS toolchain
+      - bd (beads): legacy, only used by the `kn beads template` subcommand
 
       For more information:
         https://github.com/kobogithub/knowledge
@@ -60,10 +69,7 @@ class Kn < Formula
   end
 
   test do
-    # Test that kn is installed and runs
     assert_match "kn", shell_output("#{bin}/kn --version")
-    
-    # Test that kn doctor runs (may show missing deps, which is OK)
     system "#{bin}/kn", "doctor"
   end
 end
