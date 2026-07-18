@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-07-17
+
+### Added
+
+- Published `kn` on Homebrew via a custom tap
+  ([kobogithub/homebrew-knowledge](https://github.com/kobogithub/homebrew-knowledge)):
+  `brew tap kobogithub/knowledge && brew install kobogithub/knowledge/kn`. The formula
+  downloads precompiled per-arch binaries (no Rust toolchain required) and stages
+  skills/agents from the tagged source archive. Note: `kn` already exists in
+  `homebrew-core` (Knative client) — the fully-qualified tap name is required.
+
 ### Changed
 
 - **Migrated the multi-agent workflow from Beads (`bd`) to GitHub Spec Kit** (`specify-cli`).
