@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
 use clap::Args;
 use colored::*;
-use dialoguer::{theme::ColorfulTheme, Confirm, Input, MultiSelect};
+use dialoguer::{theme::ColorfulTheme, Confirm, Input, MultiSelect, Select};
 use std::collections::HashSet;
 use std::fs;
 
-use crate::config::{KnConfig, OpenCodeConfig, WorkspaceStandard};
+use crate::config::{ClaudeMcpConfig, KnConfig, OpenCodeConfig, WorkspaceStandard};
 use crate::core::{kn_home, symlinks};
 use crate::models::agent::AgentMetadata;
 use std::process::Command;
@@ -62,13 +62,30 @@ impl InitCommand {
                 .interact_text()?
         };
 
-        // 2. Workspace standard: OpenCode only (Antigravity support paused)
-        let workspace_standard = WorkspaceStandard::OpenCode;
+        // 2. Prompt: Workspace standard (OpenCode or Claude Code)
+        let workspace_options = ["OpenCode", "Claude Code"];
+        let workspace_standard = if self.yes {
+            WorkspaceStandard::OpenCode
+        } else {
+            let selection = Select::with_theme(&ColorfulTheme::default())
+                .with_prompt("Workspace standard")
+                .items(&workspace_options)
+                .default(0)
+                .interact()?;
+            match selection {
+                1 => WorkspaceStandard::Claude,
+                _ => WorkspaceStandard::OpenCode,
+            }
+        };
         println!(
-            "  {} Workspace: {} {}",
+            "  {} Workspace: {}",
             "ℹ".bright_blue(),
-            "OpenCode".bright_white().bold(),
-            "(only supported workspace)".dimmed()
+            match workspace_standard {
+                WorkspaceStandard::OpenCode => "OpenCode",
+                WorkspaceStandard::Claude => "Claude Code",
+            }
+            .bright_white()
+            .bold()
         );
 
         // 3. Prompt: Agent selection (multi-select)
@@ -326,49 +343,80 @@ impl InitCommand {
             );
         }
 
-        // 9. Generate .opencode/opencode.json
-        println!(
-            "\n{}",
-            "📄 Generating .opencode/opencode.json...".bright_cyan()
-        );
+        // 9. Generate MCP config: .opencode/opencode.json (OpenCode) or .mcp.json (Claude)
+        match workspace_standard {
+            WorkspaceStandard::OpenCode => {
+                println!(
+                    "\n{}",
+                    "📄 Generating .opencode/opencode.json...".bright_cyan()
+                );
 
-        let opencode_dir = current_dir.join(".opencode");
-        let opencode_json = opencode_dir.join("opencode.json");
+                let opencode_dir = current_dir.join(".opencode");
+                let opencode_json = opencode_dir.join("opencode.json");
 
-        // Create .opencode directory
-        fs::create_dir_all(&opencode_dir).context("Failed to create .opencode directory")?;
+                fs::create_dir_all(&opencode_dir)
+                    .context("Failed to create .opencode directory")?;
 
-        // Generate OpenCode config
-        let opencode_config = if let Some(mcp_config) = &config.mcp {
-            // If project has MCPs configured, generate with them
-            match OpenCodeConfig::generate_from_project(mcp_config) {
-                Ok(cfg) => cfg,
-                Err(e) => {
-                    println!("  {} Failed to generate MCP config: {}", "⚠".yellow(), e);
+                let opencode_config = if let Some(mcp_config) = &config.mcp {
+                    match OpenCodeConfig::generate_from_project(mcp_config) {
+                        Ok(cfg) => cfg,
+                        Err(e) => {
+                            println!("  {} Failed to generate MCP config: {}", "⚠".yellow(), e);
+                            OpenCodeConfig::new()
+                        }
+                    }
+                } else {
                     OpenCodeConfig::new()
+                };
+
+                opencode_config
+                    .save(&opencode_json)
+                    .context("Failed to save .opencode/opencode.json")?;
+
+                if let Some(mcp) = &opencode_config.mcp {
+                    println!(
+                        "  {} Created .opencode/opencode.json with {} MCPs",
+                        "✓".green(),
+                        mcp.len()
+                    );
+                } else {
+                    println!(
+                        "  {} Created .opencode/opencode.json (no MCPs)",
+                        "✓".green()
+                    );
                 }
             }
-        } else {
-            // Empty config with just schema
-            OpenCodeConfig::new()
-        };
+            WorkspaceStandard::Claude => {
+                println!("\n{}", "📄 Generating .mcp.json...".bright_cyan());
 
-        // Save config
-        opencode_config
-            .save(&opencode_json)
-            .context("Failed to save .opencode/opencode.json")?;
+                let claude_mcp_json = current_dir.join(".mcp.json");
 
-        if let Some(mcp) = &opencode_config.mcp {
-            println!(
-                "  {} Created .opencode/opencode.json with {} MCPs",
-                "✓".green(),
-                mcp.len()
-            );
-        } else {
-            println!(
-                "  {} Created .opencode/opencode.json (no MCPs)",
-                "✓".green()
-            );
+                let claude_config = if let Some(mcp_config) = &config.mcp {
+                    match ClaudeMcpConfig::generate_from_project(mcp_config) {
+                        Ok(cfg) => cfg,
+                        Err(e) => {
+                            println!("  {} Failed to generate MCP config: {}", "⚠".yellow(), e);
+                            ClaudeMcpConfig::new()
+                        }
+                    }
+                } else {
+                    ClaudeMcpConfig::new()
+                };
+
+                claude_config
+                    .save(&claude_mcp_json)
+                    .context("Failed to save .mcp.json")?;
+
+                if let Some(mcp) = &claude_config.mcp_servers {
+                    println!(
+                        "  {} Created .mcp.json with {} MCPs",
+                        "✓".green(),
+                        mcp.len()
+                    );
+                } else {
+                    println!("  {} Created .mcp.json (no MCPs)", "✓".green());
+                }
+            }
         }
 
         // 10. Create AGENTS.md if it doesn't exist
@@ -385,7 +433,13 @@ impl InitCommand {
         println!("\n{}", "✓ Initialization complete!".bright_green().bold());
         println!("\n{}", "Summary:".bright_white().bold());
         println!("  Project: {}", project_name.bright_yellow());
-        println!("  Workspace: OpenCode");
+        println!(
+            "  Workspace: {}",
+            match workspace_standard {
+                WorkspaceStandard::OpenCode => "OpenCode",
+                WorkspaceStandard::Claude => "Claude Code",
+            }
+        );
         println!("  Agents: {}", selected_agents.len());
         println!("  Skills configured: {}", all_skills.len());
 
@@ -414,9 +468,14 @@ impl InitCommand {
             println!("     or run: kn update");
         }
 
+        let mcp_config_file = match workspace_standard {
+            WorkspaceStandard::OpenCode => ".opencode/opencode.json",
+            WorkspaceStandard::Claude => ".mcp.json",
+        };
         println!(
-            "  {}. Review .opencode/opencode.json for MCP configuration",
-            if missing_count > 0 { 3 } else { 2 }
+            "  {}. Review {} for MCP configuration",
+            if missing_count > 0 { 3 } else { 2 },
+            mcp_config_file
         );
 
         let next_step = if missing_count > 0 { 4 } else { 3 };

@@ -1,91 +1,28 @@
 [project]
 name = "knowledge"
 description = ""
-workspace_standard = "opencode"
+workspace_standard = "claude"
 
 [skills]
 enabled = [
-    "docker-best-practices",
-    "python-best-practices",
     "bash-best-practices",
+    "security-trivy",
+    "security-semgrep",
+    "security-gitleaks",
+    "security-owasp-zap",
+    "uiux-playwright",
+    "uiux-axe-core",
+    "python-best-practices",
+    "uiux-viewport-testing",
+    "docker-best-practices",
     "rust-best-practices",
+    "uiux-pixelmatch",
     "github-actions-best-practices",
 ]
 
-[mcp]
-enabled = [
-    "playwright",
-    "penpot",
-    "github",
-    "postgres",
-]
-
-# Planner Agent - Uses Opus for maximum reasoning
-[agents.planner]
-id = "knowledge-x6e"
-role = "planner"
-model = "anthropic/claude-opus-4"
-required_skills = []
-
-# Backend Agent - Uses Opus for complex architecture decisions
-[agents.backend]
-id = "knowledge-vlf"
-role = "backend"
-model = "anthropic/claude-opus-4"
-required_skills = [
-    "python-best-practices",
-    "supabase-postgres-best-practices",
-    "docker-best-practices",
-]
-
-# Frontend Agent - Uses Sonnet for balanced UI/UX development
-[agents.frontend]
-id = "knowledge-4yh"
-role = "frontend"
-model = "anthropic/claude-sonnet-4.5"
-required_skills = [
-    "astro-best-practices",
-    "docker-best-practices",
-]
-
-# Rust Agent - Uses Sonnet for systems programming
-[agents.rust]
-id = "knowledge-r5t"
-role = "rust"
-model = "anthropic/claude-sonnet-4.5"
-required_skills = [
-    "rust-best-practices",
-    "docker-best-practices",
-]
-
-# DevOps Agent - Uses Sonnet for infrastructure tasks
-[agents.devops]
-id = "knowledge-w5p"
-role = "devops"
-model = "anthropic/claude-sonnet-4.5"
-required_skills = [
-    "docker-best-practices",
-    "bash-best-practices",
-    "terraform-best-practices",
-    "github-actions-best-practices",
-]
-
-# QA Agent - Uses Haiku for fast test generation
-[agents.qa]
-id = "knowledge-pu1"
-role = "qa"
-model = "anthropic/claude-haiku-4.5"
-required_skills = [
-    "bash-best-practices",
-    "python-best-practices",
-    "rust-best-practices",
-]
-
-# Security Agent - Uses Sonnet for security analysis
 [agents.security]
 id = "knowledge-s3c"
 role = "security"
-model = "anthropic/claude-sonnet-4.5"
 required_skills = [
     "security-trivy",
     "security-semgrep",
@@ -93,11 +30,9 @@ required_skills = [
     "security-owasp-zap",
 ]
 
-# UI/UX Tester Agent - Uses Sonnet for visual testing
 [agents.uiux-tester]
 id = "knowledge-u7x"
 role = "uiux-tester"
-model = "anthropic/claude-sonnet-4.5"
 required_skills = [
     "uiux-pixelmatch",
     "uiux-playwright",
@@ -105,27 +40,24 @@ required_skills = [
     "uiux-viewport-testing",
 ]
 
-# Finanzas Agent - Uses Haiku for cost-effective financial reporting
-[agents.finanzas]
-id = "knowledge-f1n"
-role = "finanzas"
-model = "anthropic/claude-haiku-4.5"
+[agents.qa]
+id = "knowledge-pu1"
+role = "qa"
 required_skills = [
     "bash-best-practices",
+    "python-best-practices",
+    "rust-best-practices",
 ]
 
-# Docs Writer Agent - Uses Sonnet for synthesis and writing clarity
-[agents.docs-writer]
-id = "knowledge-doc"
-role = "docs-writer"
-model = "anthropic/claude-sonnet-4.5"
+[agents.planner]
+id = "knowledge-x6e"
+role = "planner"
 required_skills = []
 
-# Biz Agent - Uses Haiku for cost-effective stakeholder reporting
-[agents.biz]
-id = "knowledge-biz"
-role = "biz"
-model = "anthropic/claude-haiku-4.5"
+[agents.rust]
+id = "knowledge-r5t"
+role = "rust"
 required_skills = [
-    "notion-reporting-standard",
+    "rust-best-practices",
+    "docker-best-practices",
 ]

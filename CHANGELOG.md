@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-07-17
+
+### Added
+
+- **`workspace_standard = "claude"`** — `kn init`/`kn sync` can now target Claude Code
+  directly instead of only OpenCode:
+  - Skills symlink to `.claude/skills/<name>/` (no transformation needed — `SKILL.md` is
+    already Claude Code's native skill format).
+  - Agents symlink to `.claude/agents/<name>.md` — a flat file per agent pointing at
+    `~/.kn/agents/<name>/AGENTS.md`, matching Claude Code's subagent file convention
+    (not converted to strict subagent frontmatter in this pass — plain reference file).
+  - MCP servers generate to `.mcp.json` (Claude Code's real `{"mcpServers": {...}}`
+    format) via a new `ClaudeMcpConfig` generator, instead of
+    `.opencode/opencode.json`.
+  - `kn init`'s workspace prompt is now a real selection (OpenCode / Claude Code)
+    instead of being hardcoded to OpenCode.
+
 ## [0.8.1] - 2026-07-17
 
 ### Added

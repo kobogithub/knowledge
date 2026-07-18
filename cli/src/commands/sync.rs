@@ -5,7 +5,7 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
-use crate::config::{KnConfig, OpenCodeConfig, WorkspaceStandard};
+use crate::config::{ClaudeMcpConfig, KnConfig, OpenCodeConfig, WorkspaceStandard};
 use crate::core::{kn_home, symlinks};
 
 #[derive(Args)]
@@ -248,54 +248,104 @@ impl SyncCommand {
                     }
                 }
 
-                // Generate .opencode/opencode.json
-                let opencode_dir = project_root.join(".opencode");
-                let opencode_json = opencode_dir.join("opencode.json");
+                // Generate MCP config: .opencode/opencode.json (OpenCode) or .mcp.json (Claude)
+                match workspace {
+                    WorkspaceStandard::OpenCode => {
+                        let opencode_dir = project_root.join(".opencode");
+                        let opencode_json = opencode_dir.join("opencode.json");
 
-                // Load existing config if present to preserve other settings
-                let mut opencode_config = if opencode_json.exists() {
-                    match OpenCodeConfig::from_file(&opencode_json) {
-                        Ok(cfg) => cfg,
-                        Err(_) => {
-                            println!(
-                                "  {} Could not parse existing opencode.json, creating new one",
-                                "⚠".yellow()
-                            );
+                        // Load existing config if present to preserve other settings
+                        let mut opencode_config = if opencode_json.exists() {
+                            match OpenCodeConfig::from_file(&opencode_json) {
+                                Ok(cfg) => cfg,
+                                Err(_) => {
+                                    println!(
+                                        "  {} Could not parse existing opencode.json, creating new one",
+                                        "⚠".yellow()
+                                    );
+                                    OpenCodeConfig::new()
+                                }
+                            }
+                        } else {
                             OpenCodeConfig::new()
-                        }
-                    }
-                } else {
-                    OpenCodeConfig::new()
-                };
+                        };
 
-                // Generate MCP configuration
-                match OpenCodeConfig::generate_from_project(mcp_config) {
-                    Ok(generated) => {
-                        opencode_config.mcp = generated.mcp;
+                        match OpenCodeConfig::generate_from_project(mcp_config) {
+                            Ok(generated) => {
+                                opencode_config.mcp = generated.mcp;
 
-                        // Save to file
-                        match opencode_config.save(&opencode_json) {
-                            Ok(_) => {
-                                println!(
-                                    "{}",
-                                    format!(
-                                        "  ✓ Generated .opencode/opencode.json with {} MCPs",
-                                        opencode_config.mcp.as_ref().map(|m| m.len()).unwrap_or(0)
-                                    )
-                                    .green()
-                                );
+                                match opencode_config.save(&opencode_json) {
+                                    Ok(_) => {
+                                        println!(
+                                            "{}",
+                                            format!(
+                                                "  ✓ Generated .opencode/opencode.json with {} MCPs",
+                                                opencode_config.mcp.as_ref().map(|m| m.len()).unwrap_or(0)
+                                            )
+                                            .green()
+                                        );
+                                    }
+                                    Err(e) => {
+                                        println!(
+                                            "  {} Failed to save .opencode/opencode.json: {}",
+                                            "✗".red(),
+                                            e
+                                        );
+                                    }
+                                }
                             }
                             Err(e) => {
-                                println!(
-                                    "  {} Failed to save .opencode/opencode.json: {}",
-                                    "✗".red(),
-                                    e
-                                );
+                                println!("  {} Failed to generate MCP config: {}", "✗".red(), e);
                             }
                         }
                     }
-                    Err(e) => {
-                        println!("  {} Failed to generate MCP config: {}", "✗".red(), e);
+                    WorkspaceStandard::Claude => {
+                        let claude_mcp_json = project_root.join(".mcp.json");
+
+                        // Load existing config if present to preserve other settings
+                        let mut claude_config = if claude_mcp_json.exists() {
+                            match ClaudeMcpConfig::from_file(&claude_mcp_json) {
+                                Ok(cfg) => cfg,
+                                Err(_) => {
+                                    println!(
+                                        "  {} Could not parse existing .mcp.json, creating new one",
+                                        "⚠".yellow()
+                                    );
+                                    ClaudeMcpConfig::new()
+                                }
+                            }
+                        } else {
+                            ClaudeMcpConfig::new()
+                        };
+
+                        match ClaudeMcpConfig::generate_from_project(mcp_config) {
+                            Ok(generated) => {
+                                claude_config.mcp_servers = generated.mcp_servers;
+
+                                match claude_config.save(&claude_mcp_json) {
+                                    Ok(_) => {
+                                        println!(
+                                            "{}",
+                                            format!(
+                                                "  ✓ Generated .mcp.json with {} MCPs",
+                                                claude_config
+                                                    .mcp_servers
+                                                    .as_ref()
+                                                    .map(|m| m.len())
+                                                    .unwrap_or(0)
+                                            )
+                                            .green()
+                                        );
+                                    }
+                                    Err(e) => {
+                                        println!("  {} Failed to save .mcp.json: {}", "✗".red(), e);
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                println!("  {} Failed to generate MCP config: {}", "✗".red(), e);
+                            }
+                        }
                     }
                 }
             }
