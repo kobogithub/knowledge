@@ -1,0 +1,10 @@
+name = "web-astro"
+description = "Astro + HTMX web app on Supabase, deployed to Railway"
+skills = [
+    "astro-best-practices",
+    "htmx-best-practices",
+    "supabase-postgres-best-practices",
+    "railway-best-practices",
+    "github-actions-best-practices",
+    "docker-best-practices",
+]
