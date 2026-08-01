@@ -56,15 +56,7 @@ impl InitCommand {
         // preset or a missing skill fails cleanly without writing anything.
         let preset = match &self.stack {
             Some(name) => {
-                let p = crate::core::stack::load_preset(name).map_err(|_| {
-                    let available = crate::core::stack::list_preset_names().unwrap_or_default();
-                    let available = if available.is_empty() {
-                        "(none installed)".to_string()
-                    } else {
-                        available.join(", ")
-                    };
-                    anyhow::anyhow!("Unknown stack preset '{name}'. Available: {available}")
-                })?;
+                let p = crate::core::stack::load_preset_for_use(name)?;
 
                 let missing = p.missing_skills()?;
                 if !missing.is_empty() {

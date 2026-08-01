@@ -205,6 +205,36 @@ fn us2_preset_with_missing_skill_fails_and_writes_nothing() {
     );
 }
 
+#[test]
+fn us2_malformed_preset_reports_parse_error_not_unknown() {
+    // Fix #1: an existing-but-broken preset must surface a parse error.
+    let home = setup_home("init_malformed");
+    let proj = fresh_dir("proj_malformed");
+
+    fs::write(
+        home.join("stacks").join("broken.toml"),
+        "this is = not valid toml [[[",
+    )
+    .unwrap();
+
+    let out = run(&["init", "-y", "--stack", "broken"], &home, &proj);
+    assert!(!out.status.success(), "malformed preset should fail");
+
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        stderr.contains("Failed to parse"),
+        "should surface the parse error: {stderr}"
+    );
+    assert!(
+        !stderr.contains("Unknown stack preset"),
+        "parse error must not be masked as unknown: {stderr}"
+    );
+    assert!(
+        !proj.join("kn.toml").exists(),
+        "kn.toml must not be written"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // US3 — discover presets
 // ---------------------------------------------------------------------------

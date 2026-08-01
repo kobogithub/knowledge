@@ -68,15 +68,7 @@ fn list_presets() -> Result<()> {
 }
 
 fn show_preset(name: &str) -> Result<()> {
-    let preset = stack::load_preset(name).map_err(|_| {
-        let available = stack::list_preset_names().unwrap_or_default();
-        let available = if available.is_empty() {
-            "(none installed)".to_string()
-        } else {
-            available.join(", ")
-        };
-        anyhow::anyhow!("Unknown stack preset '{name}'. Available: {available}")
-    })?;
+    let preset = stack::load_preset_for_use(name)?;
 
     print_preset(&preset)?;
     Ok(())

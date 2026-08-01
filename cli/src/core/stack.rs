@@ -47,11 +47,49 @@ pub fn load_preset_from(stacks_dir: &Path, name: &str) -> Result<StackPreset> {
     if !path.exists() {
         bail!("Unknown stack preset '{name}'");
     }
-    let content = std::fs::read_to_string(&path)
+    parse_preset_file(&path, name)
+}
+
+/// Read + parse a preset file, canonicalizing its `name` to the filename stem
+/// (warning on mismatch) so the recorded/displayed name is always resolvable
+/// via `<name>.toml`.
+fn parse_preset_file(path: &Path, stem: &str) -> Result<StackPreset> {
+    let content = std::fs::read_to_string(path)
         .with_context(|| format!("Failed to read preset {}", path.display()))?;
-    let preset: StackPreset = toml::from_str(&content)
+    let mut preset: StackPreset = toml::from_str(&content)
         .with_context(|| format!("Failed to parse preset {}", path.display()))?;
+    if preset.name != stem {
+        if !preset.name.is_empty() {
+            eprintln!(
+                "Warning: preset {} declares name = \"{}\" but its filename is \"{}.toml\"; \
+                 using \"{}\" as the canonical stack name.",
+                path.display(),
+                preset.name,
+                stem,
+                stem
+            );
+        }
+        preset.name = stem.to_string();
+    }
     Ok(preset)
+}
+
+/// Load a preset for use by `init`/`show`: a not-found name becomes a friendly
+/// error listing the available presets, while real read/parse errors are
+/// preserved (never masked as "unknown").
+pub fn load_preset_for_use(name: &str) -> Result<StackPreset> {
+    let dir = kn_home::stacks_dir()?;
+    let path = dir.join(format!("{name}.toml"));
+    if !path.exists() {
+        let available = list_preset_names().unwrap_or_default();
+        let available = if available.is_empty() {
+            "(none installed)".to_string()
+        } else {
+            available.join(", ")
+        };
+        bail!("Unknown stack preset '{name}'. Available: {available}");
+    }
+    parse_preset_file(&path, name)
 }
 
 /// List all presets in `~/.kn/stacks/`, sorted by name.
@@ -75,12 +113,14 @@ pub fn list_presets_from(stacks_dir: &Path) -> Result<Vec<StackPreset>> {
         if path.extension().and_then(|e| e.to_str()) != Some("toml") {
             continue;
         }
-        match std::fs::read_to_string(&path)
-            .ok()
-            .and_then(|c| toml::from_str::<StackPreset>(&c).ok())
-        {
-            Some(preset) => presets.push(preset),
-            None => eprintln!("Warning: skipping malformed preset {}", path.display()),
+        let stem = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or_default()
+            .to_string();
+        match parse_preset_file(&path, &stem) {
+            Ok(preset) => presets.push(preset),
+            Err(_) => eprintln!("Warning: skipping malformed preset {}", path.display()),
         }
     }
 
@@ -134,6 +174,50 @@ mod tests {
         let tmp = std::env::temp_dir().join(format!("kn_stack_unknown_{}", std::process::id()));
         fs::create_dir_all(&tmp).unwrap();
         assert!(load_preset_from(&tmp, "does-not-exist").is_err());
+        fs::remove_dir_all(&tmp).ok();
+    }
+
+    #[test]
+    fn parse_error_is_surfaced_not_masked_as_unknown() {
+        // Fix #1: a file that exists but is malformed must report a parse error,
+        // never "Unknown stack preset".
+        let tmp = std::env::temp_dir().join(format!("kn_stack_parseerr_{}", std::process::id()));
+        fs::create_dir_all(&tmp).unwrap();
+        write_preset(&tmp, "bad", "this is = not valid toml [[[");
+
+        let err = load_preset_from(&tmp, "bad").unwrap_err().to_string();
+        assert!(
+            err.contains("Failed to parse"),
+            "expected parse error, got: {err}"
+        );
+        assert!(
+            !err.contains("Unknown"),
+            "parse error masked as unknown: {err}"
+        );
+
+        fs::remove_dir_all(&tmp).ok();
+    }
+
+    #[test]
+    fn name_is_canonicalized_to_filename_stem() {
+        // Fix #2: name field that disagrees with the filename is overridden by
+        // the stem so the recorded/displayed name stays resolvable.
+        let tmp = std::env::temp_dir().join(format!("kn_stack_canon_{}", std::process::id()));
+        fs::create_dir_all(&tmp).unwrap();
+        write_preset(
+            &tmp,
+            "web-astro",
+            "name = \"totally-different\"\nskills = [\"x\"]\n",
+        );
+
+        let p = load_preset_from(&tmp, "web-astro").unwrap();
+        assert_eq!(p.name, "web-astro");
+
+        // list_presets_from canonicalizes too.
+        let listed = list_presets_from(&tmp).unwrap();
+        assert_eq!(listed.len(), 1);
+        assert_eq!(listed[0].name, "web-astro");
+
         fs::remove_dir_all(&tmp).ok();
     }
 
