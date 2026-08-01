@@ -15,6 +15,11 @@ pub struct InitCommand {
     /// Skip interactive prompts (use defaults)
     #[arg(short = 'y', long)]
     yes: bool,
+
+    /// Initialize from a stack-preset (a named bundle of skills).
+    /// See `kn stack list` for available presets.
+    #[arg(long)]
+    stack: Option<String>,
 }
 
 impl InitCommand {
@@ -46,6 +51,31 @@ impl InitCommand {
                 return Ok(());
             }
         }
+
+        // 0. Resolve stack-preset (if any) BEFORE doing any work, so an invalid
+        // preset or a missing skill fails cleanly without writing anything.
+        let preset = match &self.stack {
+            Some(name) => {
+                let p = crate::core::stack::load_preset_for_use(name)?;
+
+                let missing = p.missing_skills()?;
+                if !missing.is_empty() {
+                    anyhow::bail!(
+                        "Stack preset '{}' references skills missing from ~/.kn/skills/: {}. \
+                         Reinstall kn to stage the catalog.",
+                        name,
+                        missing.join(", ")
+                    );
+                }
+                println!(
+                    "  {} Using stack-preset: {}",
+                    "◆".bright_magenta(),
+                    p.name.bright_white().bold()
+                );
+                Some(p)
+            }
+            None => None,
+        };
 
         // 1. Prompt: Project name
         let default_name = current_dir
@@ -244,18 +274,29 @@ impl InitCommand {
             config.add_skill(skill);
         }
 
+        // Add stack-preset skills (deduped by add_skill) and record the stack.
+        if let Some(preset) = &preset {
+            for skill in &preset.skills {
+                config.add_skill(skill);
+            }
+            config.set_stack(&preset.name);
+            println!(
+                "  {} Applied stack-preset '{}' ({} skills)",
+                "✓".green(),
+                preset.name.bright_white(),
+                preset.skills.len()
+            );
+        }
+
         config.save(&config_path)?;
         println!("  {} Created kn.toml", "✓".green());
 
         // 8. Create symlinks (OpenCode only)
         println!("\n{}", "🔗 Creating symlinks...".bright_cyan());
 
-        // Create symlinks for all enabled skills
-        let all_skills: Vec<String> = required_skills
-            .iter()
-            .chain(selected_recommended.iter())
-            .cloned()
-            .collect();
+        // Create symlinks for all enabled skills (deduped source of truth is
+        // config.skills.enabled — includes preset skills).
+        let all_skills: Vec<String> = config.skills.enabled.clone();
 
         symlinks::create_skill_symlinks(&current_dir, &all_skills, &workspace_standard)?;
 
@@ -370,8 +411,7 @@ impl InitCommand {
                 };
 
                 if selected_agents.iter().any(|a| a.name == "planner") {
-                    opencode_config
-                        .set_planner_as_default(".opencode/agents/planner/AGENTS.md");
+                    opencode_config.set_planner_as_default(".opencode/agents/planner/AGENTS.md");
                     println!(
                         "  {} Planner set as default agent (opens coordinating, not building)",
                         "✓".green()

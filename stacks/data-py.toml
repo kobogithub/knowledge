@@ -1,0 +1,7 @@
+name = "data-py"
+description = "Python data project on Supabase Postgres"
+skills = [
+    "python-best-practices",
+    "supabase-postgres-best-practices",
+    "docker-best-practices",
+]

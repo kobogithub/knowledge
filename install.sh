@@ -665,7 +665,7 @@ setup_kn_resources() {
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
     info "Creating ~/.kn directory structure..."
-    mkdir -p "$kn_home"/{agents,skills,mcps,formulas}
+    mkdir -p "$kn_home"/{agents,skills,mcps,formulas,stacks}
     
     # Copy agents
     if [[ -d "$script_dir/agents" ]]; then
@@ -733,15 +733,32 @@ setup_kn_resources() {
         warn "formulas/ directory not found - skipping formula installation"
     fi
     
+    # Copy stack-presets
+    if [[ -d "$script_dir/stacks" ]]; then
+        info "Installing stack-presets to ~/.kn/stacks/..."
+
+        for stack_file in "$script_dir/stacks"/*.toml; do
+            if [[ -f "$stack_file" ]]; then
+                local stack_name
+                stack_name=$(basename "$stack_file")
+                cp "$stack_file" "$kn_home/stacks/$stack_name"
+                success "Installed stack-preset: ${stack_name%.toml}"
+            fi
+        done
+    else
+        warn "stacks/ directory not found - skipping stack-preset installation"
+    fi
+
     # Create MCPs directory (actual MCPs installed on-demand)
     mkdir -p "$kn_home/mcps"
     info "Created ~/.kn/mcps/ (MCP servers will be installed on-demand)"
-    
+
     success "Resource setup complete"
     echo ""
     info "Resources installed to ~/.kn/:"
     echo "  - Agents:    ~/.kn/agents/"
     echo "  - Skills:    ~/.kn/skills/"
+    echo "  - Stacks:    ~/.kn/stacks/"
     echo "  - Formulas:  ~/.kn/formulas/"
     echo "  - MCPs:      ~/.kn/mcps/ (installed on-demand)"
     echo ""

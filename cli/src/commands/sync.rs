@@ -78,13 +78,16 @@ impl SyncCommand {
                 println!(
                     "\n{}",
                     format!(
-                        "⚠ {} skills missing. Install them with:",
+                        "⚠ {} skill(s) in kn.toml are not in ~/.kn/skills/. They may have \
+                         been removed from the catalog or not staged yet. Leaving kn.toml \
+                         untouched; skipping their symlinks. To (re)stage the catalog, \
+                         reinstall kn. If a skill is gone for good, remove it from kn.toml:",
                         missing_skills.len()
                     )
                     .yellow()
                 );
                 for skill in &missing_skills {
-                    println!("  kn skills install ./skills/{}", skill);
+                    println!("  - {}", skill);
                 }
             }
 

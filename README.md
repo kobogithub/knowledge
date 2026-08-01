@@ -67,6 +67,33 @@ kn skills install ./SKILL.md        # From local path
 kn skills list                      # View installed skills
 ```
 
+The catalog is curated to a personal stack: Astro, FastAPI, HTMX, Go, Rust, Python,
+Supabase (Postgres), Docker, GitHub Actions, Bash, plus security and UI/UX testing skills.
+
+### 🧱 Stack Presets
+
+A **stack-preset** is a named bundle of skills you activate together, so a new project
+starts with the right knowledge in one step.
+
+```bash
+kn stack list                       # List available presets and their skills
+kn stack show web-astro             # Inspect one preset
+kn init --stack web-astro           # Initialize a project from a preset
+```
+
+Shipped presets:
+
+| Preset | Skills |
+|--------|--------|
+| `web-astro` | astro, htmx, supabase-postgres, railway, github-actions, docker |
+| `api-fastapi` | fastapi, python, supabase-postgres, railway, docker, github-actions |
+| `cli-rust` | rust, docker, github-actions, bash |
+| `cli-go` | go, docker, github-actions, bash |
+| `data-py` | python, supabase-postgres, docker |
+
+Presets live in `~/.kn/stacks/<name>.toml` and are user-editable — drop in your own file
+to define a new preset, no code change required.
+
 ### 📋 Beads Templates
 ```bash
 kn beads template epic -o epic.md   # Generate structured issue templates
