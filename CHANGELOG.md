@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-08-01
+
+### Added
+
+- **Stack-presets** — a preset is a named bundle of skills you activate together, so a
+  new project starts with the right knowledge in one step:
+  - `kn init --stack <name>` resolves a preset from `~/.kn/stacks/<name>.toml`, enables
+    exactly its skills (deduped with any manual selections), and records
+    `stack = "<name>"` under `[project]` in `kn.toml`.
+  - `kn stack list` / `kn stack show <name>` list and inspect presets, flagging any
+    skill missing from the catalog.
+  - Shipped presets: `web-astro`, `api-fastapi`, `cli-rust`, `cli-go`, `data-py`
+    (in the repo `stacks/` tree, staged to `~/.kn/stacks/` by `install.sh`).
+  - Presets are plain user-editable TOML — drop in your own file to define a new one,
+    no code change required.
+- **New skills** for the maintainer's stack: `fastapi-best-practices`,
+  `htmx-best-practices`, `go-best-practices`, `railway-best-practices`.
+- **Planner is the default agent** for generated workspaces — `kn init`/`kn sync` set the
+  planner as the default persona (OpenCode `opencode.json`) and write a root `CLAUDE.md`
+  for Claude Code projects, so a fresh session opens coordinating, not building.
+
+### Changed
+
+- **Curated the skill catalog** to the maintainer's real stack: removed
+  `aws-best-practices`, `jsonnet-best-practices`, `kubernetes-best-practices`,
+  `terraform-best-practices`, and `notion-reporting-standard`.
+- `kn sync` now warns (instead of pointing at a stale install command) when a project's
+  `kn.toml` references a skill no longer in the catalog, and leaves the file untouched.
+
+### Notes
+
+- `kn init`/`kn sync` still stage beads formulas and reference `bd` in the generated
+  `AGENTS.md` despite beads removal (ADR-006); flagged for a separate cleanup (ADR-007).
+
 ## [0.9.0] - 2026-07-17
 
 ### Added
