@@ -16,6 +16,22 @@ pub struct OpenCodeConfig {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mcp: Option<HashMap<String, OpenCodeMcpServer>>,
+
+    /// Name of the primary agent OpenCode activates on startup.
+    /// Must reference a primary agent — see `agent`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_agent: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent: Option<HashMap<String, OpenCodeAgentConfig>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OpenCodeAgentConfig {
+    pub mode: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -55,7 +71,25 @@ impl OpenCodeConfig {
         Self {
             schema: "https://opencode.ai/config.json".to_string(),
             mcp: None,
+            default_agent: None,
+            agent: None,
         }
+    }
+
+    /// Make the planner the primary agent OpenCode starts with, so a fresh
+    /// session opens already coordinating (spec-kit workflow) instead of the
+    /// generic `build` agent. `prompt_path` should be the project-relative
+    /// path to the synced planner agent file, e.g.
+    /// `.opencode/agents/planner/AGENTS.md`.
+    pub fn set_planner_as_default(&mut self, prompt_path: &str) {
+        self.default_agent = Some("planner".to_string());
+        self.agent.get_or_insert_with(HashMap::new).insert(
+            "planner".to_string(),
+            OpenCodeAgentConfig {
+                mode: "primary".to_string(),
+                prompt: Some(format!("{{file:{}}}", prompt_path)),
+            },
+        );
     }
 
     /// Load existing config from file
@@ -175,6 +209,27 @@ mod tests {
         let config = OpenCodeConfig::new();
         assert_eq!(config.schema, "https://opencode.ai/config.json");
         assert!(config.mcp.is_none());
+        assert!(config.default_agent.is_none());
+        assert!(config.agent.is_none());
+    }
+
+    #[test]
+    fn test_set_planner_as_default() {
+        let mut config = OpenCodeConfig::new();
+        config.set_planner_as_default(".opencode/agents/planner/AGENTS.md");
+
+        assert_eq!(config.default_agent.as_deref(), Some("planner"));
+
+        let planner = config.agent.as_ref().unwrap().get("planner").unwrap();
+        assert_eq!(planner.mode, "primary");
+        assert_eq!(
+            planner.prompt.as_deref(),
+            Some("{file:.opencode/agents/planner/AGENTS.md}")
+        );
+
+        let json = serde_json::to_string_pretty(&config).unwrap();
+        assert!(json.contains("\"default_agent\": \"planner\""));
+        assert!(json.contains("\"mode\": \"primary\""));
     }
 
     #[test]

@@ -6,7 +6,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use crate::config::{ClaudeMcpConfig, KnConfig, OpenCodeConfig, WorkspaceStandard};
-use crate::core::{kn_home, symlinks};
+use crate::core::{kn_home, symlinks, write_claude_md_if_missing};
 
 #[derive(Args)]
 pub struct SyncCommand {
@@ -351,6 +351,53 @@ impl SyncCommand {
             }
         } else {
             println!("\n{}", "No MCPs enabled in kn.toml".dimmed());
+        }
+
+        // Keep the planner as the default/primary agent, independent of MCP
+        // config — this must run even for projects with no MCPs enabled.
+        if config.agents.contains_key("planner") {
+            println!("\n{}", "Default agent:".bright_white().bold());
+
+            match workspace {
+                WorkspaceStandard::OpenCode => {
+                    let opencode_dir = project_root.join(".opencode");
+                    let opencode_json = opencode_dir.join("opencode.json");
+
+                    let mut opencode_config = if opencode_json.exists() {
+                        OpenCodeConfig::from_file(&opencode_json).unwrap_or_else(|_| {
+                            println!(
+                                "  {} Could not parse existing opencode.json, creating new one",
+                                "⚠".yellow()
+                            );
+                            OpenCodeConfig::new()
+                        })
+                    } else {
+                        fs::create_dir_all(&opencode_dir)
+                            .context("Failed to create .opencode directory")?;
+                        OpenCodeConfig::new()
+                    };
+
+                    opencode_config.set_planner_as_default(".opencode/agents/planner/AGENTS.md");
+
+                    match opencode_config.save(&opencode_json) {
+                        Ok(_) => println!(
+                            "  {} Planner is the default agent (.opencode/opencode.json)",
+                            "✓".green()
+                        ),
+                        Err(e) => println!("  {} Failed to save opencode.json: {}", "✗".red(), e),
+                    }
+                }
+                WorkspaceStandard::Claude => {
+                    match write_claude_md_if_missing(&project_root, &config.project.name) {
+                        Ok(true) => println!(
+                            "  {} Created CLAUDE.md (planner is the default agent)",
+                            "✓".green()
+                        ),
+                        Ok(false) => println!("  {} CLAUDE.md already exists", "✓".green()),
+                        Err(e) => println!("  {} Failed to write CLAUDE.md: {}", "✗".red(), e),
+                    }
+                }
+            }
         }
 
         println!("\n{}", "✓ Sync completed!".bright_green().bold());

@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use std::fs;
 
 use crate::config::{ClaudeMcpConfig, KnConfig, OpenCodeConfig, WorkspaceStandard};
-use crate::core::{kn_home, symlinks};
+use crate::core::{kn_home, symlinks, write_claude_md_if_missing};
 use crate::models::agent::AgentMetadata;
 use std::process::Command;
 
@@ -232,7 +232,7 @@ impl InitCommand {
         // 7. Generate kn.toml
         println!("\n{}", "📝 Generating kn.toml...".bright_cyan());
 
-        let mut config = KnConfig::new(&project_name, workspace_standard.clone());
+        let mut config = KnConfig::new(&project_name, workspace_standard);
 
         // Add selected agents
         for agent in &selected_agents {
@@ -357,7 +357,7 @@ impl InitCommand {
                 fs::create_dir_all(&opencode_dir)
                     .context("Failed to create .opencode directory")?;
 
-                let opencode_config = if let Some(mcp_config) = &config.mcp {
+                let mut opencode_config = if let Some(mcp_config) = &config.mcp {
                     match OpenCodeConfig::generate_from_project(mcp_config) {
                         Ok(cfg) => cfg,
                         Err(e) => {
@@ -368,6 +368,15 @@ impl InitCommand {
                 } else {
                     OpenCodeConfig::new()
                 };
+
+                if selected_agents.iter().any(|a| a.name == "planner") {
+                    opencode_config
+                        .set_planner_as_default(".opencode/agents/planner/AGENTS.md");
+                    println!(
+                        "  {} Planner set as default agent (opens coordinating, not building)",
+                        "✓".green()
+                    );
+                }
 
                 opencode_config
                     .save(&opencode_json)
@@ -427,6 +436,22 @@ impl InitCommand {
             println!("  {} Created AGENTS.md", "✓".green());
         } else {
             println!("  {} AGENTS.md already exists", "⚠".yellow());
+        }
+
+        // 10.5. Claude Code doesn't read AGENTS.md natively — generate a root
+        // CLAUDE.md that imports it and makes the planner the default persona,
+        // so a fresh `claude` session opens already coordinating.
+        if workspace_standard == WorkspaceStandard::Claude
+            && selected_agents.iter().any(|a| a.name == "planner")
+        {
+            match write_claude_md_if_missing(&current_dir, &project_name) {
+                Ok(true) => println!(
+                    "  {} Created CLAUDE.md (planner is the default agent)",
+                    "✓".green()
+                ),
+                Ok(false) => println!("  {} CLAUDE.md already exists", "⚠".yellow()),
+                Err(e) => println!("  {} Failed to write CLAUDE.md: {}", "⚠".yellow(), e),
+            }
         }
 
         // 11. Summary

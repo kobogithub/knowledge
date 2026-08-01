@@ -5,7 +5,7 @@ use std::fmt;
 ///
 /// OpenCode and Claude Code are supported. Antigravity (Google Gemini) support
 /// is paused and may be re-enabled in a future version.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum WorkspaceStandard {
     #[default]
