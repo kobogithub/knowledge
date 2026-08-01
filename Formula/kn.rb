@@ -1,30 +1,30 @@
 class Kn < Formula
   desc "CLI tool for AI-assisted development workflows"
   homepage "https://github.com/kobogithub/knowledge"
-  version "0.9.0"
+  version "0.10.0"
   license "MIT"
 
   on_macos do
     on_arm do
-      url "https://github.com/kobogithub/knowledge/releases/download/v0.9.0/kn-macos-arm64.tar.gz"
-      sha256 "233e96aeef17a24e1962f006809bc53baadf49d0bc2158a6239716b03d54a4cd"
+      url "https://github.com/kobogithub/knowledge/releases/download/v0.10.0/kn-macos-arm64.tar.gz"
+      sha256 "3272dc672453eac8845cb7196f2ef741dbfb9c600b47795bc9ca76f41ffeef91"
     end
     on_intel do
-      url "https://github.com/kobogithub/knowledge/releases/download/v0.9.0/kn-macos-x86_64.tar.gz"
-      sha256 "47d5924a50b5cab0726a9276893ff29f7f92be7ccf0a69076e54add43a2889d2"
+      url "https://github.com/kobogithub/knowledge/releases/download/v0.10.0/kn-macos-x86_64.tar.gz"
+      sha256 "23e1ff65fb6a4e4e7952d57a0253568d67181e40d988f6f52ad0be188d473f95"
     end
   end
 
   on_linux do
-    url "https://github.com/kobogithub/knowledge/releases/download/v0.9.0/kn-linux-x86_64.tar.gz"
-    sha256 "37e46b94a60def48df43cb64649ab36c32d9de8033664b20883850a5c165db2f"
+    url "https://github.com/kobogithub/knowledge/releases/download/v0.10.0/kn-linux-x86_64.tar.gz"
+    sha256 "5ec19e5821b2cd40b5bf2b26b2363d70557fe27db7542bbc569ea59ccc700e98"
   end
 
   # Skills, agent templates and docs aren't in the binary release tarballs,
   # so pull them from the tagged source archive instead of compiling anything.
   resource "assets" do
-    url "https://github.com/kobogithub/knowledge/archive/refs/tags/v0.9.0.tar.gz"
-    sha256 "587cfb1390511615bac5db56c8da7b2a87133594c152b1df7d1adecbf454cd15"
+    url "https://github.com/kobogithub/knowledge/archive/refs/tags/v0.10.0.tar.gz"
+    sha256 "4715b356bf3556c0c835ae6a6d42fb8295256c1471a64e2f29a4cd8b5bf2db5e"
   end
 
   def install
