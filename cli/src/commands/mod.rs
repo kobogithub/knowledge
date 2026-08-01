@@ -4,5 +4,6 @@ pub mod doctor;
 pub mod init;
 pub mod mcp;
 pub mod skills;
+pub mod stack;
 pub mod sync;
 pub mod update;

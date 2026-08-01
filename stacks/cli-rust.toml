@@ -1,0 +1,8 @@
+name = "cli-rust"
+description = "Rust command-line tool with Docker and CI"
+skills = [
+    "rust-best-practices",
+    "docker-best-practices",
+    "github-actions-best-practices",
+    "bash-best-practices",
+]

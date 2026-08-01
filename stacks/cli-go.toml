@@ -1,0 +1,8 @@
+name = "cli-go"
+description = "Go command-line tool with Docker and CI"
+skills = [
+    "go-best-practices",
+    "docker-best-practices",
+    "github-actions-best-practices",
+    "bash-best-practices",
+]

@@ -1,0 +1,10 @@
+name = "api-fastapi"
+description = "FastAPI service on Supabase Postgres, deployed to Railway"
+skills = [
+    "fastapi-best-practices",
+    "python-best-practices",
+    "supabase-postgres-best-practices",
+    "railway-best-practices",
+    "docker-best-practices",
+    "github-actions-best-practices",
+]
