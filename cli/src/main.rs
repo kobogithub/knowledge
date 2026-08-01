@@ -7,6 +7,7 @@ use kn::commands::doctor::DoctorCommand;
 use kn::commands::init::InitCommand;
 use kn::commands::mcp::{McpCommands, McpHandler};
 use kn::commands::skills::SkillsCommand;
+use kn::commands::stack::StackCommand;
 use kn::commands::sync::SyncCommand;
 use kn::commands::update::UpdateCommand;
 
@@ -24,6 +25,8 @@ enum Commands {
     Init(InitCommand),
     /// Manage skills (install, list, update)
     Skills(SkillsCommand),
+    /// List and inspect stack-presets (bundles of skills)
+    Stack(StackCommand),
     /// Manage agents (install, list)
     Agents(AgentsCommand),
     /// Sync skills and agents from ~/.kn/ to project
@@ -45,6 +48,7 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::Init(cmd) => cmd.execute()?,
         Commands::Skills(cmd) => cmd.execute()?,
+        Commands::Stack(cmd) => cmd.execute()?,
         Commands::Agents(cmd) => cmd.execute()?,
         Commands::Sync(cmd) => cmd.execute()?,
         Commands::Update(cmd) => cmd.execute()?,
