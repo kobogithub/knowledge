@@ -213,6 +213,29 @@ shellcheck install.sh
 
 ---
 
+## V14 — A clean machine installs from the README alone (SC-009)
+
+The README must be sufficient on its own — a new user should never need `docs/` to get running.
+
+Start a container with nothing but a shell, and follow **only** what `README.md` says:
+
+```bash
+docker run --rm -it debian:stable-slim bash -c '
+  apt-get update -qq && apt-get install -y -qq curl ca-certificates >/dev/null
+  # From here, run only commands copied verbatim from README.md
+  curl -fsSL https://kn.foxlabar.online | sh
+  kn --version
+'
+```
+
+**Expected**: `kn` installs and reports its version.
+
+**Fails if**: any step needs information that appears only in `docs/`, in `CONTRIBUTING.md`, or in a packaging guide — for example a prerequisite the README never mentions. Record which document was needed; that content belongs in the README.
+
+> This is not the same as CI's `test-install-script` job. That job proves `install.sh` works. V14 proves the **README** is complete enough to lead someone to it unaided.
+
+---
+
 ## Completion gate
 
-The feature is done when V1–V5 and V7–V13 pass, and V6 either passes or is explicitly recorded as unverified with the reason (no Linux environment available).
+The feature is done when V1–V5 and V7–V14 pass, and V6 either passes or is explicitly recorded as unverified with the reason (no Linux environment available).
