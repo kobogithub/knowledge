@@ -24,68 +24,6 @@ Cada vez que inicias un nuevo proyecto con agentes de IA, necesitas:
 
 ---
 
-## ✨ Características
-
-### 🚀 Inicialización Instantánea de Proyectos
-```bash
-cd mi-proyecto/
-kn init
-# → Auto-detecta el tipo de proyecto
-# → Crea AGENTS.md con instrucciones de flujo de trabajo
-# → Genera configuración kn.toml
-```
-
-### 📚 Gestión de Skills
-```bash
-kn skills install typescript        # Desde agentskills.io
-kn skills install https://...       # Desde URL
-kn skills install ./SKILL.md        # Desde ruta local
-kn skills list                      # Ver skills instalados
-```
-
-El catálogo está curado a un stack personal: Astro, FastAPI, HTMX, Go, Rust, Python,
-Supabase (Postgres), Docker, GitHub Actions, Bash, más skills de seguridad y testing UI/UX.
-
-### 🧱 Stack Presets
-
-Un **stack-preset** es un bundle nombrado de skills que se activan juntas, para que un
-proyecto nuevo arranque con el conocimiento correcto en un solo paso.
-
-```bash
-kn stack list                       # Listar presets disponibles y sus skills
-kn stack show web-astro             # Inspeccionar un preset
-kn init --stack web-astro           # Inicializar un proyecto desde un preset
-```
-
-Presets incluidos:
-
-| Preset | Skills |
-|--------|--------|
-| `web-astro` | astro, htmx, supabase-postgres, railway, github-actions, docker |
-| `api-fastapi` | fastapi, python, supabase-postgres, railway, docker, github-actions |
-| `cli-rust` | rust, docker, github-actions, bash |
-| `cli-go` | go, docker, github-actions, bash |
-| `data-py` | python, supabase-postgres, docker |
-
-Los presets viven en `~/.kn/stacks/<name>.toml` y son editables — agregá tu propio archivo
-para definir un preset nuevo, sin tocar código.
-
-### 📋 Plantillas de Beads
-```bash
-kn beads template epic -o epic.md   # Generar plantillas estructuradas de issues
-kn beads template task              # Imprimir a stdout para piping
-kn beads template bug --force       # Sobrescribir archivos existentes
-```
-
-### 🔌 Gestión de Servidores MCP
-```bash
-kn mcp add filesystem               # Agregar servidores MCP preconfigurados
-kn mcp add postgres -e POSTGRES_URL=... # Con variables de entorno
-kn mcp list                         # Ver servidores configurados
-```
-
----
-
 ## 🚀 Inicio Rápido
 
 ### Instalación
@@ -140,8 +78,8 @@ kn update                        # Actualizar a la última versión
 El script de instalación automáticamente pobla `~/.kn/` con todos los recursos disponibles:
 
 **Que se instala automaticamente:**
-- Todos los agentes en `~/.kn/agents/` (planner, frontend, backend, devops, qa, rust, security, uiux-tester, finanzas)
-- Todos los skills en `~/.kn/skills/` (11 skills de mejores practicas)
+- Todos los agentes en `~/.kn/agents/` (planner, frontend, backend, devops, qa, rust, security, uiux-tester, docs-writer, biz, finanzas)
+- Todos los skills en `~/.kn/skills/` (21 skills de mejores practicas)
 - Directorio MCP `~/.kn/mcps/` (MCPs se instalan bajo demanda)
 
 **¡No se requiere configuración adicional!** Después de la instalación, puedes ejecutar inmediatamente `kn init` en cualquier proyecto para seleccionar qué recursos usar.
@@ -308,6 +246,78 @@ kn beads template chore -o .beads/templates/chore.md
 
 ---
 
+## ✨ Características
+
+### 🚀 Inicialización Instantánea de Proyectos
+```bash
+cd mi-proyecto/
+kn init
+# → Auto-detecta el tipo de proyecto
+# → Crea AGENTS.md con instrucciones de flujo de trabajo
+# → Genera configuración kn.toml
+```
+
+### 📚 Gestión de Skills
+```bash
+kn skills install typescript        # Desde agentskills.io
+kn skills install https://...       # Desde URL
+kn skills install ./SKILL.md        # Desde ruta local
+kn skills list                      # Ver skills instalados
+```
+
+El catálogo está curado a un stack personal: Astro, FastAPI, HTMX, Go, Rust, Python,
+Supabase (Postgres), Docker, GitHub Actions, Bash, más skills de seguridad y testing UI/UX.
+
+### 🧱 Stack Presets
+
+Un **stack-preset** es un bundle nombrado de skills que se activan juntas, para que un
+proyecto nuevo arranque con el conocimiento correcto en un solo paso.
+
+```bash
+kn stack list                       # Listar presets disponibles y sus skills
+kn stack show web-astro             # Inspeccionar un preset
+kn init --stack web-astro           # Inicializar un proyecto desde un preset
+```
+
+Presets incluidos:
+
+| Preset | Skills |
+|--------|--------|
+| `web-astro` | astro, htmx, supabase-postgres, railway, github-actions, docker |
+| `api-fastapi` | fastapi, python, supabase-postgres, railway, docker, github-actions |
+| `cli-rust` | rust, docker, github-actions, bash |
+| `cli-go` | go, docker, github-actions, bash |
+| `data-py` | python, supabase-postgres, docker |
+
+Los presets viven en `~/.kn/stacks/<name>.toml` y son editables — agregá tu propio archivo
+para definir un preset nuevo, sin tocar código.
+
+### 🤖 Gestión de Agentes
+```bash
+kn agents list                      # Listar agentes instalados en ~/.kn/agents/
+kn agents install rust              # Instalar un agente por nombre
+kn agents install ./agents/rust     # O desde una ruta local
+kn agents install rust --force      # Reinstalar sobre un agente existente
+```
+
+### 📋 Plantillas de Beads
+```bash
+kn beads template epic -o epic.md   # Generar plantillas estructuradas de issues
+kn beads template task              # Imprimir a stdout para piping
+kn beads template bug --force       # Sobrescribir archivos existentes
+```
+
+> **Estado**: el flujo de trabajo propio de este proyecto usa spec-kit, no Beads — ver [ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md). Los comandos `kn beads` siguen disponibles y con soporte para proyectos que usen Beads de forma independiente.
+
+### 🔌 Gestión de Servidores MCP
+```bash
+kn mcp add filesystem               # Agregar servidores MCP preconfigurados
+kn mcp add postgres -e POSTGRES_URL=... # Con variables de entorno
+kn mcp list                         # Ver servidores configurados
+```
+
+---
+
 ## 🏗️ Estructura del Proyecto
 
 ```
@@ -336,7 +346,7 @@ knowledge/
 │   ├── security/AGENTS.md    # Security — AppSec, SAST, escaneo de vulnerabilidades
 │   ├── uiux-tester/AGENTS.md # UI/UX Tester — fidelidad visual, accesibilidad
 │   └── finanzas/AGENTS.md    # Finanzas — seguimiento de costos, presupuestos
-├── .opencode/skills/         # Skills de agentes IA instalados (11 skills)
+├── .opencode/skills/         # Skills de agentes IA instalados (21 skills)
 │   ├── bash-best-practices/
 │   ├── bd-best-practices/    # Manual de workflow de 5 fases
 │   ├── docker-best-practices/
@@ -414,7 +424,7 @@ Cada iniciativa vive en su propia carpeta `specs/NNN-feature-name/` (`spec.md`, 
 - [Instrucciones de Agentes](./AGENTS.md) - Guía de flujo de trabajo multi-agente
 - [Primeros Pasos](./docs/GETTING_STARTED.md) - Tutorial paso a paso
 - [Arquitectura](./docs/ARCHITECTURE.md) - Diseño del sistema y decisiones
-- [Guía de Desarrollo](./docs/DEVELOPMENT.md) - Guías para contribuir
+- [Índice de Documentación](./docs/README.md) - Todas las guías, agrupadas por tema
 
 ---
 
@@ -496,7 +506,7 @@ kn mcp add rust-docs mdn-web-docs
 
 ## 🤝 Contribuir
 
-¡Damos la bienvenida a contribuciones! Ver [DEVELOPMENT.md](./docs/DEVELOPMENT.md) para guías.
+¡Damos la bienvenida a contribuciones! Ver [AGENTS.md](./AGENTS.md) para el flujo de trabajo y las reglas de ramas.
 
 ### Configuración de Desarrollo
 
@@ -542,7 +552,7 @@ abri un PR contra esa carpeta antes de implementar.
 
 **Workflow**: ciclo spec-driven de spec-kit, completamente documentado en `AGENTS.md` (ver [ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md))
 
-**Skills**: 11 skills de mejores practicas instalados
+**Skills**: 21 skills de mejores practicas instalados
 
 ---
 

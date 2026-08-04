@@ -435,7 +435,7 @@ ls -la .beads/
 
 - 📖 Read [Architecture](./ARCHITECTURE.md) to understand system design
 - 🤖 Review [AGENTS.md](../AGENTS.md) for agent workflow details
-- 🛠️ Check [Development Guide](./DEVELOPMENT.md) to contribute
+- 🛠️ Check [AGENTS.md](../AGENTS.md) to contribute
 - 📋 Browse [CLI Reference](../cli/README.md) for all commands
 
 ## Get Help

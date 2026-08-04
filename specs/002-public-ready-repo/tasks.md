@@ -109,11 +109,21 @@ Two things the plan's reference inventory did not anticipate:
 
 **Independent test**: quickstart V9 and V10 pass.
 
-- [ ] T023 [US3] Reorder `README.md` to: title + one-line description → what it is and who it is for → installation → first commands → feature catalog → documentation index → licence. Installation currently begins at line 115, after five feature subsections; move it above the catalog. The catalog keeps its content and simply moves down (research R8, FR-009..FR-011)
-- [ ] T024 [US3] Apply the identical section order to `README_ES.md`. This is a reordering exercise in both files, not a retranslation — the two must present equivalent structure and equivalent claims (FR-012)
-- [ ] T025 [P] [US3] Add one sentence near the `kn beads` section of both READMEs stating that this project's own workflow uses spec-kit per [ADR-006](../../docs/adr/006-adopt-speckit-remove-beads.md), while `kn beads` remains available for users who use beads independently. The command genuinely ships (`cli/src/commands/beads.rs`), so removing it from the docs would violate FR-013 — the fix is stating status, not deleting (research R9, FR-014)
-- [ ] T026 [US3] Verify quickstart V10 — each of the nine shipped commands (`agents`, `beads`, `doctor`, `init`, `mcp`, `skills`, `stack`, `sync`, `update`) appears in both READMEs, and nothing undocumented is claimed (FR-013)
-- [ ] T027 [US3] Verify quickstart V9 — installation precedes the feature catalog, and both READMEs have the same top-level section count
+- [x] T023 [US3] Reorder `README.md` to: title + one-line description → what it is and who it is for → installation → first commands → feature catalog → documentation index → licence. Installation currently begins at line 115, after five feature subsections; move it above the catalog. The catalog keeps its content and simply moves down (research R8, FR-009..FR-011)
+- [x] T024 [US3] Apply the identical section order to `README_ES.md`. This is a reordering exercise in both files, not a retranslation — the two must present equivalent structure and equivalent claims (FR-012)
+- [x] T025 [P] [US3] Add one sentence near the `kn beads` section of both READMEs stating that this project's own workflow uses spec-kit per [ADR-006](../../docs/adr/006-adopt-speckit-remove-beads.md), while `kn beads` remains available for users who use beads independently. The command genuinely ships (`cli/src/commands/beads.rs`), so removing it from the docs would violate FR-013 — the fix is stating status, not deleting (research R9, FR-014)
+- [x] T026 [US3] Verify quickstart V10 — **found a real FR-013 violation**: `kn agents` shipped but was documented in neither README. Added an Agent Management section to both — each of the nine shipped commands (`agents`, `beads`, `doctor`, `init`, `mcp`, `skills`, `stack`, `sync`, `update`) appears in both READMEs, and nothing undocumented is claimed (FR-013)
+- [x] T027 [US3] Verify quickstart V9 — installation precedes the feature catalog, and both READMEs have the same top-level section count
+
+### Discovered during implementation (US3)
+
+The README made three inaccurate claims, all corrected in both languages:
+
+- **"11 best-practice skills"** in three places — the catalog holds **21** since initiative 001.
+- **Agent roster listed 9** (`planner, frontend, backend, devops, qa, rust, security, uiux-tester, finanzas`) — **11** exist; `docs-writer` and `biz` were missing.
+- **`kn agents` was undocumented** in both READMEs despite shipping — a direct FR-013 violation that quickstart V10 caught.
+
+**Link status after US3**: 16 broken links on `dev` → **11 now**, with **zero introduced**. US3 closed the three `DEVELOPMENT.md` references (T043). The remaining 11 are the 7 false positives plus the 4 ADR dangling paths still open in T044.
 
 **Checkpoint**: a newcomer reaches the install command within the first screen.
 
@@ -156,11 +166,11 @@ Classified:
 
 | Count | Kind | Where |
 |---|---|---|
-| 7 | **False positives** — example and template text, not real links (`](link)`, `](badge)`, and a sample README fragment) | `agents/docs-writer/AGENTS.md`, `docs/adr/000-template.md`, `skills/documentation-guide/SKILL.md` ×5 |
+| 7 | **False positives** — example and template text, not real links: markdown link syntax whose target is the literal placeholder word `link` or `badge`, plus a sample README fragment | `agents/docs-writer/AGENTS.md`, `docs/adr/000-template.md`, `skills/documentation-guide/SKILL.md` ×5 |
 | 4 | **Genuine rot** — targets removed by earlier initiatives (`.beads/`, `.opencode/`, a renamed source file) | `docs/adr/003` ×2, `docs/adr/004`, `docs/adr/005` |
 | 3 | **Genuine** — `DEVELOPMENT.md` referenced but never created | `README.md`, `README_ES.md`, `docs/GETTING_STARTED.md` |
 
-- [ ] T043 [P] Resolve the three `DEVELOPMENT.md` references in `README.md`, `README_ES.md` and `docs/GETTING_STARTED.md` — either create the document or drop the link. `README.md` and `README_ES.md` are already being rewritten in US3, so fold it in there
+- [x] T043 [P] Resolve the three `DEVELOPMENT.md` references in `README.md`, `README_ES.md` and `docs/GETTING_STARTED.md` — either create the document or drop the link. `README.md` and `README_ES.md` are already being rewritten in US3, so fold it in there
 - [ ] T044 [P] Resolve the four dangling ADR links in `docs/adr/003-beads-issue-tracking.md`, `docs/adr/004-3-tier-skill-distribution.md` and `docs/adr/005-openrouter-llm-provider.md`. ADRs are historical records like the CHANGELOG (research R4), so **do not rewrite the decisions** — de-link the dead paths or annotate them as removed, keeping the prose intact
 - [ ] T045 **DevOps**: Configure the T036 link-check job to skip fenced code blocks and example text, so the 7 false positives do not fail CI. Without this the job reports failures on documentation that is deliberately showing a sample link
 
