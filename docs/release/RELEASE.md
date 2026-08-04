@@ -433,7 +433,7 @@ sudo dnf install ./kn-0.2.0-1.*.rpm
 | v0.2.0 | 2026-02-18 | Global ~/.kn/ architecture |
 | v0.3.0 | 2026-02-19 | Enhanced installation & testing |
 
-See [CHANGELOG.md](./CHANGELOG.md) for detailed changes.
+See [CHANGELOG.md](../../CHANGELOG.md) for detailed changes.
 
 ---
 

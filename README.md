@@ -230,9 +230,9 @@ For now, please use the automated installer above.
 #### 📚 Platform-Specific Guides
 
 For detailed platform-specific installation instructions, see:
-- **[HOMEBREW.md](./HOMEBREW.md)** - Homebrew formula and tap setup
-- **[DEBIAN.md](./DEBIAN.md)** - Building and publishing Debian packages
-- **[RPM.md](./RPM.md)** - Building and publishing RPM packages for Fedora/RHEL
+- **[HOMEBREW.md](./docs/packaging/HOMEBREW.md)** - Homebrew formula and tap setup
+- **[DEBIAN.md](./docs/packaging/DEBIAN.md)** - Building and publishing Debian packages
+- **[RPM.md](./docs/packaging/RPM.md)** - Building and publishing RPM packages for Fedora/RHEL
 
 ### Verify Installation
 

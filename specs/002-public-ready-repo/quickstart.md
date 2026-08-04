@@ -115,6 +115,31 @@ rpm -qlp build-rpm/RPMS/*/kn-*.rpm | grep -c 'HOMEBREW.md'   # expect 1
 
 **Fails if** the count is 0 (the recursive copy was removed too) or 2 (a per-file copy line was repointed instead of deleted, shipping the document twice).
 
+### V6a — Static fallback when no Linux host is available
+
+V6 needs `rpmbuild`/`dpkg-buildpackage`. When neither is available, run this instead: it resolves every source path both recipes copy, which catches the exact failure mode the relocation risks (a `cp` naming a path that no longer exists).
+
+```bash
+python3 - <<'PY'
+import re, glob, os
+for path, skip in (('kn.spec', ('%{', '$')), ('debian/rules', ('$(', 'debian/kn'))):
+    print(f"=== {path} ===")
+    for n, line in enumerate(open(path), 1):
+        m = re.match(r'^(cp|install)\s+(.*)$', line.strip().rstrip('\\').strip())
+        if not m: continue
+        args = [a for a in m.group(2).split()
+                if not a.startswith('-') and not re.fullmatch(r'[0-7]{3,4}', a)]
+        for src in args[:-1]:                       # last arg is the destination
+            if any(k in src for k in skip): continue
+            ok = glob.glob(src) or os.path.exists(src)
+            print(f"  {'ok  ' if ok else 'MISS'} L{n} {src}")
+PY
+```
+
+**Expected**: every path reports `ok`, except `docs/kn.1`, which is guarded by `if [ -f docs/kn.1 ]` in both recipes and is legitimately absent (no man page is generated).
+
+**Fails if** any unconditional source path reports `MISS` — that path will break the build.
+
 ---
 
 ## V7 — Installed-path references corrected (C4)
@@ -122,10 +147,12 @@ rpm -qlp build-rpm/RPMS/*/kn-*.rpm | grep -c 'HOMEBREW.md'   # expect 1
 These are paths inside an installed package, invisible to a repo-relative link check:
 
 ```bash
-grep -rn '/usr/share/doc/kn/[A-Z]' docs/ || echo "clean"
+grep -rnE '/usr/share/doc/kn/(HOMEBREW|DEBIAN|RPM|RELEASE|GITHUB_PAGES|SECURITY_AUDIT)' docs/ || echo "clean"
 ```
 
 **Expected**: `clean`. Any hit means a document still claims the pre-move installed path — check `docs/packaging/DEBIAN.md` and `docs/packaging/RPM.md`.
+
+> The pattern names the relocated documents specifically. A broader `[A-Z]` match produces false positives: both recipes still run `cp README.md README_ES.md …`, so `/usr/share/doc/kn/README.md` remains a correct installed path and must not be "fixed".
 
 ---
 

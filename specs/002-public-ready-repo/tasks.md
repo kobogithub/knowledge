@@ -39,9 +39,9 @@ Documentation reorganization at the repository root. No `src/` or `tests/` invol
 
 **Purpose**: Establish the baseline so any later failure is attributable to this feature.
 
-- [ ] T001 [P] Record the current root inventory to compare against later: `ls *.md` in the repository root should list 12 files (`AGENTS.md`, `CHANGELOG.md`, `CLAUDE.md`, `DEBIAN.md`, `GITHUB_PAGES.md`, `HOMEBREW.md`, `README.md`, `README_ES.md`, `RELEASE.md`, `RELEASE_v0.1.0_CHECKLIST.md`, `RPM.md`, `SECURITY_AUDIT_REPORT.md`)
-- [ ] T002 [P] Confirm the pre-existing quality gates are green before any change, per quickstart V13: `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test --release` (all with `--manifest-path cli/Cargo.toml`) and `shellcheck install.sh`. Any failure here is pre-existing — report it, do not absorb it into this feature
-- [ ] T003 Create the three documentation groups: `docs/packaging/`, `docs/release/`, `docs/security/`
+- [x] T001 [P] Record the current root inventory to compare against later: `ls *.md` in the repository root should list 12 files (`AGENTS.md`, `CHANGELOG.md`, `CLAUDE.md`, `DEBIAN.md`, `GITHUB_PAGES.md`, `HOMEBREW.md`, `README.md`, `README_ES.md`, `RELEASE.md`, `RELEASE_v0.1.0_CHECKLIST.md`, `RPM.md`, `SECURITY_AUDIT_REPORT.md`)
+- [x] T002 [P] Confirm the pre-existing quality gates are green before any change, per quickstart V13: `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test --release` (all with `--manifest-path cli/Cargo.toml`) and `shellcheck install.sh`. Any failure here is pre-existing — report it, do not absorb it into this feature
+- [x] T003 Create the three documentation groups: `docs/packaging/`, `docs/release/`, `docs/security/`
 
 ---
 
@@ -74,21 +74,30 @@ Documentation reorganization at the repository root. No `src/` or `tests/` invol
 
 > **Task order in this phase is mandatory.** T008–T011 move files that two package build recipes copy by name from the repository root. Until T012 and T013 land, `rpmbuild` and `dpkg-buildpackage` both fail on a missing path. Do not leave the repository between T011 and T013.
 
-- [ ] T008 [US2] `git mv HOMEBREW.md DEBIAN.md RPM.md docs/packaging/` — preserve filenames so git records renames and history follows each file (research R1)
-- [ ] T009 [US2] `git mv RELEASE.md GITHUB_PAGES.md docs/release/`
-- [ ] T010 [US2] `git mv SECURITY_AUDIT_REPORT.md docs/security/`
-- [ ] T011 [US2] Delete `RELEASE_v0.1.0_CHECKLIST.md` — stale by nine minor versions, zero inbound references, and the recurring process it derives from is retained in `docs/release/RELEASE.md`. Git history preserves it (research R3, FR-006)
-- [ ] T012 [US2] **DevOps**: Delete line 61 of `kn.spec` (`cp HOMEBREW.md DEBIAN.md %{buildroot}%{_docdir}/kn/`). Do **not** repoint it — the recipe's existing `cp -r docs` below already ships these files, and repointing would ship each document twice (research R2, contract C4)
-- [ ] T013 [US2] **DevOps**: Delete line 34 of `debian/rules` (`cp HOMEBREW.md $(CURDIR)/debian/kn/usr/share/doc/kn/`), same reasoning as T012
-- [ ] T014 [US2] **DevOps**: Confirm the recursive copy survived in both recipes — `grep -n 'cp -r docs' kn.spec debian/rules` must return exactly one hit in each. Without it the documents stop shipping entirely (quickstart V5)
-- [ ] T015 [P] [US2] Correct the installed-path reference at `docs/packaging/DEBIAN.md:121`: `/usr/share/doc/kn/HOMEBREW.md` → `/usr/share/doc/kn/docs/packaging/HOMEBREW.md`. This describes a path inside an installed package, so a repo-relative link sweep will not catch it
-- [ ] T016 [P] [US2] Correct the two installed-path references at `docs/packaging/RPM.md:196` and `:197` the same way (`HOMEBREW.md` and `DEBIAN.md` → `docs/packaging/…`)
-- [ ] T017 [P] [US2] Repoint the three packaging links at `README.md:233-235` from `./HOMEBREW.md`, `./DEBIAN.md`, `./RPM.md` to `./docs/packaging/…`
-- [ ] T018 [P] [US2] Repoint `docs/ENVIRONMENT_VARIABLES.md:222` from `../SECURITY_AUDIT_REPORT.md` to `./security/SECURITY_AUDIT_REPORT.md`
-- [ ] T019 [US2] Create `docs/README.md` indexing every document under `docs/` — the six existing top-level files, the three new groups, plus `adr/` and `reports/` (FR-008, contract C3)
-- [ ] T020 [US2] Leave `CHANGELOG.md` lines 490, 496, 502, 536-539 **unchanged**. They mention the relocated filenames inside released-version sections; a changelog is a historical record and they are prose mentions, not links (research R4). This task is a deliberate no-op — check it off to confirm the decision was applied, not forgotten
-- [ ] T021 [US2] Verify quickstart V1, V3, V5, V7
-- [ ] T022 [US2] **DevOps**: Verify quickstart V6 — build both packages and confirm each relocated document ships exactly once (`rpm -qlp … | grep -c 'HOMEBREW.md'` returns 1). Requires Linux; if unavailable, record explicitly as unverified with the reason rather than checking this off
+- [x] T008 [US2] `git mv HOMEBREW.md DEBIAN.md RPM.md docs/packaging/` — preserve filenames so git records renames and history follows each file (research R1)
+- [x] T009 [US2] `git mv RELEASE.md GITHUB_PAGES.md docs/release/`
+- [x] T010 [US2] `git mv SECURITY_AUDIT_REPORT.md docs/security/`
+- [x] T011 [US2] Delete `RELEASE_v0.1.0_CHECKLIST.md` — stale by nine minor versions, zero inbound references, and the recurring process it derives from is retained in `docs/release/RELEASE.md`. Git history preserves it (research R3, FR-006)
+- [x] T012 [US2] **DevOps**: Delete line 61 of `kn.spec` (`cp HOMEBREW.md DEBIAN.md %{buildroot}%{_docdir}/kn/`). Do **not** repoint it — the recipe's existing `cp -r docs` below already ships these files, and repointing would ship each document twice (research R2, contract C4)
+- [x] T013 [US2] **DevOps**: Delete line 34 of `debian/rules` (`cp HOMEBREW.md $(CURDIR)/debian/kn/usr/share/doc/kn/`), same reasoning as T012
+- [x] T014 [US2] **DevOps**: Confirm the recursive copy survived in both recipes — `grep -n 'cp -r docs' kn.spec debian/rules` must return exactly one hit in each. Without it the documents stop shipping entirely (quickstart V5)
+- [x] T015 [P] [US2] Correct the installed-path reference at `docs/packaging/DEBIAN.md:121`: `/usr/share/doc/kn/HOMEBREW.md` → `/usr/share/doc/kn/docs/packaging/HOMEBREW.md`. This describes a path inside an installed package, so a repo-relative link sweep will not catch it
+- [x] T016 [P] [US2] Correct the two installed-path references at `docs/packaging/RPM.md:196` and `:197` the same way (`HOMEBREW.md` and `DEBIAN.md` → `docs/packaging/…`)
+- [x] T017 [P] [US2] Repoint the three packaging links at `README.md:233-235` from `./HOMEBREW.md`, `./DEBIAN.md`, `./RPM.md` to `./docs/packaging/…`
+- [x] T018 [P] [US2] Repoint `docs/ENVIRONMENT_VARIABLES.md:222` from `../SECURITY_AUDIT_REPORT.md` to `./security/SECURITY_AUDIT_REPORT.md`
+- [x] T019 [US2] Create `docs/README.md` indexing every document under `docs/` — the six existing top-level files, the three new groups, plus `adr/` and `reports/` (FR-008, contract C3)
+- [x] T020 [US2] Leave `CHANGELOG.md` lines 490, 496, 502, 536-539 **unchanged**. They mention the relocated filenames inside released-version sections; a changelog is a historical record and they are prose mentions, not links (research R4). This task is a deliberate no-op — check it off to confirm the decision was applied, not forgotten
+- [x] T021 [US2] Verify quickstart V1, V3, V5, V7
+- [ ] T022 [US2] **DevOps**: Verify quickstart V6 — build both packages and confirm each relocated document ships exactly once (`rpm -qlp … | grep -c 'HOMEBREW.md'` returns 1). **UNVERIFIED — no Linux host and no Docker available on the development machine.** Quickstart V6a was run instead as a static fallback: every unconditional `cp`/`install` source path in both recipes resolves, and the only `MISS` (`docs/kn.1`) sits behind an `if [ -f … ]` guard and is pre-existing. This catches the failure mode the relocation risks, but does not prove the packages build. **Must be run on Linux before this reaches `prod`**
+
+### Discovered during implementation (US2)
+
+Two things the plan's reference inventory did not anticipate:
+
+- **Outbound links from relocated files also break.** [data-model.md](./data-model.md) enumerated references *pointing at* the moved documents, but `docs/release/RELEASE.md:436` linked to `./CHANGELOG.md` — correct from the root, dangling from `docs/release/`. Fixed to `../../CHANGELOG.md`. A full-repo link sweep (quickstart V4) catches this class; a targeted inbound-reference list does not.
+- **Quickstart V7's original pattern produced false positives.** `/usr/share/doc/kn/[A-Z]` matched `README.md` and `README_ES.md`, which both recipes still copy to that exact path — those are correct, not stale. V7 now names the relocated documents specifically.
+
+**Link status after US2** (measured against `dev`): **zero new broken links introduced**, and two fixed — `README.md` and `README_ES.md` both linked to `LICENSE`, which did not exist until US1. The repository still carries **14 pre-existing broken links** that predate this initiative; see the note in Phase 7.
 
 **Checkpoint**: root Markdown reduced from 12 to 5 at this point — `AGENTS.md`, `CHANGELOG.md`, `CLAUDE.md`, `README.md`, `README_ES.md` — plus `LICENSE` from US1. `CONTRIBUTING.md` arrives with US4, bringing the final total to 7 documents. Packages still build and still ship the docs.
 
@@ -139,6 +148,22 @@ Documentation reorganization at the repository root. No `src/` or `tests/` invol
 - [ ] T041 Verify quickstart V14 — follow `README.md` alone in a clean container and confirm `kn` installs and reports its version. If any step needs a document other than the README, record which one; that content belongs in the README (SC-009). This is distinct from CI's `test-install-script` job, which proves `install.sh` works rather than proving the README leads someone to it
 - [ ] T042 Final sweep: run the full quickstart V1–V14 and record the outcome of each, including any check recorded as unverified with its reason
 
+### Pre-existing broken links — added after measurement
+
+SC-003 requires **zero** broken links across all tracked Markdown. US2 introduced none and fixed two, but a full sweep found **14 that predate this initiative**. SC-003 cannot pass while they remain, so closing them is in scope for this feature even though the spec's user stories did not anticipate them.
+
+Classified:
+
+| Count | Kind | Where |
+|---|---|---|
+| 7 | **False positives** — example and template text, not real links (`](link)`, `](badge)`, and a sample README fragment) | `agents/docs-writer/AGENTS.md`, `docs/adr/000-template.md`, `skills/documentation-guide/SKILL.md` ×5 |
+| 4 | **Genuine rot** — targets removed by earlier initiatives (`.beads/`, `.opencode/`, a renamed source file) | `docs/adr/003` ×2, `docs/adr/004`, `docs/adr/005` |
+| 3 | **Genuine** — `DEVELOPMENT.md` referenced but never created | `README.md`, `README_ES.md`, `docs/GETTING_STARTED.md` |
+
+- [ ] T043 [P] Resolve the three `DEVELOPMENT.md` references in `README.md`, `README_ES.md` and `docs/GETTING_STARTED.md` — either create the document or drop the link. `README.md` and `README_ES.md` are already being rewritten in US3, so fold it in there
+- [ ] T044 [P] Resolve the four dangling ADR links in `docs/adr/003-beads-issue-tracking.md`, `docs/adr/004-3-tier-skill-distribution.md` and `docs/adr/005-openrouter-llm-provider.md`. ADRs are historical records like the CHANGELOG (research R4), so **do not rewrite the decisions** — de-link the dead paths or annotate them as removed, keeping the prose intact
+- [ ] T045 **DevOps**: Configure the T036 link-check job to skip fenced code blocks and example text, so the 7 false positives do not fail CI. Without this the job reports failures on documentation that is deliberately showing a sample link
+
 ---
 
 ## Dependencies
@@ -155,7 +180,7 @@ Phase 1 (Setup: T001–T003)
    │                                      │
    └─▶ Phase 5 US3 (T023–T027) ──────────┘  after US1 + US2 (both edit README)
                                           │
-                              Phase 7 (T035–T042) ─▶ last
+                              Phase 7 (T035–T045) ─▶ last
 ```
 
 **Cross-story ordering constraints**:
@@ -163,7 +188,7 @@ Phase 1 (Setup: T001–T003)
 - **US3 after US1 and US2** — all three edit `README.md`. US1 appends a licence section, US2 repoints three links at lines 233-235, US3 reorders the whole file. Running US3 first would invalidate the line numbers the other two depend on.
 - **US2 internal order is strict** — T008–T011 break both package builds until T012–T013 land.
 - **US1, US2 and US4 are mutually independent** and may proceed in parallel by different agents on separate branches.
-- **Phase 7 last** — T038–T042 verify the combined end state.
+- **Phase 7 last** — T038–T042 verify the combined end state; T043–T045 close pre-existing link rot.
 
 ---
 
@@ -228,7 +253,7 @@ Each increment is a separate PR into `epic/002-public-ready-repo`, which then ta
 | 4 | US2 — Root reorganization (P2) | T008–T022 | 15 |
 | 5 | US3 — README (P3) | T023–T027 | 5 |
 | 6 | US4 — Contributing (P4) | T028–T034 | 7 |
-| 7 | Polish | T035–T042 | 8 |
-| | **Total** | | **42** |
+| 7 | Polish | T035–T045 | 11 |
+| | **Total** | | **45** |
 
 Parallelizable tasks: 15 marked `[P]`.
