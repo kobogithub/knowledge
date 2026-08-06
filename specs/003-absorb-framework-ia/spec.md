@@ -193,7 +193,7 @@ Someone opens framework_ia months from now, does not realize it was superseded, 
 - **SC-001**: For every topic present in both repositories, exactly one skill remains, and it is no less complete than the better of the two originals.
 - **SC-002**: The catalog's guidance on every shared topic is at least as extensive as the deepest available version; the topic that was previously a stub is no longer one.
 - **SC-003**: Every candidate skill has a recorded accept-or-reject decision with a reason; zero skills enter the catalog undocumented.
-- **SC-004**: Zero agent references point at a skill that does not exist, down from four.
+- **SC-004**: Zero agent references point at a skill that does not exist, down from six such references across three agents (naming four distinct missing skills).
 - **SC-005**: Zero skills in the catalog are unreachable from every agent and every stack preset, down from five.
 - **SC-006**: Every stack preset resolves completely, with zero missing skills.
 - **SC-007**: A consistency check can be run on demand and reports the agent-to-skill graph as clean.
