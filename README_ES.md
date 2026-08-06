@@ -33,10 +33,7 @@ Cada vez que inicias un nuevo proyecto con agentes de IA, necesitas:
 La forma más fácil de instalar `kn` es usando nuestro instalador automatizado. Descarga binarios precompilados desde GitHub releases:
 
 ```bash
-# Instalación de una línea (recomendado - URL corta)
-curl -fsSL https://kn.foxlabar.online/install | bash
-
-# O usando la URL completa de GitHub
+# Instalación de una línea (recomendado)
 curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
 
 # O descargar e inspeccionar primero
@@ -44,6 +41,9 @@ wget https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh
 chmod +x install.sh
 ./install.sh
 ```
+
+> **Nota**: la URL corta `kn.foxlabar.online/install` no está disponible temporalmente —
+> el dominio propio no resuelve por ahora. Usá la URL de GitHub de arriba.
 
 **Funciones Inteligentes:**
 - ✅ **Verificación de Versión**: Evita reinstalar si ya tienes la versión objetivo

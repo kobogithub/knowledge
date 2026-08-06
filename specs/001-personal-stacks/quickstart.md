@@ -6,7 +6,7 @@ How to prove the feature works end-to-end. Assumes a debug build of `kn` and an 
 ## Setup
 
 ```bash
-cd /Users/kobo/Github/personal/knowledge
+cd "$(git rev-parse --show-toplevel)"   # run from the repository root
 cargo build --manifest-path cli/Cargo.toml
 export KN_HOME="$(mktemp -d)/.kn"
 # Stage catalog + presets into the isolated home:

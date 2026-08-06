@@ -155,14 +155,28 @@ The README made three inaccurate claims, all corrected in both languages:
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T035 [P] Replace the absolute path at `specs/001-personal-stacks/quickstart.md:9` (`cd /Users/kobo/Github/personal/knowledge`) with a repository-relative instruction. Keep the step — it exists to tell the reader to be at the repository root, so the replacement must say that rather than delete the line (research R10, FR-020)
-- [ ] T036 [P] **DevOps**: Add a `lychee` link-check job to `.github/workflows/ci.yml`, scoped to tracked Markdown and **internal links only**. External URL checking stays off so a third-party outage cannot fail CI — a live risk, since the maintainer just hit exactly that with a paused badge service. Do not touch `.github/workflows/release.yml` (research R6, FR-023)
-- [ ] T037 Add a `CHANGELOG.md` entry for this reorganization under a new version heading, recording the documentation move, the licence addition and the deleted stale checklist. Add only — do not edit existing entries (research R4)
-- [ ] T038 Verify quickstart V4 (no broken internal links) and V8 (no `/Users/kobo` in any tracked file)
-- [ ] T039 Verify quickstart V12 — `git diff --stat dev...HEAD -- cli/ skills/ stacks/ agents/ .github/workflows/release.yml` returns no output, confirming FR-021 through FR-023 held
-- [ ] T040 Verify quickstart V13 — the existing quality gates still pass, unchanged from the T002 baseline
-- [ ] T041 Verify quickstart V14 — follow `README.md` alone in a clean container and confirm `kn` installs and reports its version. If any step needs a document other than the README, record which one; that content belongs in the README (SC-009). This is distinct from CI's `test-install-script` job, which proves `install.sh` works rather than proving the README leads someone to it
+- [x] T035 [P] Replace the absolute path at `specs/001-personal-stacks/quickstart.md:9` (`cd /Users/kobo/Github/personal/knowledge`) with a repository-relative instruction. Keep the step — it exists to tell the reader to be at the repository root, so the replacement must say that rather than delete the line (research R10, FR-020)
+- [x] T036 [P] **DevOps**: Add a `lychee` link-check job to `.github/workflows/ci.yml`, scoped to tracked Markdown and **internal links only**. External URL checking stays off so a third-party outage cannot fail CI — a live risk, since the maintainer just hit exactly that with a paused badge service. Do not touch `.github/workflows/release.yml` (research R6, FR-023)
+- [x] T037 Add a `CHANGELOG.md` entry for this reorganization under a new version heading, recording the documentation move, the licence addition and the deleted stale checklist. Add only — do not edit existing entries (research R4)
+- [x] T038 Verify quickstart V4 (no broken internal links) and V8 (no `/Users/kobo` in any tracked file)
+- [x] T039 Verify quickstart V12 — `git diff --stat dev...HEAD -- cli/ skills/ stacks/ agents/ .github/workflows/release.yml` returns no output, confirming FR-021 through FR-023 held
+- [x] T040 Verify quickstart V13 — the existing quality gates still pass, unchanged from the T002 baseline
+- [ ] T041 **BLOCKED** — Verify quickstart V14 — follow `README.md` alone in a clean container and confirm `kn` installs and reports its version. If any step needs a document other than the README, record which one; that content belongs in the README (SC-009). This is distinct from CI's `test-install-script` job, which proves `install.sh` works rather than proving the README leads someone to it
 - [ ] T042 Final sweep: run the full quickstart V1–V14 and record the outcome of each, including any check recorded as unverified with its reason
+
+### Discovered during implementation (Phase 7)
+
+**The README's recommended install command was dead.** V14 was added to close the SC-009 coverage gap, and the very check found the failure it was designed to catch:
+
+- `https://kn.foxlabar.online/install` — presented as the **recommended** one-line install in both READMEs — returns no response at all.
+- `kn.foxlabar.online` and its parent `foxlabar.online` both return **NXDOMAIN** from 8.8.8.8 and 1.1.1.1. The domain is registered (whois status `ACTIVE`, created 2015-03-06) but has **no nameservers delegated**, so the zone does not exist and the name can never resolve.
+- GitHub Pages is still configured for it: `status: built`, `cname: kn.foxlabar.online`, but `https_certificate.state: bad_authz` ("The ACME authorization is in a bad state") with `expires_at: 2026-07-19`, already past, and `https_enforced: false`.
+- The GitHub raw fallback works — HTTP 200, 27,677 bytes.
+
+Both READMEs now lead with the working GitHub URL and carry a note that the short URL is temporarily unavailable. **The domain itself needs DNS restored at the registrar** — that is outside this repository.
+
+- [ ] T046 Restore DNS for `kn.foxlabar.online` (delegate nameservers, point at GitHub Pages), then re-enable HTTPS in the Pages settings so the ACME authorization can complete. Once it resolves, restore the short URL as the recommended install in both READMEs and remove the temporary note
+- [ ] T047 Re-check `index.html` and `CNAME` once the domain resolves — both exist to serve that redirect and are inert while the domain is down
 
 ### Pre-existing broken links — added after measurement
 
@@ -177,8 +191,8 @@ Classified:
 | 3 | **Genuine** — `DEVELOPMENT.md` referenced but never created | `README.md`, `README_ES.md`, `docs/GETTING_STARTED.md` |
 
 - [x] T043 [P] Resolve the three `DEVELOPMENT.md` references in `README.md`, `README_ES.md` and `docs/GETTING_STARTED.md` — either create the document or drop the link. `README.md` and `README_ES.md` are already being rewritten in US3, so fold it in there
-- [ ] T044 [P] Resolve the four dangling ADR links in `docs/adr/003-beads-issue-tracking.md`, `docs/adr/004-3-tier-skill-distribution.md` and `docs/adr/005-openrouter-llm-provider.md`. ADRs are historical records like the CHANGELOG (research R4), so **do not rewrite the decisions** — de-link the dead paths or annotate them as removed, keeping the prose intact
-- [ ] T045 **DevOps**: Configure the T036 link-check job to skip fenced code blocks and example text, so the 7 false positives do not fail CI. Without this the job reports failures on documentation that is deliberately showing a sample link
+- [x] T044 [P] Resolve the four dangling ADR links in `docs/adr/003-beads-issue-tracking.md`, `docs/adr/004-3-tier-skill-distribution.md` and `docs/adr/005-openrouter-llm-provider.md`. ADRs are historical records like the CHANGELOG (research R4), so **do not rewrite the decisions** — de-link the dead paths or annotate them as removed, keeping the prose intact
+- [x] T045 **DevOps**: Configure the T036 link-check job to skip fenced code blocks and example text, so the 7 false positives do not fail CI. **No extra config needed**: 5 of the 7 sit inside fenced code blocks, which `lychee` does not extract (unlike the naive grep used for local verification). The remaining 2 were the ADR template's `(link)` placeholders inside an HTML comment — replaced with real URL placeholders, which `--offline` skips. `lychee` is not installed locally, so the job's behaviour is confirmed on its first CI run
 
 ---
 
@@ -269,7 +283,7 @@ Each increment is a separate PR into `epic/002-public-ready-repo`, which then ta
 | 4 | US2 — Root reorganization (P2) | T008–T022 | 15 |
 | 5 | US3 — README (P3) | T023–T027 | 5 |
 | 6 | US4 — Contributing (P4) | T028–T034 | 7 |
-| 7 | Polish | T035–T045 | 11 |
-| | **Total** | | **45** |
+| 7 | Polish | T035–T047 | 13 |
+| | **Total** | | **47** |
 
 Parallelizable tasks: 15 marked `[P]`.
