@@ -135,13 +135,19 @@ The README made three inaccurate claims, all corrected in both languages:
 
 **Independent test**: quickstart V11 passes and the new-issue chooser offers both forms with no blank option.
 
-- [ ] T028 [US4] Create `CONTRIBUTING.md` at the repository root covering the branch hierarchy (`prod` ← `dev` ← `epic/<feature-id>` ← `<feature-id>/<role>`), the pull request target for each branch type, and the conventional commit format with its allowed types and SemVer impact. Derive from the rules already in `AGENTS.md` so the two cannot drift, and link to the `standard-commits` skill rather than restating it (research R11, FR-015)
-- [ ] T029 [US4] In `CONTRIBUTING.md`, describe how an initiative is specified before implementation (`/speckit-specify` → `/speckit-plan` → `/speckit-tasks`), linking to `specs/` for worked examples rather than duplicating the workflow (FR-016)
-- [ ] T030 [P] [US4] Create `.github/ISSUE_TEMPLATE/bug_report.yml` as a GitHub issue form with required fields for `kn` version, operating system, reproduction steps, expected and actual behaviour (research R5, FR-017)
-- [ ] T031 [P] [US4] Create `.github/ISSUE_TEMPLATE/feature_request.yml` as an issue form with required fields for the problem being solved and the proposed behaviour
-- [ ] T032 [P] [US4] Create `.github/ISSUE_TEMPLATE/config.yml` with `blank_issues_enabled: false` so reporters are forced through a template (contract C5)
-- [ ] T033 [P] [US4] Create `.github/pull_request_template.md` prompting for a summary, the related initiative under `specs/`, and the verification performed (FR-018)
-- [ ] T034 [US4] Verify quickstart V11, including the manual confirmation at `https://github.com/kobogithub/knowledge/issues/new/choose` after push
+- [x] T028 [US4] Create `CONTRIBUTING.md` at the repository root covering the branch hierarchy (`prod` ← `dev` ← `epic/<feature-id>` ← `<feature-id>/<role>`), the pull request target for each branch type, and the conventional commit format with its allowed types and SemVer impact. Derive from the rules already in `AGENTS.md` so the two cannot drift, and link to the `standard-commits` skill rather than restating it (research R11, FR-015)
+- [x] T029 [US4] In `CONTRIBUTING.md`, describe how an initiative is specified before implementation (`/speckit-specify` → `/speckit-plan` → `/speckit-tasks`), linking to `specs/` for worked examples rather than duplicating the workflow (FR-016)
+- [x] T030 [P] [US4] Create `.github/ISSUE_TEMPLATE/bug_report.yml` as a GitHub issue form with required fields for `kn` version, operating system, reproduction steps, expected and actual behaviour (research R5, FR-017)
+- [x] T031 [P] [US4] Create `.github/ISSUE_TEMPLATE/feature_request.yml` as an issue form with required fields for the problem being solved and the proposed behaviour
+- [x] T032 [P] [US4] Create `.github/ISSUE_TEMPLATE/config.yml` with `blank_issues_enabled: false` so reporters are forced through a template (contract C5)
+- [x] T033 [P] [US4] Create `.github/pull_request_template.md` prompting for a summary, the related initiative under `specs/`, and the verification performed (FR-018)
+- [x] T034 [US4] Verify quickstart V11, including the manual confirmation at `https://github.com/kobogithub/knowledge/issues/new/choose` after push
+
+### Discovered during implementation (US4)
+
+- **Root layout now matches contract C1 exactly** — 7 documents, no more and no less: `AGENTS.md`, `CHANGELOG.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `LICENSE`, `README.md`, `README_ES.md`.
+- **`config.yml` gained three contact links** beyond the required `blank_issues_enabled: false` — routing questions to Discussions, and pointing at the docs index and this guide. Without them, disabling blank issues leaves someone with a question no route at all.
+- **`CONTRIBUTING.md` addresses outside contributors explicitly.** The branch table in `AGENTS.md` is written for in-repo agent roles; an external contributor needs the `task/<short-desc>` → `dev` row, so the guide calls that out rather than leaving them to infer it.
 
 **Checkpoint**: contribution intake is structured.
 

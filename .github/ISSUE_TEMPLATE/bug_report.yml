@@ -1,0 +1,91 @@
+name: Bug report
+description: Something in kn does not work the way it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The three fields below — version, platform and reproduction steps — are what make a bug actionable, so all three are required.
+
+        Found a security vulnerability? Please do not file it here. Email the maintainer directly.
+
+  - type: input
+    id: version
+    attributes:
+      label: kn version
+      description: Output of `kn --version`
+      placeholder: "kn 0.10.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Linux x86_64
+        - macOS ARM64 (Apple Silicon)
+        - macOS x86_64 (Intel)
+        - Windows
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How did you install kn?
+      options:
+        - Install script (curl … | bash)
+        - Built from source
+        - Homebrew
+        - .deb package
+        - .rpm package
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: The exact commands you ran, in order. A reader should be able to paste them and see the same result.
+      placeholder: |
+        1. cd into an empty directory
+        2. kn init -y
+        3. kn stack apply api-fastapi
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+      description: Paste the full output, including any error. Long output is fine — it is more useful than a summary.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `kn doctor`
+      description: Optional, but it rules out a whole class of environment problems.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Screenshots, related issues, or what you have already tried.
+    validations:
+      required: false
