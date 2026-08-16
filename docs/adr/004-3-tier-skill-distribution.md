@@ -91,7 +91,7 @@ This means:
 
 ```bash
 # Install kn (one-time setup)
-curl -fsSL https://kn.foxlabar.online/install | bash
+curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
 # → Populates ~/.kn/skills/ with all available skills
 
 # Initialize project
