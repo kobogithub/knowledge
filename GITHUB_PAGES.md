@@ -1,61 +1,58 @@
-# GitHub Pages Setup for kn.foxlabar.online
+# GitHub Pages Setup
 
-This directory contains GitHub Pages configuration for short URL redirects.
+This repository publishes a small GitHub Pages site that serves the install script
+over a short URL.
 
-## URLs
+## Current URLs
 
-- `https://kn.foxlabar.online/` → Project homepage (redirects to install.sh)
-- `https://kn.foxlabar.online/install` → Install script (serves install.sh directly)
+- `https://kobogithub.github.io/knowledge/` → Project homepage (redirects to `install.sh`)
+- `https://kobogithub.github.io/knowledge/install/` → Install script (serves `install.sh` directly)
 
-**Note:** The `/install` endpoint serves the actual install.sh script content directly (not an HTML redirect), 
-so it works with curl: `curl -fsSL https://kn.foxlabar.online/install | bash`
+**Note:** The `/install/` endpoint serves the actual `install.sh` script content directly
+(not an HTML redirect), so it works with curl.
 
-## DNS Configuration Required
+## Retired custom domain
 
-To make this work, you need to configure DNS records for `foxlabar.online`:
+This site was previously served at `kn.foxlabar.online`, and the READMEs recommended
+`curl -fsSL https://kn.foxlabar.online/install | bash` as the primary install command.
 
-### Option 1: CNAME Record (Recommended)
-```
-Type: CNAME
-Name: kn
-Value: kobogithub.github.io.
-```
+**That domain is gone.** The `foxlabar.online` registration lapsed and the domain is now
+available for anyone to register. Because the install command piped it straight into
+`bash`, whoever registered it next would have been able to execute arbitrary code on the
+machine of anyone following the README.
 
-### Option 2: A Records + ALIAS
-```
-Type: A
-Name: kn
-Value: 185.199.108.153
-Value: 185.199.109.153
-Value: 185.199.110.153
-Value: 185.199.111.153
-```
+The custom domain has therefore been retired rather than restored:
+
+- `CNAME` was removed, so GitHub Pages no longer claims the hostname
+- Both READMEs and ADR-004 now point at the `raw.githubusercontent.com` URL, which is
+  tied to this repository and cannot be taken over by a third party
+
+**Do not re-add a `CNAME` for `foxlabar.online` unless the domain is re-registered under
+an account you control.** Pointing Pages at a hostname you do not own is what created the
+exposure in the first place.
+
+If a short URL is wanted again in the future, prefer either the `github.io` path above or
+a domain held in the maintainer's own registrar account with auto-renew enabled.
 
 ## GitHub Pages Configuration
 
 1. Go to: https://github.com/kobogithub/knowledge/settings/pages
 2. Source: Deploy from branch `prod`
-3. Custom domain: `kn.foxlabar.online`
-4. Enforce HTTPS: ✓ (after DNS propagates)
-
-## Usage
-
-Once configured, users can install with:
-
-```bash
-curl -fsSL https://kn.foxlabar.online/install | bash
-```
+3. Custom domain: *(empty)*
+4. Enforce HTTPS: ✓ (automatic on `github.io`)
 
 ## Implementation Details
 
-The `/install` endpoint (`install/index.html`) contains a **copy of install.sh** (not an HTML redirect).
-This is because:
+The `/install/` endpoint (`install/index.html`) contains a **copy of `install.sh`** (not an
+HTML redirect). This is because:
+
 - GitHub Pages doesn't support HTTP 301 redirects
 - HTML meta redirects don't work with curl
 - Serving the script content directly ensures `curl | bash` works
 
 To update the install script:
-1. Edit `install.sh` 
+
+1. Edit `install.sh`
 2. Copy to `install/index.html`: `cp install.sh install/index.html`
 3. Commit and push both files
 
@@ -63,7 +60,7 @@ To update the install script:
 
 ```bash
 # Test the short URL (after GitHub Pages deploys)
-curl -fsSL https://kn.foxlabar.online/install | head -10
+curl -fsSL https://kobogithub.github.io/knowledge/install/ | head -10
 
 # Should show bash script, not HTML
 ```
