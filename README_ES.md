@@ -95,10 +95,7 @@ kn mcp list                         # Ver servidores configurados
 La forma más fácil de instalar `kn` es usando nuestro instalador automatizado. Descarga binarios precompilados desde GitHub releases:
 
 ```bash
-# Instalación de una línea (recomendado - URL corta)
-curl -fsSL https://kn.foxlabar.online/install | bash
-
-# O usando la URL completa de GitHub
+# Instalación de una línea (recomendado)
 curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
 
 # O descargar e inspeccionar primero
