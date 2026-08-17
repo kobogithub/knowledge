@@ -219,6 +219,6 @@ When you run `kn sync`, it expands variables from your environment and generates
 
 ## See Also
 
-- [Security Audit Report](../SECURITY_AUDIT_REPORT.md) - Security findings and remediation
+- [Security Audit Report](./security/SECURITY_AUDIT_REPORT.md) - Security findings and remediation
 - [Gemini MCP Config](./GEMINI_MCP_CONFIG.md) - MCP configuration details
 - [.env.example](../.env.example) - Template for environment variables

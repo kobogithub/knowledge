@@ -133,7 +133,7 @@ bd list --assignee knowledge-vlf -s closed
 ## References
 
 - [Beads GitHub](https://github.com/beadlist/beads) - Official repository
-- [bd-best-practices skill](../../.opencode/skills/bd-best-practices/SKILL.md) - 5-phase workflow documentation
-- [.beads/formulas/](../../.beads/formulas/) - Workflow formula templates
+- `.opencode/skills/bd-best-practices/SKILL.md` - 5-phase workflow documentation. *Removed in commit `75fff65` when Claude Code was added as a workspace standard; available in git history.*
+- `.beads/formulas/` - Workflow formula templates. *Removed in commit `8833293` by the migration to spec-kit; see [ADR-006](./006-adopt-speckit-remove-beads.md).*
 - [AGENTS.md](../../AGENTS.md) - Agent coordination via Beads
 - [Commit c0220b7](https://github.com/kobogithub/knowledge/commit/c0220b7) - 5-phase workflow implementation with Beads
