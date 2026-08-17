@@ -24,92 +24,6 @@ Every time you start a new project with AI agents, you need to:
 
 ---
 
-## ✨ Features
-
-### 🚀 Instant Project Initialization
-```bash
-cd my-project/
-kn init
-# → Auto-detects project type
-# → Creates AGENTS.md with workflow instructions
-# → Generates kn.toml configuration
-# → Prompts for workspace standard (OpenCode/Antigravity/Both)
-# → Auto-installs recommended skills
-```
-
-**Workspace Standards Supported:**
-- ✅ **OpenCode** (`.opencode/skills/<name>/SKILL.md`)
-- ✅ **Antigravity** (`.agent/skills/<name>/SKILL.md` symlinked to `.opencode/skills/`)
-- ✅ **Both** (default, recommended for maximum compatibility)
-
-**Skills Location:**
-- Single source: `.opencode/skills/<skill-name>/SKILL.md`
-- Antigravity access: `.agent/skills/<skill-name>` → symlink to `.opencode/skills/`
-
-**Interactive Mode:**
-```bash
-kn init              # Prompts to choose workspace standard
-```
-
-**Non-Interactive Mode:**
-```bash
-kn init -y                                  # Uses default (both)
-kn init -y --workspace-standard opencode    # OpenCode only
-kn init -y --workspace-standard antigravity # Antigravity only
-kn init -y --workspace-standard both        # Both (explicit)
-```
-
-### 📚 Skills Management
-```bash
-kn skills install typescript        # From agentskills.io
-kn skills install https://...       # From URL
-kn skills install ./SKILL.md        # From local path
-kn skills list                      # View installed skills
-```
-
-The catalog is curated to a personal stack: Astro, FastAPI, HTMX, Go, Rust, Python,
-Supabase (Postgres), Docker, GitHub Actions, Bash, plus security and UI/UX testing skills.
-
-### 🧱 Stack Presets
-
-A **stack-preset** is a named bundle of skills you activate together, so a new project
-starts with the right knowledge in one step.
-
-```bash
-kn stack list                       # List available presets and their skills
-kn stack show web-astro             # Inspect one preset
-kn init --stack web-astro           # Initialize a project from a preset
-```
-
-Shipped presets:
-
-| Preset | Skills |
-|--------|--------|
-| `web-astro` | astro, htmx, supabase-postgres, railway, github-actions, docker |
-| `api-fastapi` | fastapi, python, supabase-postgres, railway, docker, github-actions |
-| `cli-rust` | rust, docker, github-actions, bash |
-| `cli-go` | go, docker, github-actions, bash |
-| `data-py` | python, supabase-postgres, docker |
-
-Presets live in `~/.kn/stacks/<name>.toml` and are user-editable — drop in your own file
-to define a new preset, no code change required.
-
-### 📋 Beads Templates
-```bash
-kn beads template epic -o epic.md   # Generate structured issue templates
-kn beads template task              # Print to stdout for piping
-kn beads template bug --force       # Overwrite existing files
-```
-
-### 🔌 MCP Server Management
-```bash
-kn mcp add filesystem               # Add preset MCP servers
-kn mcp add postgres -e POSTGRES_URL=... # With environment variables
-kn mcp list                         # View configured servers
-```
-
----
-
 ## 🚀 Quick Start
 
 ### Installation
@@ -119,10 +33,7 @@ kn mcp list                         # View configured servers
 The easiest way to install `kn` is using our automated installer. It downloads pre-compiled binaries from GitHub releases:
 
 ```bash
-# One-line install (recommended - short URL)
-curl -fsSL https://kn.foxlabar.online/install | bash
-
-# Or using full GitHub URL
+# One-line install (recommended)
 curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
 
 # Or download and inspect first
@@ -164,8 +75,8 @@ kn update                        # Update to latest version
 The installation script automatically populates `~/.kn/` with all available resources:
 
 **What's automatically installed:**
-- All agents in `~/.kn/agents/` (planner, frontend, backend, devops, qa, rust, security, uiux-tester, finanzas)
-- All skills in `~/.kn/skills/` (11 best-practice skills)
+- All agents in `~/.kn/agents/` (planner, frontend, backend, devops, qa, rust, security, uiux-tester, docs-writer, biz, finanzas)
+- All skills in `~/.kn/skills/` (21 best-practice skills)
 - MCP directory `~/.kn/mcps/` (MCPs installed on-demand)
 
 **No additional setup required!** After installation, you can immediately run `kn init` in any project to select which resources to use.
@@ -230,9 +141,9 @@ For now, please use the automated installer above.
 #### 📚 Platform-Specific Guides
 
 For detailed platform-specific installation instructions, see:
-- **[HOMEBREW.md](./HOMEBREW.md)** - Homebrew formula and tap setup
-- **[DEBIAN.md](./DEBIAN.md)** - Building and publishing Debian packages
-- **[RPM.md](./RPM.md)** - Building and publishing RPM packages for Fedora/RHEL
+- **[HOMEBREW.md](./docs/packaging/HOMEBREW.md)** - Homebrew formula and tap setup
+- **[DEBIAN.md](./docs/packaging/DEBIAN.md)** - Building and publishing Debian packages
+- **[RPM.md](./docs/packaging/RPM.md)** - Building and publishing RPM packages for Fedora/RHEL
 
 ### Verify Installation
 
@@ -375,6 +286,102 @@ kn beads template chore -o .beads/templates/chore.md
 
 ---
 
+## ✨ Features
+
+### 🚀 Instant Project Initialization
+```bash
+cd my-project/
+kn init
+# → Auto-detects project type
+# → Creates AGENTS.md with workflow instructions
+# → Generates kn.toml configuration
+# → Prompts for workspace standard (OpenCode/Antigravity/Both)
+# → Auto-installs recommended skills
+```
+
+**Workspace Standards Supported:**
+- ✅ **OpenCode** (`.opencode/skills/<name>/SKILL.md`)
+- ✅ **Antigravity** (`.agent/skills/<name>/SKILL.md` symlinked to `.opencode/skills/`)
+- ✅ **Both** (default, recommended for maximum compatibility)
+
+**Skills Location:**
+- Single source: `.opencode/skills/<skill-name>/SKILL.md`
+- Antigravity access: `.agent/skills/<skill-name>` → symlink to `.opencode/skills/`
+
+**Interactive Mode:**
+```bash
+kn init              # Prompts to choose workspace standard
+```
+
+**Non-Interactive Mode:**
+```bash
+kn init -y                                  # Uses default (both)
+kn init -y --workspace-standard opencode    # OpenCode only
+kn init -y --workspace-standard antigravity # Antigravity only
+kn init -y --workspace-standard both        # Both (explicit)
+```
+
+### 📚 Skills Management
+```bash
+kn skills install typescript        # From agentskills.io
+kn skills install https://...       # From URL
+kn skills install ./SKILL.md        # From local path
+kn skills list                      # View installed skills
+```
+
+The catalog is curated to a personal stack: Astro, FastAPI, HTMX, Go, Rust, Python,
+Supabase (Postgres), Docker, GitHub Actions, Bash, plus security and UI/UX testing skills.
+
+### 🧱 Stack Presets
+
+A **stack-preset** is a named bundle of skills you activate together, so a new project
+starts with the right knowledge in one step.
+
+```bash
+kn stack list                       # List available presets and their skills
+kn stack show web-astro             # Inspect one preset
+kn init --stack web-astro           # Initialize a project from a preset
+```
+
+Shipped presets:
+
+| Preset | Skills |
+|--------|--------|
+| `web-astro` | astro, htmx, supabase-postgres, railway, github-actions, docker |
+| `api-fastapi` | fastapi, python, supabase-postgres, railway, docker, github-actions |
+| `cli-rust` | rust, docker, github-actions, bash |
+| `cli-go` | go, docker, github-actions, bash |
+| `data-py` | python, supabase-postgres, docker |
+
+Presets live in `~/.kn/stacks/<name>.toml` and are user-editable — drop in your own file
+to define a new preset, no code change required.
+
+### 🤖 Agent Management
+```bash
+kn agents list                      # List agents installed in ~/.kn/agents/
+kn agents install rust              # Install an agent by name
+kn agents install ./agents/rust     # Or from a local path
+kn agents install rust --force      # Reinstall over an existing agent
+```
+
+### 📋 Beads Templates
+```bash
+kn beads template epic -o epic.md   # Generate structured issue templates
+kn beads template task              # Print to stdout for piping
+kn beads template bug --force       # Overwrite existing files
+```
+
+> **Status**: this project's own workflow uses spec-kit, not Beads — see [ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md). The `kn beads` commands still ship and are supported for projects that use Beads independently.
+
+### 🔌 MCP Server Management
+```bash
+kn mcp add filesystem               # Add preset MCP servers
+kn mcp add postgres -e POSTGRES_URL=... # With environment variables
+kn mcp list                         # View configured servers
+```
+
+---
+
 ## 🏗️ Project Structure
 
 ```
@@ -403,7 +410,7 @@ knowledge/
 │   ├── security/AGENTS.md    # Security — AppSec, SAST, vulnerability scanning
 │   ├── uiux-tester/AGENTS.md # UI/UX Tester — visual fidelity, accessibility
 │   └── finanzas/AGENTS.md    # Finanzas — cost tracking, budget controls
-├── .opencode/skills/         # Installed AI agent skills (11 skills)
+├── .opencode/skills/         # Installed AI agent skills (21 skills)
 │   ├── bash-best-practices/
 │   ├── bd-best-practices/    # 5-phase workflow manual
 │   ├── docker-best-practices/
@@ -481,7 +488,7 @@ Each initiative lives in its own `specs/NNN-feature-name/` folder (`spec.md`, `p
 - [Agent Instructions](./AGENTS.md) - Multi-agent workflow guide
 - [Getting Started](./docs/GETTING_STARTED.md) - Step-by-step tutorial
 - [Architecture](./docs/ARCHITECTURE.md) - System design and decisions
-- [Development Guide](./docs/DEVELOPMENT.md) - Contributing guidelines
+- [Documentation Index](./docs/README.md) - Every guide, grouped by topic
 
 ---
 
@@ -563,7 +570,7 @@ kn mcp add rust-docs mdn-web-docs
 
 ## 🤝 Contributing
 
-We welcome contributions! See [DEVELOPMENT.md](./docs/DEVELOPMENT.md) for guidelines.
+We welcome contributions! See [AGENTS.md](./AGENTS.md) for the workflow and branching rules.
 
 ### Development Setup
 
@@ -609,7 +616,7 @@ and open a PR against it before implementing.
 
 **Workflow**: spec-kit spec-driven cycle, fully documented in `AGENTS.md` (see [ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md))
 
-**Skills**: 11 best-practice skills installed
+**Skills**: 21 best-practice skills installed
 
 ---
 

@@ -65,6 +65,6 @@ What other options were evaluated? Why were they rejected?
 
 <!--
 - specs/NNN-feature-name/spec.md - Original spec/plan where the decision surfaced
-- [PR #N](link) - Implementation pull request
-- [External doc](link) - Relevant external documentation
+- [PR #N](https://github.com/kobogithub/knowledge/pull/N) - Implementation pull request
+- [External doc](https://example.com/) - Relevant external documentation
 -->

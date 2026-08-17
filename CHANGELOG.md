@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **MIT `LICENSE`** at the repository root. The repository was public but carried no
+  licence, so GitHub reported none and nobody could legally use or fork it. Both READMEs
+  already linked to `LICENSE`; that link was dangling until now.
+- **`CONTRIBUTING.md`** — branch hierarchy and pull request target per branch type,
+  conventional commit format with SemVer impact, and how initiatives are specified
+  before implementation. Derived from the rules already in `AGENTS.md`.
+- **Structured GitHub issue forms** (`.github/ISSUE_TEMPLATE/`) for bug reports and
+  feature requests, with required fields and blank issues disabled, plus a pull request
+  template asking for the change, the related initiative, and how it was verified.
+- **`docs/README.md`** — an index of every document under `docs/`, grouped by topic.
+- **Documentation link checking in CI** — a `lychee` job validates internal Markdown
+  links on every push. External URLs are deliberately not checked so a third-party
+  outage cannot fail the build.
+- **`kn agents` is now documented** in both READMEs. The command shipped but appeared in
+  neither.
+
+### Changed
+
+- **Maintainer process documents moved out of the repository root**, cutting root
+  Markdown from 12 files to 5:
+  - `HOMEBREW.md`, `DEBIAN.md`, `RPM.md` → `docs/packaging/`
+  - `RELEASE.md`, `GITHUB_PAGES.md` → `docs/release/`
+  - `SECURITY_AUDIT_REPORT.md` → `docs/security/`
+
+  Inside the built `.deb` and `.rpm`, these now install under
+  `/usr/share/doc/kn/docs/packaging/` rather than `/usr/share/doc/kn/`.
+- **Both READMEs now lead with installation**, ahead of the feature catalog, so a new
+  reader reaches the install command on the first screen. Section structure is identical
+  in English and Spanish.
+- **Corrected inaccurate README claims**: the skill count read 11 in three places when
+  the catalog holds 21, and the agent roster listed 9 of 11 (`docs-writer` and `biz`
+  were missing).
+- **Beads sections now state their status** — this project's workflow uses spec-kit per
+  [ADR-006](docs/adr/006-adopt-speckit-remove-beads.md), while `kn beads` remains
+  available for projects using Beads independently.
+
+### Fixed
+
+- **Five broken documentation links**: `LICENSE` from both READMEs, and three references
+  to a `DEVELOPMENT.md` that was never created.
+- **Dangling references in ADR-003, ADR-004 and ADR-005** — `cli/src/kn_home.rs` moved to
+  `cli/src/core/kn_home.rs`; paths under `.beads/` and `.opencode/` were removed by
+  earlier work and are now annotated as such rather than linked.
+- **Removed a maintainer-specific absolute path** from
+  `specs/001-personal-stacks/quickstart.md`.
+
+### Internal
+
+- `kn.spec` and `debian/rules` copied `HOMEBREW.md` and `DEBIAN.md` by name from the
+  repository root, so the relocation above would have broken both package builds. Those
+  lines are removed rather than repointed — each recipe already copies `docs/`
+  recursively, and repointing would have shipped every affected document twice.
+
 ## [0.10.0] - 2026-08-01
 
 ### Added

@@ -139,7 +139,7 @@ OpenRouter's Activity API groups costs by `user`, enabling per-agent spend repor
 
 - [AGENT_MODEL_STRATEGY.md](../AGENT_MODEL_STRATEGY.md) - Detailed model selection rationale
 - [kn.toml](../../kn.toml) - Agent model configuration
-- [.opencode/opencode.json](../../.opencode/opencode.json) - OpenCode integration
+- `.opencode/opencode.json` - OpenCode integration. *Removed in commit `75fff65` when Claude Code was added as a workspace standard; available in git history.*
 - [Commit a827218](https://github.com/kobogithub/knowledge/commit/a827218) - Migration to OpenRouter
 - [Commit 76b6f69](https://github.com/kobogithub/knowledge/commit/76b6f69) - Differentiated model strategy
 - [OpenRouter Activity API](https://openrouter.ai/docs#activity) - Cost tracking documentation
