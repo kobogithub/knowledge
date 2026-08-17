@@ -2,7 +2,7 @@
 name: biz
 id_prefix: biz
 description: Stakeholder reporting agent that translates technical progress into business-friendly dashboards via Notion (with Markdown fallback)
-model: anthropic/claude-haiku-4.5
+model: haiku
 reasoning: Cost-effective for data synthesis, report generation, and API calls - does not require deep reasoning
 required_skills:
   - notion-reporting-standard
