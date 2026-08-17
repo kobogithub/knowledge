@@ -51,6 +51,7 @@ end
 | **C1.5** | `resource "assets"` present and installed | FR-007 | `kn` installs with no skills or agents and is not functional |
 | **C1.6** | `version`, both `url`s and both `sha256`s are the *only* per-release variables | FR-012 | Hand-authored values reappear and drift returns |
 | **C1.7** | The published copy is byte-identical to the rendered authored copy | I2 | The two sources disagree, which is the current bug |
+| **C1.8** | A `caveats` block detects a `kn` on the path outside the Homebrew prefix and reports both paths, which one wins, and how to remove the other | FR-020, SC-009 | Two copies shadow each other silently and the user debugs a stale version |
 
 ## Verification
 
@@ -58,3 +59,4 @@ end
 - `brew audit --strict kn` — C1.3, C1.4
 - Quickstart V2, V3 — C1.5, C1.7
 - Quickstart V4 — C1.2 refusal behaviour, where an Intel Mac is available
+- Quickstart V11 — C1.8, with the conflict staged deliberately

@@ -62,6 +62,7 @@ download is worse than a stale one (spec edge case 2).
 | `resource "assets"` | block | URL + checksum of the release's `source_archive` |
 | `depends_on :macos` | guard | Refuses non-macOS |
 | `depends_on arch: :arm64` | guard | Refuses Intel Macs before downloading (research R4) |
+| `caveats` | block | Surfaces a `kn` on the path outside the Homebrew prefix (FR-020, C1.8) |
 
 **Validation rules**
 
@@ -108,6 +109,7 @@ quickstart scenario.
 | **I4** | Installed `kn --version` == `published_formula.version` | SC-001 | Holds |
 | **I5** | A release has exactly one binary artifact | FR-002, SC-004 | ❌ Three today |
 | **I6** | No repository file claims a platform outside Apple Silicon macOS | FR-014-017, SC-006 | ❌ Multiple claims |
+| **I7** | A `kn` on the path outside the Homebrew prefix is surfaced, never silently shadowed | FR-020, SC-009 | Not addressed |
 
 **I1 is the headline defect.** I2 is its mechanism. The scheduled drift check (research R6)
 exists to make I1 continuously observable rather than discovered by accident, as it was

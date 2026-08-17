@@ -158,6 +158,28 @@ translated terminal.
 
 ---
 
+## V11 — A pre-existing non-Homebrew install is surfaced (C1.8, FR-020, SC-009)
+
+Stage the conflict deliberately, since the maintainer's machine does not currently have
+one (its only `kn` is the Homebrew copy):
+
+```bash
+mkdir -p ~/.local/bin
+cp "$(brew --prefix)/bin/kn" ~/.local/bin/kn     # stage a second copy
+brew reinstall kobogithub/knowledge/kn           # observe the caveats output
+which -a kn                                      # expect two paths
+```
+
+**Expected**: the install output names both copies, states which one the shell will run
+given the current PATH order, and says how to remove the other.
+
+**Fails if** the install completes silently and the user is left to discover the conflict
+by noticing a stale `kn --version` — the exact failure this requirement exists to prevent.
+
+**Cleanup**: `rm ~/.local/bin/kn`
+
+---
+
 ## Coverage
 
 | Scenario | Covers |
@@ -172,6 +194,7 @@ translated terminal.
 | V8 | C2.9-C2.11, FR-013, SC-008 |
 | V9 | C3.1, C3.2, FR-003, SC-005 |
 | V10 | C3.3, FR-004 |
+| V11 | C1.8, FR-020, SC-009 |
 
 **Not covered by any scenario, and deliberately so**: SC-006 and SC-007 (no surviving
 claim of unsupported platforms, no surviving retired packaging) are verified by repository

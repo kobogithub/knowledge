@@ -16,6 +16,10 @@ The maintainer sits down at the Mac Mini M4, runs a single Homebrew command, and
 the version of `kn` that the project most recently released. No manual download, no
 version drift, no wondering whether what landed is what was published.
 
+**This is observable right now, not hypothetical.** On the maintainer's machine today,
+`kn --version` reports `0.9.0`, served from `Cellar/kn/0.9.0` — installed through Homebrew
+from the stale tap, two releases behind what the project has published.
+
 **Why this priority**: This is the entire point of the feature, and it is broken today.
 The published tap serves 0.9.0 while the project has released 0.10.0, so the advertised
 install command hands users a version that is two releases behind. Everything else in
@@ -152,7 +156,7 @@ should remain, and no surviving file should reference them.
   fail loudly at verification rather than installing an unverified binary.
 - **A user already has `kn` installed from the old install script**, outside Homebrew.
   Installing via Homebrew must not silently leave two copies shadowing each other on the
-  path without the conflict being detectable.
+  path without the conflict being detectable. Covered by FR-020 and SC-009.
 - **Someone re-runs a release for a version that already exists.** The formula update
   must not corrupt the published formula into an inconsistent state.
 - **A user is on Apple Silicon but running under x86 translation.** Detection must resolve
@@ -184,6 +188,10 @@ should remain, and no surviving file should reference them.
 - **FR-008**: The published formula MUST record a verifiable checksum for every artifact
   it downloads, and installation MUST fail if a downloaded artifact does not match.
 - **FR-009**: The published formula MUST declare the project's license.
+- **FR-020**: When `kn` is installed through Homebrew on a machine that already carries an
+  installation placed by the standalone install script, the conflict MUST be surfaced to
+  the user rather than left as two copies silently shadowing each other on the path. The
+  user MUST be told which copy will win and how to remove the other.
 
 **Keeping the published formula current**
 
@@ -246,6 +254,10 @@ should remain, and no surviving file should reference them.
   install script returns zero results, and no surviving file links to them.
 - **SC-008**: The published formula and the newest published release report the same
   version at any point after a release completes.
+- **SC-009**: On a machine that already has a `kn` installed outside Homebrew, installing
+  through Homebrew tells the user that both exist, which one the shell will run, and how
+  to remove the other. The user never has to discover the conflict by observing a stale
+  version.
 
 ## Assumptions
 
