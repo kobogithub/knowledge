@@ -42,9 +42,6 @@ chmod +x install.sh
 ./install.sh
 ```
 
-> **Note**: the short URL `kn.foxlabar.online/install` is temporarily unavailable — the
-> custom domain does not currently resolve. Use the GitHub URL above.
-
 **Smart Features:**
 - ✅ **Version Check**: Skips reinstallation if you already have the target version
 - ✅ **Auto PATH Setup**: Automatically adds `~/.local/bin` to your shell config (bash, zsh, fish)
