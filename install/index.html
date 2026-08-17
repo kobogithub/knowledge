@@ -2,7 +2,9 @@
 #
 # install.sh - Automated installation script for kn CLI
 #
-# This script installs kn and all its dependencies on Linux and macOS.
+# This script installs kn and all its dependencies.
+#
+# kn supports Apple Silicon macOS only; the script refuses anything else.
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
@@ -116,57 +118,45 @@ EOF
 
 # Detect OS and package manager
 detect_os() {
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        OS="linux"
-        ARCH=$(uname -m)
-        if [[ "$ARCH" != "x86_64" ]]; then
-            error "Unsupported architecture: $ARCH"
-            error "Only x86_64 is supported on Linux"
-            exit 1
-        fi
-        
-        if command -v apt-get &> /dev/null; then
-            PKG_MANAGER="apt"
-        elif command -v dnf &> /dev/null; then
-            PKG_MANAGER="dnf"
-        elif command -v yum &> /dev/null; then
-            PKG_MANAGER="yum"
-        elif command -v pacman &> /dev/null; then
-            PKG_MANAGER="pacman"
-        else
-            PKG_MANAGER="unknown"
-        fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-        OS="macos"
-        ARCH=$(uname -m)
-        
-        # Detect Rosetta: x86_64 process running on ARM Mac
-        if [[ "$ARCH" == "x86_64" ]]; then
-            local rosetta_flag
-            rosetta_flag=$(sysctl -n sysctl.proc_translated 2>/dev/null || echo 0)
-            if [[ "$rosetta_flag" == "1" ]]; then
-                info "Detected Rosetta translation (x86_64 on ARM)"
-                ARCH="arm64"
-                info "Using ARM64 binary for better performance"
-            fi
-        fi
-        
-        if [[ "$ARCH" != "x86_64" && "$ARCH" != "arm64" ]]; then
-            error "Unsupported architecture: $ARCH"
-            exit 1
-        fi
-        
-        if command -v brew &> /dev/null; then
-            PKG_MANAGER="brew"
-        else
-            PKG_MANAGER="unknown"
-        fi
-    else
+    # kn supports Apple Silicon macOS only. Everything else is refused here, before
+    # any network request, so an unsupported machine gets a clear message rather
+    # than a 404 on an artifact that is not built.
+    if [[ "$OSTYPE" != "darwin"* ]]; then
         error "Unsupported OS: $OSTYPE"
-        error "This script only supports Linux and macOS"
+        error "kn supports macOS on Apple Silicon only."
+        error "See https://github.com/kobogithub/knowledge for what is supported."
         exit 1
     fi
-    
+
+    OS="macos"
+    ARCH=$(uname -m)
+
+    # Rosetta probe — DO NOT DELETE. Under a translated shell (arch -x86_64) a
+    # native Apple Silicon Mac reports x86_64. Without this the installer would
+    # refuse the very machines it targets. The genuine-Intel case falls through to
+    # the refusal below; this only rescues translated Apple Silicon.
+    if [[ "$ARCH" == "x86_64" ]]; then
+        local rosetta_flag
+        rosetta_flag=$(sysctl -n sysctl.proc_translated 2>/dev/null || echo 0)
+        if [[ "$rosetta_flag" == "1" ]]; then
+            info "Detected Rosetta translation (x86_64 on ARM)"
+            ARCH="arm64"
+            info "Using ARM64 binary for better performance"
+        fi
+    fi
+
+    if [[ "$ARCH" != "arm64" ]]; then
+        error "Unsupported architecture: $ARCH"
+        error "kn supports Apple Silicon (arm64) only. Intel Macs are not supported."
+        exit 1
+    fi
+
+    if command -v brew &> /dev/null; then
+        PKG_MANAGER="brew"
+    else
+        PKG_MANAGER="unknown"
+    fi
+
     info "Detected OS: $OS ($ARCH, package manager: $PKG_MANAGER)"
 }
 
@@ -266,7 +256,8 @@ unbuffered_sed() {
         sed -nl "$@"
     else
         # Fallback: add padding to force line buffering
-        local pad="$(printf "\n%512s" "")"
+        local pad
+        pad="$(printf "\n%512s" "")"
         sed -ne "s/$/\\${pad}/" "$@"
     fi
 }
@@ -283,9 +274,11 @@ print_progress() {
     local on=$(( percent * width / 100 ))
     local off=$(( width - on ))
 
-    local filled=$(printf "%*s" "$on" "")
+    local filled
+    filled=$(printf "%*s" "$on" "")
     filled=${filled// /■}
-    local empty=$(printf "%*s" "$off" "")
+    local empty
+    empty=$(printf "%*s" "$off" "")
     empty=${empty// /･}
 
     printf "\r${ORANGE}%s%s %3d%%${NC}" "$filled" "$empty" "$percent" >&4
@@ -316,6 +309,7 @@ download_with_progress() {
     printf "\033[?25l" >&4
 
     # Ensure cleanup on exit
+    # shellcheck disable=SC2064
     trap "trap - RETURN; rm -f \"$tracefile\"; printf '\033[?25h' >&4; exec 4>&-" RETURN
 
     # Start download in background
@@ -375,20 +369,9 @@ download_kn() {
     
     info "Version to install: $version"
     
-    # Determine asset name based on OS and architecture
-    local asset_name
-    if [[ "$OS" == "linux" ]]; then
-        asset_name="kn-linux-x86_64.tar.gz"
-    elif [[ "$OS" == "macos" ]]; then
-        if [[ "$ARCH" == "arm64" ]]; then
-            asset_name="kn-macos-arm64.tar.gz"
-        else
-            asset_name="kn-macos-x86_64.tar.gz"
-        fi
-    else
-        error "Unsupported OS for binary download: $OS"
-        return 1
-    fi
+    # Only one artifact is built. detect_os() has already refused anything that is
+    # not Apple Silicon macOS, so there is nothing left to select between.
+    local asset_name="kn-macos-arm64.tar.gz"
     
     local download_url="https://github.com/${GITHUB_REPO}/releases/download/${version}/${asset_name}"
     
@@ -657,10 +640,11 @@ setup_kn_resources() {
     header "Setting up kn resources"
     
     local kn_home="$HOME/.kn"
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
     info "Creating ~/.kn directory structure..."
-    mkdir -p "$kn_home"/{agents,skills,mcps}
+    mkdir -p "$kn_home"/{agents,skills,mcps,formulas,stacks}
     
     # Copy agents
     if [[ -d "$script_dir/agents" ]]; then
@@ -669,7 +653,8 @@ setup_kn_resources() {
         # Copy each agent directory
         for agent_dir in "$script_dir/agents"/*; do
             if [[ -d "$agent_dir" ]]; then
-                local agent_name=$(basename "$agent_dir")
+                local agent_name
+                agent_name=$(basename "$agent_dir")
                 local dest="$kn_home/agents/$agent_name"
                 
                 # Create or update agent directory
@@ -693,7 +678,8 @@ setup_kn_resources() {
         # Copy each skill directory
         for skill_dir in "$script_dir/skills"/*; do
             if [[ -d "$skill_dir" ]]; then
-                local skill_name=$(basename "$skill_dir")
+                local skill_name
+                skill_name=$(basename "$skill_dir")
                 local dest="$kn_home/skills/$skill_name"
                 
                 # Create or update skill directory
@@ -710,16 +696,50 @@ setup_kn_resources() {
         warn "Skills will need to be installed manually"
     fi
     
+    # Copy formulas
+    if [[ -d "$script_dir/.beads/formulas" ]]; then
+        info "Installing formulas to ~/.kn/formulas/..."
+        
+        for formula_file in "$script_dir/.beads/formulas"/*.formula.json; do
+            if [[ -f "$formula_file" ]]; then
+                local formula_name
+                formula_name=$(basename "$formula_file")
+                cp "$formula_file" "$kn_home/formulas/$formula_name"
+                success "Installed formula: $formula_name"
+            fi
+        done
+    else
+        warn "formulas/ directory not found - skipping formula installation"
+    fi
+    
+    # Copy stack-presets
+    if [[ -d "$script_dir/stacks" ]]; then
+        info "Installing stack-presets to ~/.kn/stacks/..."
+
+        for stack_file in "$script_dir/stacks"/*.toml; do
+            if [[ -f "$stack_file" ]]; then
+                local stack_name
+                stack_name=$(basename "$stack_file")
+                cp "$stack_file" "$kn_home/stacks/$stack_name"
+                success "Installed stack-preset: ${stack_name%.toml}"
+            fi
+        done
+    else
+        warn "stacks/ directory not found - skipping stack-preset installation"
+    fi
+
     # Create MCPs directory (actual MCPs installed on-demand)
     mkdir -p "$kn_home/mcps"
     info "Created ~/.kn/mcps/ (MCP servers will be installed on-demand)"
-    
+
     success "Resource setup complete"
     echo ""
     info "Resources installed to ~/.kn/:"
-    echo "  - Agents: ~/.kn/agents/"
-    echo "  - Skills: ~/.kn/skills/"
-    echo "  - MCPs:   ~/.kn/mcps/ (installed on-demand)"
+    echo "  - Agents:    ~/.kn/agents/"
+    echo "  - Skills:    ~/.kn/skills/"
+    echo "  - Stacks:    ~/.kn/stacks/"
+    echo "  - Formulas:  ~/.kn/formulas/"
+    echo "  - MCPs:      ~/.kn/mcps/ (installed on-demand)"
     echo ""
     
     return 0

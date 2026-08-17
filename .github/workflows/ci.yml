@@ -97,6 +97,22 @@ jobs:
       
       - name: Lint install.sh
         run: shellcheck install.sh
+
+      # install/index.html is a byte-for-byte copy of install.sh, served at
+      # /install by GitHub Pages so the short URL works with curl. Keeping two
+      # copies in sync by hand is the same failure mode that left the Homebrew tap
+      # two releases behind — it drifted 202 lines before anyone noticed. Assert it
+      # instead of trusting it.
+      - name: install/index.html matches install.sh
+        run: |
+          if ! diff -q install.sh install/index.html >/dev/null; then
+            echo "::error::install/index.html has drifted from install.sh."
+            echo "The short URL would serve a stale script. Fix with:"
+            echo "  cp install.sh install/index.html"
+            diff install.sh install/index.html | head -40
+            exit 1
+          fi
+          echo "in sync"
       
       - name: Test install.sh --help
         run: bash install.sh --help

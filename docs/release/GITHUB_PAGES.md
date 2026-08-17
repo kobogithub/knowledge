@@ -65,8 +65,8 @@ registration lapsed unnoticed while the public README still recommended it.
 
 1. Go to: https://github.com/kobogithub/knowledge/settings/pages
 2. Source: Deploy from branch `prod`
-3. Custom domain: *(empty until the `kn.kobouharriet.me` steps above are done)*
-4. Enforce HTTPS: ✓ (automatic on `github.io`)
+3. Custom domain: `kn.kobouharriet.me`
+4. Enforce HTTPS: ✓ (once the certificate is issued)
 
 ## Implementation Details
 
@@ -82,6 +82,12 @@ To update the install script:
 1. Edit `install.sh`
 2. Copy to `install/index.html`: `cp install.sh install/index.html`
 3. Commit and push both files
+
+**CI enforces this.** The `lint-scripts` job fails if the two files differ. They had
+already drifted by 202 lines — `install/index.html` still carried the pre-004 platform
+detection, so the short URL would have served a script that still tried to install on
+Linux. Two hand-synced copies is the same failure mode that left the Homebrew tap two
+releases behind; both are now asserted rather than trusted.
 
 ## Testing
 
