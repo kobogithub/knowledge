@@ -2,7 +2,9 @@
 #
 # install.sh - Automated installation script for kn CLI
 #
-# This script installs kn and all its dependencies on Linux and macOS.
+# This script installs kn and all its dependencies.
+#
+# kn supports Apple Silicon macOS only; the script refuses anything else.
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
@@ -116,57 +118,45 @@ EOF
 
 # Detect OS and package manager
 detect_os() {
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        OS="linux"
-        ARCH=$(uname -m)
-        if [[ "$ARCH" != "x86_64" ]]; then
-            error "Unsupported architecture: $ARCH"
-            error "Only x86_64 is supported on Linux"
-            exit 1
-        fi
-        
-        if command -v apt-get &> /dev/null; then
-            PKG_MANAGER="apt"
-        elif command -v dnf &> /dev/null; then
-            PKG_MANAGER="dnf"
-        elif command -v yum &> /dev/null; then
-            PKG_MANAGER="yum"
-        elif command -v pacman &> /dev/null; then
-            PKG_MANAGER="pacman"
-        else
-            PKG_MANAGER="unknown"
-        fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-        OS="macos"
-        ARCH=$(uname -m)
-        
-        # Detect Rosetta: x86_64 process running on ARM Mac
-        if [[ "$ARCH" == "x86_64" ]]; then
-            local rosetta_flag
-            rosetta_flag=$(sysctl -n sysctl.proc_translated 2>/dev/null || echo 0)
-            if [[ "$rosetta_flag" == "1" ]]; then
-                info "Detected Rosetta translation (x86_64 on ARM)"
-                ARCH="arm64"
-                info "Using ARM64 binary for better performance"
-            fi
-        fi
-        
-        if [[ "$ARCH" != "x86_64" && "$ARCH" != "arm64" ]]; then
-            error "Unsupported architecture: $ARCH"
-            exit 1
-        fi
-        
-        if command -v brew &> /dev/null; then
-            PKG_MANAGER="brew"
-        else
-            PKG_MANAGER="unknown"
-        fi
-    else
+    # kn supports Apple Silicon macOS only. Everything else is refused here, before
+    # any network request, so an unsupported machine gets a clear message rather
+    # than a 404 on an artifact that is not built.
+    if [[ "$OSTYPE" != "darwin"* ]]; then
         error "Unsupported OS: $OSTYPE"
-        error "This script only supports Linux and macOS"
+        error "kn supports macOS on Apple Silicon only."
+        error "See https://github.com/kobogithub/knowledge for what is supported."
         exit 1
     fi
-    
+
+    OS="macos"
+    ARCH=$(uname -m)
+
+    # Rosetta probe — DO NOT DELETE. Under a translated shell (arch -x86_64) a
+    # native Apple Silicon Mac reports x86_64. Without this the installer would
+    # refuse the very machines it targets. The genuine-Intel case falls through to
+    # the refusal below; this only rescues translated Apple Silicon.
+    if [[ "$ARCH" == "x86_64" ]]; then
+        local rosetta_flag
+        rosetta_flag=$(sysctl -n sysctl.proc_translated 2>/dev/null || echo 0)
+        if [[ "$rosetta_flag" == "1" ]]; then
+            info "Detected Rosetta translation (x86_64 on ARM)"
+            ARCH="arm64"
+            info "Using ARM64 binary for better performance"
+        fi
+    fi
+
+    if [[ "$ARCH" != "arm64" ]]; then
+        error "Unsupported architecture: $ARCH"
+        error "kn supports Apple Silicon (arm64) only. Intel Macs are not supported."
+        exit 1
+    fi
+
+    if command -v brew &> /dev/null; then
+        PKG_MANAGER="brew"
+    else
+        PKG_MANAGER="unknown"
+    fi
+
     info "Detected OS: $OS ($ARCH, package manager: $PKG_MANAGER)"
 }
 
@@ -379,20 +369,9 @@ download_kn() {
     
     info "Version to install: $version"
     
-    # Determine asset name based on OS and architecture
-    local asset_name
-    if [[ "$OS" == "linux" ]]; then
-        asset_name="kn-linux-x86_64.tar.gz"
-    elif [[ "$OS" == "macos" ]]; then
-        if [[ "$ARCH" == "arm64" ]]; then
-            asset_name="kn-macos-arm64.tar.gz"
-        else
-            asset_name="kn-macos-x86_64.tar.gz"
-        fi
-    else
-        error "Unsupported OS for binary download: $OS"
-        return 1
-    fi
+    # Only one artifact is built. detect_os() has already refused anything that is
+    # not Apple Silicon macOS, so there is nothing left to select between.
+    local asset_name="kn-macos-arm64.tar.gz"
     
     local download_url="https://github.com/${GITHUB_REPO}/releases/download/${version}/${asset_name}"
     

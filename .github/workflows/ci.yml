@@ -16,12 +16,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]  # Windows not supported yet
+        # kn ships for Apple Silicon macOS only. macos-latest is that runner.
+        os: [macos-latest]
         rust: [stable]  # Test with stable Rust
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
@@ -29,19 +30,19 @@ jobs:
           toolchain: ${{ matrix.rust }}
       
       - name: Cache cargo registry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
       
       - name: Cache cargo index
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
       
       - name: Cache cargo build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: cli/target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
@@ -80,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kn-${{ matrix.os }}-${{ matrix.rust }}
-          path: cli/target/release/kn${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+          path: cli/target/release/kn
           retention-days: 7
 
   lint-scripts:
@@ -89,7 +90,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Install shellcheck
         run: sudo apt-get install -y shellcheck
@@ -106,7 +107,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Check internal links in Markdown
         uses: lycheeverse/lychee-action@v2
@@ -131,7 +132,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Test install.sh (dry-run with --skip-deps)
         run: |
