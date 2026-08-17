@@ -134,9 +134,45 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Test install.sh (dry-run with --skip-deps)
+      - name: install.sh --help runs
         run: |
           chmod +x install.sh
-          # We can't fully test installation in CI, but we can test the script runs
           ./install.sh --help
+        shell: bash
+
+      # `--help` exits before platform detection, so on its own it asserts nothing
+      # about the thing most likely to regress. These two steps cover the actual
+      # contract: refuse everything that is not Apple Silicon macOS, before any
+      # network request.
+      - name: Refuses on Linux, before downloading anything
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          set +e
+          output=$(./install.sh --no-confirm 2>&1)
+          status=$?
+          set -e
+          echo "$output"
+
+          if [ "$status" -eq 0 ]; then
+            echo "::error::install.sh exited 0 on Linux; it must refuse"
+            exit 1
+          fi
+          if ! grep -q "Apple Silicon" <<< "$output"; then
+            echo "::error::refusal does not name the supported platform"
+            exit 1
+          fi
+          if grep -qE "Downloading from|releases/download" <<< "$output"; then
+            echo "::error::install.sh attempted a download on an unsupported platform"
+            exit 1
+          fi
+          echo "refused correctly, nothing downloaded"
+        shell: bash
+
+      - name: Detects Apple Silicon on macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          output=$(./install.sh --no-confirm --skip-deps --no-modify-path 2>&1 || true)
+          echo "$output"
+          grep -q "Detected OS: macos (arm64" <<< "$output" \
+            || { echo "::error::did not resolve to arm64"; exit 1; }
         shell: bash
