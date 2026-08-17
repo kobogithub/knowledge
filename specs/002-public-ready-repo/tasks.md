@@ -88,7 +88,12 @@ Documentation reorganization at the repository root. No `src/` or `tests/` invol
 - [x] T019 [US2] Create `docs/README.md` indexing every document under `docs/` — the six existing top-level files, the three new groups, plus `adr/` and `reports/` (FR-008, contract C3)
 - [x] T020 [US2] Leave `CHANGELOG.md` lines 490, 496, 502, 536-539 **unchanged**. They mention the relocated filenames inside released-version sections; a changelog is a historical record and they are prose mentions, not links (research R4). This task is a deliberate no-op — check it off to confirm the decision was applied, not forgotten
 - [x] T021 [US2] Verify quickstart V1, V3, V5, V7
-- [ ] T022 [US2] **DevOps**: Verify quickstart V6 — build both packages and confirm each relocated document ships exactly once (`rpm -qlp … | grep -c 'HOMEBREW.md'` returns 1). **UNVERIFIED — no Linux host and no Docker available on the development machine.** Quickstart V6a was run instead as a static fallback: every unconditional `cp`/`install` source path in both recipes resolves, and the only `MISS` (`docs/kn.1`) sits behind an `if [ -f … ]` guard and is pre-existing. This catches the failure mode the relocation risks, but does not prove the packages build. **Must be run on Linux before this reaches `prod`**
+- [x] T022 [US2] **CLOSED — SUPERSEDED, not verified.** Originally: verify quickstart V6 by building both packages on Linux. Two things changed on 2026-08-16:
+  - **The stated blocker was wrong.** The task claimed "no Docker available on the development machine". Docker Desktop was in fact installed at `/Applications/Docker.app` and merely not running. It was started and the RPM build was attempted in a `fedora:41` container.
+  - **The build revealed a separate pre-existing defect**: `kn.spec` declares `Version: 0.1.0` and pulls `Source0` from the `v0.1.0` tag while the project ships `0.10.0`. The recipe is stale by nine minor versions and has not produced a current package in a long time. Per T003's rule this is reported, not absorbed.
+  - **The task is now moot.** Initiative `004-macos-arm64-homebrew` narrows the project to Apple Silicon macOS and **deletes** `kn.spec` and `debian/` outright (its US5, tasks T041–T043). Verifying that a deleted recipe ships documents correctly has no value.
+
+  Quickstart V6a (the static fallback) remains the last word on this: every unconditional `cp`/`install` source path in both recipes resolves. **No Linux package build was ever completed.** Recorded as superseded rather than passed.
 
 ### Discovered during implementation (US2)
 
@@ -161,22 +166,32 @@ The README made three inaccurate claims, all corrected in both languages:
 - [x] T038 Verify quickstart V4 (no broken internal links) and V8 (no `/Users/kobo` in any tracked file)
 - [x] T039 Verify quickstart V12 — `git diff --stat dev...HEAD -- cli/ skills/ stacks/ agents/ .github/workflows/release.yml` returns no output, confirming FR-021 through FR-023 held
 - [x] T040 Verify quickstart V13 — the existing quality gates still pass, unchanged from the T002 baseline
-- [ ] T041 **BLOCKED** — Verify quickstart V14 — follow `README.md` alone in a clean container and confirm `kn` installs and reports its version. If any step needs a document other than the README, record which one; that content belongs in the README (SC-009). This is distinct from CI's `test-install-script` job, which proves `install.sh` works rather than proving the README leads someone to it
-- [ ] T042 Final sweep: run the full quickstart V1–V14 and record the outcome of each, including any check recorded as unverified with its reason
+- [x] T041 **CLOSED — CARRIED FORWARD, not verified.** Originally blocked on "no Docker". Docker was in fact available (see T022). But the scenario itself is being invalidated: V14 tests that the README alone leads to a working install **in a Linux container**, and initiative `004` drops Linux support entirely. The intent — does the README actually lead a newcomer to a working install — survives and is carried into `004` as its quickstart **V10**, run on Apple Silicon natively and under `arch -x86_64`. Not verified here; re-homed there
+- [x] T042 **CLOSED — PARTIALLY COMPLETE.** V1–V13 were run and recorded across US1–US5 above. V14 was never run (see T041). The full-sweep-in-one-sitting was not performed; the individual scenarios carry their own recorded outcomes, including the unverified ones and their reasons. `004`'s T047 performs an equivalent full sweep (V1–V11) for the narrowed platform
 
 ### Discovered during implementation (Phase 7)
 
 **The README's recommended install command was dead.** V14 was added to close the SC-009 coverage gap, and the very check found the failure it was designed to catch:
 
 - `https://kn.foxlabar.online/install` — presented as the **recommended** one-line install in both READMEs — returns no response at all.
-- `kn.foxlabar.online` and its parent `foxlabar.online` both return **NXDOMAIN** from 8.8.8.8 and 1.1.1.1. The domain is registered (whois status `ACTIVE`, created 2015-03-06) but has **no nameservers delegated**, so the zone does not exist and the name can never resolve.
+- `kn.foxlabar.online` and its parent `foxlabar.online` both return **NXDOMAIN** from 8.8.8.8 and 1.1.1.1. ~~The domain is registered (whois status `ACTIVE`, created 2015-03-06) but has **no nameservers delegated**~~ — **this reading was wrong**. The `ACTIVE` status came from the `.online` TLD registry record, not the domain's. Querying the registrar directly (`whois -h whois.nic.online foxlabar.online`) returns *"Domain foxlabar.online is available for registration"*: the registration had lapsed and the name was free for anyone to take. See T046 below.
 - GitHub Pages is still configured for it: `status: built`, `cname: kn.foxlabar.online`, but `https_certificate.state: bad_authz` ("The ACME authorization is in a bad state") with `expires_at: 2026-07-19`, already past, and `https_enforced: false`.
 - The GitHub raw fallback works — HTTP 200, 27,677 bytes.
 
 Both READMEs now lead with the working GitHub URL and carry a note that the short URL is temporarily unavailable. **The domain itself needs DNS restored at the registrar** — that is outside this repository.
 
-- [ ] T046 Restore DNS for `kn.foxlabar.online` (delegate nameservers, point at GitHub Pages), then re-enable HTTPS in the Pages settings so the ACME authorization can complete. Once it resolves, restore the short URL as the recommended install in both READMEs and remove the temporary note
-- [ ] T047 Re-check `index.html` and `CNAME` once the domain resolves — both exist to serve that redirect and are inert while the domain is down
+- [x] T046 **CLOSED — SUPERSEDED. The diagnosis above was wrong.** This task assumed the domain was still owned and merely needed nameservers delegated. Re-checked on 2026-08-16 against the registry, not the resolver:
+
+  ```
+  $ dig +short NS foxlabar.online          # empty
+  $ whois -h whois.nic.online foxlabar.online
+  >>> Domain foxlabar.online is available for registration
+  ```
+
+  **The registration lapsed and the domain is available for anyone to register.** Restoring DNS is impossible without re-registering it. Worse, `prod`'s public README was still recommending `curl -fsSL https://kn.foxlabar.online/install | bash` as the primary install — whoever registered the domain next would have had arbitrary code execution on every user following the README. Fixed by hotfix PR #7 (merged to `prod` as 04e59ed, backported to `dev` as #8): short URL removed from both READMEs and ADR-004, `CNAME` deleted, Pages custom domain cleared.
+
+  **Replacement decided**: `kn.kobouharriet.me`, a subdomain of a domain the maintainer actually holds (Hostinger, whose apex already serves `kobogithub/web-personal` through Pages). The ordered migration is documented in `docs/release/GITHUB_PAGES.md` — DNS record first, `CNAME` file second, README last — because doing it in the other order reproduces the `bad_authz` state the old domain died in. **Pending**: the `CNAME` record on host `kn` → `kobogithub.github.io.` has not been created yet
+- [x] T047 **CLOSED — SUPERSEDED.** `CNAME` was deleted by PR #7. `index.html` survives and now serves the redirect at `https://kobogithub.github.io/knowledge/`, which needs no custom domain and cannot lapse. It is no longer inert. Re-adding a `CNAME` is a step of the `kn.kobouharriet.me` migration above, not of this initiative
 
 ### Pre-existing broken links — added after measurement
 

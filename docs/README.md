@@ -33,7 +33,7 @@ Guides for building and publishing `kn` packages. Relevant to maintainers cuttin
 | Document | What it covers |
 |---|---|
 | [Release Process](./release/RELEASE.md) | Cutting a release, tagging, and publishing artifacts |
-| [GitHub Pages](./release/GITHUB_PAGES.md) | The `kn.foxlabar.online` install redirect |
+| [GitHub Pages](./release/GITHUB_PAGES.md) | The install redirect, the retired custom domain, and its planned replacement |
 
 ## Security
 
