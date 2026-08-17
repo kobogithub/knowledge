@@ -2,7 +2,7 @@
 name: devops
 id_prefix: w5p
 description: DevOps expert for infrastructure, CI/CD, deployment, and operations
-model: anthropic/claude-sonnet-4.5
+model: sonnet
 reasoning: Balanced for infrastructure decisions, pipeline optimization, and deployment strategies
 required_skills:
   - docker-best-practices

@@ -53,20 +53,32 @@ apex via GitHub Pages.
 
 ### Keeping it alive
 
-`kobouharriet.me` renews **2026-09-08**. The previous short URL died because its
-registration lapsed unnoticed while the public README still recommended it.
+`kobouharriet.me` is registered through Hostinger and now expires **2027-09-08**
+(renewed 2026-08-16, verified against the registry — not the resolver, which is the
+mistake that misdiagnosed the previous domain).
 
-- Confirm auto-renew is enabled in the Hostinger panel
-- Consider verifying the domain at the GitHub account level
-  (Settings → Pages → Verified domains), which stops anyone else from claiming the
-  hostname on GitHub Pages even if the registration ever does lapse
+The previous short URL died because a registration lapsed unnoticed while the public
+README still recommended piping it into `bash`, which meant whoever registered the name
+next could have run arbitrary code on anyone following the instructions. That is the
+failure this section exists to prevent, so:
+
+- **Check the expiry before it matters**, with `whois kobouharriet.me | grep -i expiry`.
+  A calendar reminder a month out costs nothing.
+- **Verify the domain at the GitHub account level** (Settings → Pages → Verified
+  domains). This is the real safeguard — it stops anyone else from claiming the hostname
+  on GitHub Pages even if the registration ever does lapse, which a renewal date alone
+  does not.
+
+If the domain is ever allowed to expire, **remove the `CNAME` file and the short URL
+from both READMEs in the same change**. Pointing users at a hostname you no longer own
+is worse than having no short URL at all.
 
 ## GitHub Pages Configuration
 
 1. Go to: https://github.com/kobogithub/knowledge/settings/pages
 2. Source: Deploy from branch `prod`
-3. Custom domain: *(empty until the `kn.kobouharriet.me` steps above are done)*
-4. Enforce HTTPS: ✓ (automatic on `github.io`)
+3. Custom domain: `kn.kobouharriet.me`
+4. Enforce HTTPS: ✓ (once the certificate is issued)
 
 ## Implementation Details
 
@@ -82,6 +94,12 @@ To update the install script:
 1. Edit `install.sh`
 2. Copy to `install/index.html`: `cp install.sh install/index.html`
 3. Commit and push both files
+
+**CI enforces this.** The `lint-scripts` job fails if the two files differ. They had
+already drifted by 202 lines — `install/index.html` still carried the pre-004 platform
+detection, so the short URL would have served a script that still tried to install on
+Linux. Two hand-synced copies is the same failure mode that left the Homebrew tap two
+releases behind; both are now asserted rather than trusted.
 
 ## Testing
 

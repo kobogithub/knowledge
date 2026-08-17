@@ -2,7 +2,7 @@
 name: frontend
 id_prefix: 4yh
 description: Frontend development expert for UI/UX and user interfaces
-model: anthropic/claude-sonnet-4.5
+model: sonnet
 reasoning: Balanced performance for UI/UX implementation and component development
 required_skills:
   - astro-best-practices

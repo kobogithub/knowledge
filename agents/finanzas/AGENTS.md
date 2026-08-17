@@ -2,7 +2,7 @@
 name: finanzas
 id_prefix: f1n
 description: Financial tracking agent for monitoring OpenRouter API costs per agent, generating spend reports, and enforcing budget controls
-model: anthropic/claude-haiku-4.5
+model: haiku
 reasoning: Cost-effective for data analysis, report generation, and API cost aggregation - does not require deep reasoning
 required_skills:
   - bash-best-practices

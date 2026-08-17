@@ -2,6 +2,33 @@
 
 This document explains the differentiated model strategy for each agent in the knowledge project.
 
+## Two model identifiers, two runtimes — do not unify them
+
+An agent's model is named in two different places, in two different syntaxes. They look
+like the same thing and they are not:
+
+| Where | Syntax | Consumed by |
+|---|---|---|
+| `model:` in the frontmatter of `agents/*/AGENTS.md` | Tier alias — `opus`, `sonnet`, `haiku` | **Claude Code**, when the agent is invoked |
+| `"model"` inside the JSON payloads below | Prefixed id — `anthropic/claude-opus-4` | **OpenRouter's** API namespace |
+
+The frontmatter previously carried the prefixed form, which Claude Code cannot resolve —
+every agent failed on invocation with *"There's an issue with the selected model"* (see
+issue #6). It now uses tier aliases, which do not break when a new model family ships.
+
+**A find-and-replace across this repository will corrupt one or the other.** The OpenRouter
+ids in this document are correct as written; leave them alone.
+
+| Frontmatter alias | OpenRouter id | Agents |
+|---|---|---|
+| `opus` | `anthropic/claude-opus-4` | planner, backend |
+| `sonnet` | `anthropic/claude-sonnet-4.5` | devops, docs-writer, frontend, rust, security, uiux-tester |
+| `haiku` | `anthropic/claude-haiku-4.5` | biz, finanzas, qa |
+
+> **Separately worth checking**: the OpenRouter ids below name the Claude 4 family. If
+> OpenRouter has since retired those names, the routing config is stale in its own right —
+> a different problem from the frontmatter bug, and not fixed here.
+
 ## Provider: OpenRouter
 
 All agents use **OpenRouter** (`https://openrouter.ai/api/v1`) as the unified LLM provider. This gives us:
