@@ -28,12 +28,23 @@ Every time you start a new project with AI agents, you need to:
 
 ### Installation
 
-#### 🚀 Automated Installation (Recommended)
+> **`kn` runs on Apple Silicon macOS only.** Intel Macs, Linux and Windows are not
+> supported.
 
-The easiest way to install `kn` is using our automated installer. It downloads pre-compiled binaries from GitHub releases:
+#### 🍺 Homebrew (Recommended)
 
 ```bash
-# One-line install (recommended)
+brew install kobogithub/knowledge/kn
+```
+
+Upgrading later is `brew upgrade kn`.
+
+#### 🚀 Automated Installer
+
+If you would rather not use Homebrew, the installer downloads the same pre-compiled
+binary from GitHub releases:
+
+```bash
 curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
 
 # Or download and inspect first
@@ -58,10 +69,11 @@ chmod +x install.sh
 ./install.sh --no-modify-path    # Don't modify shell config files
 ```
 
-**Supported Platforms:**
-- Linux x86_64
-- macOS x86_64 (Intel)
+**Supported Platform:**
 - macOS ARM64 (Apple Silicon)
+
+The installer refuses to run anywhere else rather than downloading a binary that is
+not built.
 
 **Updates:**
 ```bash
@@ -113,37 +125,6 @@ kn doctor
 
 ---
 
-#### 🪟 Windows Installation
-
-```powershell
-# Download and run the PowerShell script
-irm https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.ps1 | iex
-
-# Or follow manual instructions in install.ps1
-```
-
-**Note**: Windows automated installation is in development. See `install.ps1` for manual steps.
-
----
-
-#### 📦 Package Managers (Coming Soon)
-
-We're working on official packages for popular package managers:
-
-- **Homebrew** (macOS): `brew install kobogithub/knowledge/kn`
-- **APT** (Ubuntu/Debian): `apt install kn`
-- **DNF/YUM** (Fedora/RHEL): `dnf install kn`
-
-For now, please use the automated installer above.
-
----
-
-#### 📚 Platform-Specific Guides
-
-For detailed platform-specific installation instructions, see:
-- **[HOMEBREW.md](./docs/packaging/HOMEBREW.md)** - Homebrew formula and tap setup
-- **[DEBIAN.md](./docs/packaging/DEBIAN.md)** - Building and publishing Debian packages
-- **[RPM.md](./docs/packaging/RPM.md)** - Building and publishing RPM packages for Fedora/RHEL
 
 ### Verify Installation
 
@@ -505,7 +486,6 @@ Each initiative lives in its own `specs/NNN-feature-name/` folder (`spec.md`, `p
 ### Phase 2: Enhancement (Completed)
 - [x] Enhanced project detection (workspaces, frameworks)
 - [x] Workspace standard support (OpenCode/Antigravity/Both)
-- [ ] Cross-platform support (Windows symlinks)
 - [ ] Test suite for all commands
 
 ### Phase 3: Multi-Agent & Workflow (Completed)
