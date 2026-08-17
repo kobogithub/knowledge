@@ -19,133 +19,121 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  # Build binaries for main platforms
+  # kn targets Apple Silicon macOS only, so this is a single native build rather
+  # than a matrix. The asset name kn-macos-arm64.tar.gz is load-bearing: install.sh
+  # selects on it and in-tool `kn update` parses it. Do not rename it.
   build-binaries:
-    name: Build ${{ matrix.target }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          # Linux x86_64
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            artifact_name: kn
-            asset_name: kn-linux-x86_64
-          
-          # macOS x86_64
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            artifact_name: kn
-            asset_name: kn-macos-x86_64
-          
-          # macOS ARM64 (Apple Silicon)
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            artifact_name: kn
-            asset_name: kn-macos-arm64
-    
+    name: Build aarch64-apple-darwin
+    runs-on: macos-latest
+    env:
+      TARGET: aarch64-apple-darwin
+      ASSET_NAME: kn-macos-arm64
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v4
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
-      
+          targets: ${{ env.TARGET }}
+
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }} --locked
+        run: cargo build --release --target "${TARGET}" --locked
         working-directory: ./cli
-      
+
       - name: Strip binary
-        run: strip cli/target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
-      
+        run: strip "cli/target/${TARGET}/release/kn"
+
       - name: Create tarball
         run: |
-          cd cli/target/${{ matrix.target }}/release
-          tar czf ${{ matrix.asset_name }}.tar.gz ${{ matrix.artifact_name }}
-          mv ${{ matrix.asset_name }}.tar.gz ../../../../
-      
+          cd "cli/target/${TARGET}/release"
+          tar czf "${ASSET_NAME}.tar.gz" kn
+          mv "${ASSET_NAME}.tar.gz" ../../../../
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.asset_name }}
-          path: ${{ matrix.asset_name }}.tar.gz
+          name: ${{ env.ASSET_NAME }}
+          path: ${{ env.ASSET_NAME }}.tar.gz
           retention-days: 1
 
-  # Create GitHub release
   create-release:
     name: Create GitHub Release
     needs: [build-binaries]
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v4
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-      
+
       - name: Display structure
         run: ls -R artifacts
-      
+
       - name: Generate checksums
         run: |
           cd artifacts
-          find . -type f \( -name "*.tar.gz" \) -exec sha256sum {} \; > ../checksums.txt
+          find . -type f -name "*.tar.gz" -exec sha256sum {} \; > ../checksums.txt
           cd ..
-      
+          cat checksums.txt
+
       - name: Create Release Notes
         run: |
+          # The static part is written with a quoted heredoc so backticks and $ in
+          # the prose survive verbatim. The checksums are appended afterwards —
+          # interpolating them inside the heredoc silently does not work, which is
+          # why every release up to v0.10.0 shipped a literal "$(cat checksums.txt)".
           cat > release-notes.md << 'EOF'
           ## Installation
-          
-          ### Binary Downloads
-          
-          Download the appropriate binary for your platform:
-          
-          - **Linux x86_64**: `kn-linux-x86_64.tar.gz`
-          - **macOS x86_64**: `kn-macos-x86_64.tar.gz`
-          - **macOS ARM64** (Apple Silicon): `kn-macos-arm64.tar.gz`
-          
-          Extract and move to your PATH:
-          
+
+          ### Homebrew (recommended)
+
           ```bash
-          tar xzf kn-*.tar.gz
-          sudo mv kn /usr/local/bin/
-          
-          # Or user directory
+          brew install kobogithub/knowledge/kn
+          ```
+
+          ### Binary Download
+
+          `kn` supports **Apple Silicon macOS** only.
+
+          - **macOS ARM64** (Apple Silicon): `kn-macos-arm64.tar.gz`
+
+          ```bash
+          tar xzf kn-macos-arm64.tar.gz
           mv kn ~/.local/bin/
           ```
-          
+
           ### Automated Installer
-          
+
           ```bash
           curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
           ```
-          
+
           ### Verify Installation
-          
+
           ```bash
           kn --version
           kn doctor
           ```
-          
+
           ## What's Changed
-          
+
           See [CHANGELOG.md](https://github.com/kobogithub/knowledge/blob/prod/CHANGELOG.md) for full details.
-          
+
           ## Checksums
-          
-          ```
-          $(cat checksums.txt)
+
           ```
           EOF
-      
+          cat checksums.txt >> release-notes.md
+          printf '```\n' >> release-notes.md
+
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             artifacts/**/*.tar.gz
@@ -155,3 +143,110 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publishes the formula to the Homebrew tap. Before this job existed, updating
+  # the tap was a manual step in RELEASE.md — it was skipped at v0.10.0 and the tap
+  # served 0.9.0 for weeks while the project shipped 0.10.0.
+  #
+  # `needs: [create-release]` is the failure gate: a job with `needs` runs only when
+  # everything it needs succeeded, so a failed build leaves the tap untouched. A
+  # formula pointing at a release that does not exist is worse than a stale one.
+  publish-formula:
+    name: Publish formula to the Homebrew tap
+    needs: [create-release]
+    runs-on: ubuntu-latest
+    env:
+      TAP: kobogithub/homebrew-knowledge
+      VERSION: ${{ github.event.inputs.version || github.ref_name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download the published artifacts and checksum them
+        run: |
+          set -euo pipefail
+          base="https://github.com/${GITHUB_REPOSITORY}"
+
+          # Checksums come from the bytes that were actually published, never from a
+          # value stored in the repo. A hand-maintained checksum is exactly the drift
+          # this job exists to remove.
+          curl -fsSL -o binary.tar.gz "${base}/releases/download/${VERSION}/kn-macos-arm64.tar.gz"
+          curl -fsSL -o source.tar.gz "${base}/archive/refs/tags/${VERSION}.tar.gz"
+
+          {
+            echo "BIN_SHA=$(sha256sum binary.tar.gz | cut -d' ' -f1)"
+            echo "SRC_SHA=$(sha256sum source.tar.gz | cut -d' ' -f1)"
+          } >> "$GITHUB_ENV"
+
+      - name: Render the formula
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, re, sys
+
+          version = os.environ["VERSION"]
+          bin_sha = os.environ["BIN_SHA"]
+          src_sha = os.environ["SRC_SHA"]
+
+          src = open("Formula/kn.rb").read()
+
+          # The two URLs carry the tag; there is no explicit `version` line, because
+          # `brew audit --strict` rejects one as redundant when the URL contains the tag.
+          src, n1 = re.subn(r"/download/v\d+\.\d+\.\d+/", f"/download/{version}/", src)
+          src, n2 = re.subn(r"/tags/v\d+\.\d+\.\d+\.tar\.gz", f"/tags/{version}.tar.gz", src)
+
+          # Two checksums, in file order: the binary first, the assets resource second.
+          shas = iter([bin_sha, src_sha])
+          src, n3 = re.subn(r'sha256 "[0-9a-f]{64}"',
+                            lambda _: f'sha256 "{next(shas)}"', src)
+
+          if (n1, n2, n3) != (1, 1, 2):
+              sys.exit(f"unexpected substitution counts: url={n1} resource={n2} sha256={n3}")
+
+          open("rendered.rb", "w").write(src)
+          PY
+
+          echo "--- rendered formula ---"
+          grep -E 'url |sha256 ' rendered.rb
+
+      - name: Publish to the tap
+        env:
+          GH_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::error::TAP_GITHUB_TOKEN is not set"
+            exit 1
+          fi
+
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${TAP}.git" tap
+          cp rendered.rb tap/Formula/kn.rb
+          cd tap
+
+          # Re-running a release for an existing tag must not produce a half-applied
+          # edit or an empty commit — if the rendered formula already matches, stop.
+          if git diff --quiet; then
+            echo "tap already publishes ${VERSION} with these checksums — nothing to do"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -qam "kn ${VERSION}
+
+          Generated by the release workflow from kobogithub/knowledge Formula/kn.rb
+          at ${GITHUB_SHA}. Do not hand-edit this file."
+          git push --quiet
+          echo "tap updated to ${VERSION}"
+
+      - name: Verify the tap now serves this version
+        run: |
+          set -euo pipefail
+          published=$(curl -fsSL "https://raw.githubusercontent.com/${TAP}/HEAD/Formula/kn.rb" \
+            | grep -m1 'releases/download' | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
+          echo "tap publishes ${published}, release is ${VERSION}"
+          if [ "${published}" != "${VERSION}" ]; then
+            echo "::error::tap still publishes ${published}"
+            exit 1
+          fi

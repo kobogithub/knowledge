@@ -1,0 +1,81 @@
+name: Tap drift check
+
+# Answers one question: does the Homebrew tap publish the version this repository
+# most recently released?
+#
+# This runs on a schedule, deliberately independent of the release workflow. An
+# assertion inside the release job can only observe the moment it runs — it cannot
+# catch a push that was later reverted, a token that expired months after the last
+# release, or a formula edited by hand. That class of silent divergence is exactly
+# what left the tap on 0.9.0 while the project shipped 0.10.0, unnoticed for weeks
+# until someone happened to look.
+
+on:
+  schedule:
+    # Mondays at 09:00 UTC. Releases are infrequent; a weekly check is enough to
+    # catch drift long before anyone installs from it.
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: Compare the tap against the newest release
+    runs-on: ubuntu-latest
+    env:
+      TAP: kobogithub/homebrew-knowledge
+
+    steps:
+      - name: Read the version the tap publishes
+        run: |
+          set -euo pipefail
+          # There is no explicit `version` line in the formula — `brew audit --strict`
+          # rejects one as redundant when the URL carries the tag. Parse the URL.
+          published=$(curl -fsSL "https://raw.githubusercontent.com/${TAP}/HEAD/Formula/kn.rb" \
+            | grep -m1 'releases/download' | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
+          if [ -z "${published}" ]; then
+            echo "::error::could not parse a version from the tap's formula"
+            exit 1
+          fi
+          echo "TAP_VERSION=${published}" >> "$GITHUB_ENV"
+
+      - name: Read the newest published release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          latest=$(gh release list --repo "${GITHUB_REPOSITORY}" --limit 1 \
+            --json tagName -q '.[0].tagName')
+          if [ -z "${latest}" ]; then
+            echo "::error::no releases found"
+            exit 1
+          fi
+          echo "RELEASE_VERSION=${latest}" >> "$GITHUB_ENV"
+
+      - name: Fail if they disagree
+        run: |
+          set -euo pipefail
+          echo "tap publishes:  ${TAP_VERSION}"
+          echo "newest release: ${RELEASE_VERSION}"
+
+          if [ "${TAP_VERSION}" != "${RELEASE_VERSION}" ]; then
+            {
+              echo "## Homebrew tap is out of date"
+              echo ""
+              echo "| | Version |"
+              echo "|---|---|"
+              echo "| Tap publishes | \`${TAP_VERSION}\` |"
+              echo "| Newest release | \`${RELEASE_VERSION}\` |"
+              echo ""
+              echo "\`brew install kobogithub/knowledge/kn\` is handing users"
+              echo "\`${TAP_VERSION}\`. The \`publish-formula\` job in \`release.yml\`"
+              echo "should have updated the tap — check its most recent run."
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            echo "::error::tap publishes ${TAP_VERSION} but the newest release is ${RELEASE_VERSION}"
+            exit 1
+          fi
+
+          echo "✓ in sync" >> "$GITHUB_STEP_SUMMARY"
