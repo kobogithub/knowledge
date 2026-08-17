@@ -19,6 +19,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   compare:
@@ -74,8 +75,53 @@ jobs:
               echo "should have updated the tap — check its most recent run."
             } >> "$GITHUB_STEP_SUMMARY"
 
+            echo "DRIFTED=true" >> "$GITHUB_ENV"
             echo "::error::tap publishes ${TAP_VERSION} but the newest release is ${RELEASE_VERSION}"
             exit 1
           fi
 
           echo "✓ in sync" >> "$GITHUB_STEP_SUMMARY"
+
+      # A failing scheduled workflow relies on the repository owner having Actions
+      # email notifications enabled — an account setting this workflow cannot see or
+      # guarantee. Filing an issue is self-contained: it shows up in the repository
+      # whether or not any notification setting is on. Reuses one open issue rather
+      # than filing a new one every Monday.
+      - name: File an issue if the tap drifted
+        if: failure() && env.DRIFTED == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          title="Homebrew tap is out of date"
+
+          existing=$(gh issue list --repo "${GITHUB_REPOSITORY}" \
+            --state open --label tap-drift --limit 1 --json number -q '.[0].number' || true)
+
+          body=$(printf '%s\n' \
+            "The Homebrew tap is not publishing the newest release." \
+            "" \
+            "| | Version |" \
+            "|---|---|" \
+            "| Tap publishes | \`${TAP_VERSION}\` |" \
+            "| Newest release | \`${RELEASE_VERSION}\` |" \
+            "" \
+            "\`brew install kobogithub/knowledge/kn\` is handing users \`${TAP_VERSION}\`." \
+            "" \
+            "The \`publish-formula\` job in \`release.yml\` should have updated the tap." \
+            "Check its most recent run, and confirm \`TAP_GITHUB_TOKEN\` has not expired." \
+            "" \
+            "Do not fix this with a manual copy into the tap — that is the failure mode" \
+            "the automation replaced. Fix the pipeline." \
+            "" \
+            "_Filed automatically by [tap-drift-check](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})._")
+
+          if [ -n "${existing}" ]; then
+            gh issue comment "${existing}" --repo "${GITHUB_REPOSITORY}" --body "${body}"
+            echo "commented on existing issue #${existing}"
+          else
+            gh label create tap-drift --repo "${GITHUB_REPOSITORY}" \
+              --color d93f0b --description "Homebrew tap out of sync with the newest release" 2>/dev/null || true
+            gh issue create --repo "${GITHUB_REPOSITORY}" \
+              --title "${title}" --label tap-drift --body "${body}"
+          fi
