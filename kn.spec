@@ -58,7 +58,9 @@ cp -r agents/* %{buildroot}%{_datadir}/kn/agents/
 mkdir -p %{buildroot}%{_docdir}/kn
 cp README.md README_ES.md %{buildroot}%{_docdir}/kn/
 cp install.sh install.ps1 %{buildroot}%{_docdir}/kn/
-cp HOMEBREW.md DEBIAN.md %{buildroot}%{_docdir}/kn/
+
+# Packaging guides ship via the recursive docs/ copy below
+# (docs/packaging/), so they are not copied individually here.
 
 # Install docs directory if it exists
 if [ -d docs ]; then

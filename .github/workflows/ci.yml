@@ -100,6 +100,28 @@ jobs:
       - name: Test install.sh --help
         run: bash install.sh --help
 
+  link-check:
+    name: Check Documentation Links
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check internal links in Markdown
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # Internal links only. External URLs are deliberately not checked:
+          # a third-party outage would fail CI for a reason unrelated to this
+          # repository.
+          args: >-
+            --offline
+            --no-progress
+            --include-fragments
+            --exclude-path ./specs
+            './**/*.md'
+          fail: true
+
   test-install-script:
     name: Test install.sh on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}

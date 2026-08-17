@@ -31,7 +31,9 @@ override_dh_auto_install:
 	mkdir -p $(CURDIR)/debian/kn/usr/share/doc/kn
 	cp README.md README_ES.md $(CURDIR)/debian/kn/usr/share/doc/kn/
 	cp install.sh install.ps1 $(CURDIR)/debian/kn/usr/share/doc/kn/
-	cp HOMEBREW.md $(CURDIR)/debian/kn/usr/share/doc/kn/
+	
+	# Packaging guides ship via the recursive docs/ copy below
+	# (docs/packaging/), so they are not copied individually here.
 	
 	# Install docs if they exist
 	if [ -d docs ]; then \

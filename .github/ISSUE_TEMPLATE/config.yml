@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea
+    url: https://github.com/kobogithub/knowledge/discussions
+    about: For anything that is not a bug or a concrete feature request, start a discussion instead.
+  - name: Documentation
+    url: https://github.com/kobogithub/knowledge/blob/prod/docs/README.md
+    about: Installation, getting started, architecture and packaging guides.
+  - name: How to contribute
+    url: https://github.com/kobogithub/knowledge/blob/prod/CONTRIBUTING.md
+    about: Branching, commit format, and how work is specified before it is built.

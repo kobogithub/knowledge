@@ -4,6 +4,7 @@ version = "0.10.0"
 edition = "2021"
 authors = ["Knowledge Framework Contributors"]
 description = "CLI tool for AI-assisted development workflows"
+license = "MIT"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }

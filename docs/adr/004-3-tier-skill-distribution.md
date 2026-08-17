@@ -167,5 +167,5 @@ kn sync
 - [Commit 09b6834](https://github.com/kobogithub/knowledge/commit/09b6834) - Global `~/.kn/` architecture implementation
 - [Commit 1009192](https://github.com/kobogithub/knowledge/commit/1009192) - Release v0.2.0 with global skills
 - [install.sh](../../install.sh) - Installation script populating `~/.kn/skills/`
-- [kn_home.rs](../../cli/src/kn_home.rs) - Global `~/.kn/` management code
+- [kn_home.rs](../../cli/src/core/kn_home.rs) - Global `~/.kn/` management code
 - [README.md](../../README.md#-quick-start) - User-facing docs on skill installation

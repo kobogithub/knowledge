@@ -193,8 +193,8 @@ The RPM package includes:
 ### Documentation
 - `/usr/share/doc/kn/README.md` - Main documentation
 - `/usr/share/doc/kn/README_ES.md` - Spanish documentation
-- `/usr/share/doc/kn/HOMEBREW.md` - Homebrew guide
-- `/usr/share/doc/kn/DEBIAN.md` - Debian package guide
+- `/usr/share/doc/kn/docs/packaging/HOMEBREW.md` - Homebrew guide
+- `/usr/share/doc/kn/docs/packaging/DEBIAN.md` - Debian package guide
 - `/usr/share/doc/kn/install.sh` - Installation script
 - `/usr/share/doc/kn/install.ps1` - Windows installer
 
