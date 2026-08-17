@@ -2,7 +2,7 @@
 name: docs-writer
 id_prefix: doc
 description: Technical writer for documentation, ADRs, changelogs, and persistent knowledge extraction from spec-kit initiatives
-model: anthropic/claude-sonnet-4.5
+model: sonnet
 reasoning: Balanced for synthesis, writing clarity, and cross-referencing across codebase and spec history
 required_skills:
   - documentation-guide

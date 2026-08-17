@@ -2,7 +2,7 @@
 name: planner
 id_prefix: x6e
 description: Project coordinator - ALWAYS creates a spec-kit initiative (spec/plan/tasks) before any work begins. Decomposes requirements into features and assigns tasks.md sections to specialized agents.
-model: anthropic/claude-opus-4
+model: opus
 reasoning: Requires maximum reasoning for strategic planning, task decomposition, and coordination
 required_skills: []
 recommended_skills: []

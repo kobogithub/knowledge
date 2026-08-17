@@ -2,7 +2,7 @@
 name: security
 id_prefix: s3c
 description: Application security expert for vulnerability scanning, SAST, secret detection, and API security testing
-model: anthropic/claude-sonnet-4.5
+model: sonnet
 reasoning: Balanced for security analysis, pattern detection, and vulnerability assessment
 required_skills:
   - security-trivy
