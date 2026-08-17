@@ -7,7 +7,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-08-17
+
+### ⚠️ BREAKING — `kn` now supports Apple Silicon macOS only
+
+Support for **Linux, Windows and Intel Macs is removed**. If you are on any of those,
+do not upgrade: this and every later version will not install, and `kn update` will
+not find an artifact for your platform. v0.10.0 remains downloadable and keeps working.
+
+The version number stays below 1.0.0 deliberately — the project is still evolving, and
+pre-1.0 convention puts breaking changes in the minor position.
+
+**Why**: the project is maintained on and for a single Apple Silicon machine. Building
+and publishing three artifacts, two of which nobody installed, meant carrying packaging
+recipes that were never exercised — the RPM recipe was pinned at `Version: 0.1.0` while
+the project shipped `0.10.0`, nine minor versions stale, and had produced no current
+package in a long time.
+
 ### Added
+
+- **Homebrew is the primary way to install `kn`**:
+
+  ```bash
+  brew install kobogithub/knowledge/kn
+  ```
+
+- **The Homebrew tap now updates itself.** A `publish-formula` job renders the formula
+  from the artifacts a release actually published and pushes it to
+  `kobogithub/homebrew-knowledge`. It runs only after the release succeeds, so a failed
+  build leaves the tap pointing at the last working version.
+- **A weekly tap drift check** compares the published formula against the newest release
+  and files an issue if they disagree — independent of the release workflow, so it
+  catches divergence that appears later.
+- **The formula warns about competing installs.** If a `kn` exists outside the Homebrew
+  prefix, the install output names both copies, says which one your PATH will run, and
+  gives the command to remove the other.
+
+### Fixed
+
+- **The Homebrew tap was two releases behind.** It served `0.9.0` while the project had
+  published `0.10.0`, because updating it was a manual step in the release document that
+  was skipped. Anyone installing via Homebrew got the old version. This is what the
+  automation above exists to prevent.
+- **Release notes never contained their checksums.** The template built them inside a
+  quoted heredoc, so every release through v0.10.0 published the literal string
+  `$(cat checksums.txt)` instead of the actual hashes.
+- **`brew test kn` was broken for anyone without `bd` installed.** The formula's test
+  ran `kn doctor`, which exits non-zero when optional tools are missing. It now asserts
+  on what the formula installs.
+- **Workflow actions too old to run** (`actions/checkout@v3`, `actions/cache@v3`,
+  `softprops/action-gh-release@v1`) updated.
+
+### Changed
+
+- `install.sh` refuses to run on anything but Apple Silicon macOS, **before downloading
+  anything**, and names the supported platform. Rosetta detection is retained — a native
+  Apple Silicon Mac reports `x86_64` under a translated shell, and the installer still
+  resolves that to the ARM64 binary.
+- Releases build one artifact instead of three. The asset name `kn-macos-arm64.tar.gz`
+  is unchanged, because `install.sh` and in-tool `kn update` both parse it.
+- CI runs on `macos-latest` only.
+- `docs/release/RELEASE.md` no longer documents a manual tap update, and says explicitly
+  not to hand-edit the tap.
+
+### Removed
+
+- `kn.spec` (RPM), `debian/` (Debian packaging), `install.ps1` (Windows installer) and
+  `docs/packaging/`. All recoverable from git history.
+- The "Package Managers (Coming Soon)" section promising APT and DNF packages, and the
+  Windows installation section, from both READMEs.
+
+### Repository housekeeping (initiative 002)
+
+These landed on `prod` before this tag was cut, so `0.11.0` is the first release
+that contains them.
+
+#### Added
 
 - **MIT `LICENSE`** at the repository root. The repository was public but carried no
   licence, so GitHub reported none and nobody could legally use or fork it. Both READMEs
@@ -25,7 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`kn agents` is now documented** in both READMEs. The command shipped but appeared in
   neither.
 
-### Changed
+#### Changed
 
 - **Maintainer process documents moved out of the repository root**, cutting root
   Markdown from 12 files to 5:
@@ -45,7 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [ADR-006](docs/adr/006-adopt-speckit-remove-beads.md), while `kn beads` remains
   available for projects using Beads independently.
 
-### Fixed
+#### Fixed
 
 - **Five broken documentation links**: `LICENSE` from both READMEs, and three references
   to a `DEVELOPMENT.md` that was never created.
@@ -55,7 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Removed a maintainer-specific absolute path** from
   `specs/001-personal-stacks/quickstart.md`.
 
-### Internal
+#### Internal
 
 - `kn.spec` and `debian/rules` copied `HOMEBREW.md` and `DEBIAN.md` by name from the
   repository root, so the relocation above would have broken both package builds. Those

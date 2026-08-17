@@ -28,12 +28,23 @@ Cada vez que inicias un nuevo proyecto con agentes de IA, necesitas:
 
 ### Instalación
 
-#### 🚀 Instalación Automatizada (Recomendada)
+> **`kn` corre solo en macOS con Apple Silicon.** Las Mac Intel, Linux y Windows no
+> están soportadas.
 
-La forma más fácil de instalar `kn` es usando nuestro instalador automatizado. Descarga binarios precompilados desde GitHub releases:
+#### 🍺 Homebrew (Recomendado)
 
 ```bash
-# Instalación de una línea (recomendado)
+brew install kobogithub/knowledge/kn
+```
+
+Para actualizar después: `brew upgrade kn`.
+
+#### 🚀 Instalador Automatizado
+
+Si preferís no usar Homebrew, el instalador descarga el mismo binario precompilado
+desde GitHub releases:
+
+```bash
 curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
 
 # O descargar e inspeccionar primero
@@ -58,10 +69,11 @@ chmod +x install.sh
 ./install.sh --no-modify-path    # No modificar archivos de configuración del shell
 ```
 
-**Plataformas Soportadas:**
-- Linux x86_64
-- macOS x86_64 (Intel)
+**Plataforma Soportada:**
 - macOS ARM64 (Apple Silicon)
+
+El instalador se niega a correr en cualquier otra plataforma en vez de descargar un
+binario que no existe.
 
 **Actualizaciones:**
 ```bash
@@ -110,31 +122,6 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc  # o ~/.zshrc
 # 5. Verificar
 kn doctor
 ```
-
----
-
-#### 🪟 Instalación en Windows
-
-```powershell
-# Descargar y ejecutar el script de PowerShell
-irm https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.ps1 | iex
-
-# O seguir las instrucciones manuales en install.ps1
-```
-
-**Nota**: La instalación automatizada para Windows está en desarrollo. Ver `install.ps1` para pasos manuales.
-
----
-
-#### 📦 Gestores de Paquetes (Próximamente)
-
-Estamos trabajando en paquetes oficiales para gestores de paquetes populares:
-
-- **Homebrew** (macOS): `brew install kobogithub/knowledge/kn`
-- **APT** (Ubuntu/Debian): `apt install kn`
-- **DNF/YUM** (Fedora/RHEL): `dnf install kn`
-
-Por ahora, por favor usa el instalador automatizado arriba.
 
 ---
 
@@ -438,7 +425,6 @@ Cada iniciativa vive en su propia carpeta `specs/NNN-feature-name/` (`spec.md`, 
 ### Fase 2: Mejoras (Completada)
 - [x] Deteccion mejorada de proyectos (workspaces, frameworks)
 - [x] Soporte de estandar de workspace (OpenCode/Antigravity/Ambos)
-- [ ] Soporte cross-platform (symlinks en Windows)
 - [ ] Suite de tests para todos los comandos
 
 ### Fase 3: Multi-Agente y Workflow (Completada)

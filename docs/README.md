@@ -18,16 +18,6 @@ Everything beyond the [README](../README.md). If you are new to `kn`, start with
 | [Agent Model Strategy](./AGENT_MODEL_STRATEGY.md) | Which model each agent role uses, and why |
 | [Gemini MCP Config](./GEMINI_MCP_CONFIG.md) | MCP setup for Gemini Code Assist |
 
-## Packaging
-
-Guides for building and publishing `kn` packages. Relevant to maintainers cutting a release.
-
-| Document | Platform |
-|---|---|
-| [Homebrew](./packaging/HOMEBREW.md) | macOS and Linux via Homebrew |
-| [Debian](./packaging/DEBIAN.md) | Debian and Ubuntu `.deb` |
-| [RPM](./packaging/RPM.md) | Fedora, RHEL and openSUSE `.rpm` |
-
 ## Release
 
 | Document | What it covers |
