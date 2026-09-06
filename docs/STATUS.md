@@ -1,8 +1,9 @@
 # STATUS
 
 **Generado**: 2026-09-06 (a mano, por el Planner; EPIC-02 lo automatiza con `/product-status`)
-**Sprint**: 0 — pre-sprint. EPIC-01 entra a Sprint 1 cuando se firmen los artefactos.
-**PRD**: [`docs/product/PRD.md`](./product/PRD.md) (Borrador)
+**Sprint**: 0 — pre-sprint. `PROJECT.md` y `PRD.md` firmados; faltan las cinco stories y
+el `spec.md` para que EPIC-01 entre a Sprint 1 y se pueda correr `/speckit-implement`.
+**PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **Aprobado** por Kevin Barroso, 2026-09-06
 
 ## Stories del sprint
 
@@ -49,6 +50,25 @@ compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la
    **v0.12.0** (EPIC-01); `v1.0.0` al cerrar el piloto.
 3. **Beads se retira del producto**, no solo de la doc, con ADR propio (ADR-009).
    T041–T045, dentro de v0.12.0.
+4. **Los artefactos viven en git; el cliente ve una copia derivada** (decisión 8 del PRD).
+   Notion para el dashboard de avance (Biz Agent, EPIC-02) y Drive para el PDF de
+   constancia al firmar. La copia derivada nunca se edita.
+
+## Firmas
+
+| Artefacto | Estado | Firmado por | Fecha |
+|---|---|---|---|
+| `docs/product/PROJECT.md` | **Aprobado** | Kevin Barroso | 2026-09-06 |
+| `docs/product/PRD.md` | **Aprobado** | Kevin Barroso | 2026-09-06 |
+| `stories/EPIC-01/US-01.md` … `US-05.md` | Borrador | — | — |
+| `specs/005-agent-team-projects/spec.md` | Borrador | — | — |
+
+La compuerta `product-gate` verificada contra estos encabezados: `PROJECT.md` y `PRD.md`
+dan PASA; `spec.md` da SE DETIENE, así que `/speckit-implement` sigue bloqueado. `EPIC-06`
+da SE DETIENE por falta de stories, que es lo correcto: se generan al entrar a Sprint 2.
+
+**Pendiente de export**: los dos artefactos firmados todavía no tienen su PDF de
+constancia en Drive (decisión 8). Se hace a mano hasta que EPIC-02 lo automatice.
 
 ## Preguntas al cliente pendientes
 

@@ -1,8 +1,8 @@
 # PRD: Metodología de proyectos con equipo de agentes
 
-**Estado**: Borrador — pendiente de firma
-**Firmado por**: —
-**Fecha de firma**: —
+**Estado**: Aprobado
+**Firmado por**: Kevin Barroso
+**Fecha de firma**: 2026-09-06
 **Agente autor**: Planner (`knowledge-x6e`)
 **Derivado de**: [`PROJECT.md`](./PROJECT.md) (etapa 1)
 
@@ -50,7 +50,22 @@ se formalizan en un ADR dentro de EPIC-01.
    (decisión del mantenedor, 2026-09-06): con un mantenedor solo, el escalón extra no
    agrega validación que el rc en `dev` no dé ya. Si el piloto muestra que hace falta un
    entorno de validación con el cliente antes de producción, vuelve como épica propia.
-8. **El plan de releases es parte del contrato**: la tabla "Plan de releases" de abajo
+8. **Los artefactos viven en git; el cliente ve una copia derivada**. `docs/product/` es
+   la única fuente de verdad: ahí los leen los agentes, ahí `product-gate` parsea el
+   encabezado de firma, y ahí el historial prueba qué se aprobó exactamente. Drive y
+   Notion cumplen otro rol, el de vista para el cliente, que no tiene el repo:
+
+   - **Notion** (vía el Biz Agent, `knowledge-biz`): dashboard de avance, derivado de
+     `STATUS.md` y regenerable. Solo lectura para el cliente; nunca se edita del lado de
+     Notion. Se automatiza en EPIC-02.
+   - **Drive**: constancia de firma. Al firmar un artefacto se exporta a PDF y ese PDF va
+     a Drive como respaldo inmutable. El documento vivo sigue siendo el `.md` del repo.
+
+   Regla que sostiene todo esto: **la copia derivada nunca se edita**. Un cambio empieza
+   siempre en el repo y se vuelve a exportar. Si alguna vez hay que editar del otro lado,
+   hay dos fuentes de verdad y la firma deja de significar algo.
+
+9. **El plan de releases es parte del contrato**: la tabla "Plan de releases" de abajo
    dice qué versión sale primero y cuáles siguen. Cada épica cerrada corresponde a un
    release. Cambiar el plan es un cambio de contrato y exige volver a firmar el PRD.
 
@@ -163,7 +178,7 @@ entre lo documentado y lo real.
 
 ## Plan de releases
 
-Parte del contrato (decisión 8). La versión vigente es **0.11.0**; el proyecto sigue
+Parte del contrato (decisión 9). La versión vigente es **0.11.0**; el proyecto sigue
 pre-1.0 a propósito, con los breaking changes en la posición minor.
 
 | Release | Sale de | Épicas que cierra | Contenido |

@@ -1,8 +1,8 @@
 # Proyecto: Metodología de proyectos con equipo de agentes
 
-**Estado**: Borrador — pendiente de firma
-**Firmado por**: —
-**Fecha de firma**: —
+**Estado**: Aprobado
+**Firmado por**: Kevin Barroso
+**Fecha de firma**: 2026-09-06
 **Agente autor**: Planner (`knowledge-x6e`), actuando como Analyst hasta que exista el rol
 **Input**: [`discovery/2026-09-06-metodologia-agentes.md`](./discovery/2026-09-06-metodologia-agentes.md)
 
@@ -69,8 +69,10 @@ código, antes del primer proyecto piloto.
 
 ## Restricciones
 
-- **Técnicas**: todo artefacto vive en git; nada en chats. spec-kit es la única capa de
-  specs. Los agentes se definen en `agents/<rol>/AGENTS.md` y se instalan con `kn`.
+- **Técnicas**: todo artefacto vive en git; nada en chats. Lo que ve el cliente (Notion,
+  Drive) es una copia derivada y de solo lectura: se genera desde el repo y nunca se edita
+  del otro lado. Al firmar, el artefacto se exporta a PDF y ese PDF va a Drive como
+  constancia. spec-kit es la única capa de specs. Los agentes se definen en `agents/<rol>/AGENTS.md` y se instalan con `kn`.
   El flujo de ramas es siempre `epic/<feature-id> → dev → prod`: `dev` lleva los release
   candidate (`vX.Y.Z-rc.N`) y `prod` solo releases estables (`vX.Y.Z`). Ningún cambio
   llega a `prod` sin haber pasado por un rc en `dev`.
