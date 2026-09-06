@@ -52,7 +52,7 @@ desde `epic/005-agent-team-projects`, PR a la rama epic.
 - [ ] T003 **MANTENEDOR** — Revisar y firmar `docs/product/stories/EPIC-01/US-01.md` a `US-05.md`
 - [ ] T004 **MANTENEDOR** — Revisar y firmar `specs/005-agent-team-projects/spec.md`. Recién acá pasa la compuerta de `/speckit-implement`
 - [ ] T005 Planner — Crear `epic/005-agent-team-projects` desde `dev` y mover esta carpeta y `docs/product/` a esa rama vía PR (la primera corrida quedó en `claude/agent-team-projects-6r7rtg`)
-- [ ] T006 [P] Planner — Confirmar que los quality gates de la CLI están verdes antes de tocarla: `cd cli && cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings && cargo test`. Cualquier fallo es preexistente: reportarlo, no absorberlo
+- [x] T006 [P] Planner — Confirmar que los quality gates de la CLI están verdes antes de tocarla: `cd cli && cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings && cargo test`. Cualquier fallo es preexistente: reportarlo, no absorberlo. **Baseline verde 2026-09-06**: fmt, clippy y 55 tests en verde antes de tocar nada
 
 **Checkpoint**: seis artefactos firmados, rama epic creada, baseline de la CLI verde.
 
@@ -64,11 +64,11 @@ desde `epic/005-agent-team-projects`, PR a la rama epic.
 
 **⚠️ CRITICAL**: sin T007 y T008 ningún skill `product-*` se versiona ni puede verificar firmas.
 
-- [ ] T007 Planner — Agregar a `.gitignore`, junto a la excepción `!.claude/skills/speckit-*/`, la línea `!.claude/skills/product-*/` con un comentario que explique por qué (FR-005)
-- [ ] T008 Planner — Escribir `.claude/skills/product-gate/SKILL.md`: recibe ruta de artefacto (y opcionalmente ID de épica), parsea `**Estado**:`, `**Firmado por**:` y `**Fecha de firma**:`, responde "PASA" o "SE DETIENE: <archivo> tiene Estado <x>". Si el repo no tiene `docs/product/`, informa y deja avanzar (edge case del spec). Con ID de épica, además verifica que la épica esté en la tabla de `PRD.md` y que exista `docs/product/stories/<EPIC>/` con al menos una story (FR-006)
-- [ ] T009 [P] Docs Writer — Crear `docs/product/templates/PROJECT.md` con encabezado de firma y las diez secciones del input de discovery, con placeholders `[...]` (FR-004)
-- [ ] T010 [P] Docs Writer — Crear `docs/product/templates/PRD.md` (encabezado de firma, Resumen, Decisiones de estructura, tabla de épicas con columnas ID/Épica/Prioridad/Sprint/Spec/Estado, sección por épica, Roadmap, Fuera de alcance, Riesgos, Preguntas abiertas) (FR-004)
-- [ ] T011 [P] Docs Writer — Crear `docs/product/templates/US.md` (encabezado con Épica/Estado/Firma/Prioridad/Rol ejecutor, frase Como/quiero/para, bloque ```gherkin, Notas / dependencias) (FR-004)
+- [x] T007 Planner — Agregar a `.gitignore`, junto a la excepción `!.claude/skills/speckit-*/`, la línea `!.claude/skills/product-*/` con un comentario que explique por qué (FR-005)
+- [x] T008 Planner — Escribir `.claude/skills/product-gate/SKILL.md`: recibe ruta de artefacto (y opcionalmente ID de épica), parsea `**Estado**:`, `**Firmado por**:` y `**Fecha de firma**:`, responde "PASA" o "SE DETIENE: <archivo> tiene Estado <x>". Si el repo no tiene `docs/product/`, informa y deja avanzar (edge case del spec). Con ID de épica, además verifica que la épica esté en la tabla de `PRD.md` y que exista `docs/product/stories/<EPIC>/` con al menos una story (FR-006)
+- [x] T009 [P] Docs Writer — Crear `docs/product/templates/PROJECT.md` con encabezado de firma y las diez secciones del input de discovery, con placeholders `[...]` (FR-004)
+- [x] T010 [P] Docs Writer — Crear `docs/product/templates/PRD.md` (encabezado de firma, Resumen, Decisiones de estructura, tabla de épicas con columnas ID/Épica/Prioridad/Sprint/Spec/Estado, sección por épica, Roadmap, Fuera de alcance, Riesgos, Preguntas abiertas) (FR-004)
+- [x] T011 [P] Docs Writer — Crear `docs/product/templates/US.md` (encabezado con Épica/Estado/Firma/Prioridad/Rol ejecutor, frase Como/quiero/para, bloque ```gherkin, Notas / dependencias) (FR-004)
 
 **Checkpoint**: `product-gate` existe y las tres plantillas están versionadas.
 
@@ -80,12 +80,24 @@ desde `epic/005-agent-team-projects`, PR a la rama epic.
 
 **Independent Test**: quickstart V1–V4.
 
-- [ ] T012 [US1] Planner — En `CLAUDE.md` reemplazar `@.claude/agents/planner.md` por `@agents/planner/AGENTS.md` y agregar una línea que aclare que `kn sync` crea además el symlink en `.claude/agents/` (research R2, FR-002)
-- [ ] T013 [US1] Rust — En `cli/src/core/claude_md.rs` cambiar el import generado a `@agents/planner/AGENTS.md`, sumar `analyst` a la lista de roles del texto generado, y ajustar el test `assert!(content.contains(...))` de la línea 66. Correr `cargo fmt`, `clippy -D warnings`, `cargo test` (FR-002)
-- [ ] T014 [P] [US1] Docs Writer — En `agents/biz/AGENTS.md` quitar `notion-reporting-standard` de `required_skills` y de la sección "Skills Asignados"; reemplazar las referencias al skill por una referencia inline al estándar de tres secciones y semáforo de `docs/reports/README.md` (research R3, FR-001)
-- [ ] T015 [P] [US1] Docs Writer — En `README.md` y `README_ES.md` eliminar la sección de `kn beads template` (líneas ~261–264 del README en inglés y su equivalente en español); verificar que no queden otras menciones a beads fuera de `docs/adr/` y `CHANGELOG.md` (FR-001)
-- [ ] T016 [P] [US1] Docs Writer — Reescribir `.agent/README.md`: lista de skills tomada de `skills/` (sin `bd-best-practices` ni `aws-best-practices`), conteo correcto (FR-001)
-- [ ] T017 [US1] QA — Ejecutar V1–V4 y dejar el resultado como comentario en el PR de la story, un renglón por Scenario de `US-01.md` con pasa/falla
+- [x] T012 [US1] Planner — En `CLAUDE.md` reemplazar `@.claude/agents/planner.md` por `@agents/planner/AGENTS.md` y agregar una línea que aclare que `kn sync` crea además el symlink en `.claude/agents/` (research R2, FR-002)
+- [x] T013 [US1] Rust — En `cli/src/core/claude_md.rs` cambiar el import generado a `@agents/planner/AGENTS.md` y ajustar el test `assert!(content.contains(...))`, sumando una aserción negativa (`!content.contains("@.claude/agents/")`) que impide reintroducir el import roto. `cargo fmt`, `clippy -D warnings` y `cargo test` en verde (FR-002)
+  - **Desviación**: sumar `analyst` a la lista de roles del texto generado se movió a T019. Hacerlo acá crearía una referencia a un rol que todavía no existe — exactamente el defecto que US1 arregla. T019 agrega el rol y la mención en el mismo commit
+- [x] T014 [P] [US1] Docs Writer — En `agents/biz/AGENTS.md` quitar `notion-reporting-standard` de `required_skills` y de la sección "Skills Asignados"; reemplazar las referencias al skill por una referencia inline al estándar de tres secciones y semáforo de `docs/reports/README.md` (research R3, FR-001)
+  - **Alcance ampliado**: el chequeo V3 corre sobre `agents/*/AGENTS.md`, no solo biz, y encontró seis referencias fantasma en tres agentes. Además de biz: `devops` exigía `terraform-best-practices` y recomendaba `aws-`/`kubernetes-best-practices`; `backend` recomendaba `kubernetes-`/`terraform-best-practices`. Todas removidas del catálogo por ADR-007. Se reemplazaron por `railway-best-practices` donde había un equivalente real
+  - `docs/reports/README.md` también apuntaba al skill removido: ahora el estándar de tres secciones está escrito ahí y en el Biz Agent, sin depender de un skill
+- [x] T015 [P] [US1] Docs Writer — En `README.md` y `README_ES.md` eliminar la sección de `kn beads template` (líneas ~261–264 del README en inglés y su equivalente en español); verificar que no queden otras menciones a beads fuera de `docs/adr/` y `CHANGELOG.md` (FR-001)
+  - **Decisión del mantenedor (2026-09-06)**: borrado literal, aun cuando `kn beads template` sigue existiendo en la CLI. Se removieron además la dependencia `bd`/`Dolt` de la lista de instalación, la salida de ejemplo de `kn doctor`, el árbol `.beads/`, el roadmap histórico y los créditos
+  - Quedan cuatro ocurrencias, todas dentro del link a `docs/adr/006-adopt-speckit-remove-beads.md`: el string está en el nombre del ADR, que es el registro histórico que el propio escenario exceptúa
+  - **Consecuencia registrada**: la doc ya no menciona beads pero el binario sí lo usa. Ver T041–T043
+- [x] T016 [P] [US1] Docs Writer — Reescribir `.agent/README.md`: lista de skills tomada de `skills/` (sin `bd-best-practices` ni `aws-best-practices`), conteo correcto (FR-001). Lista regenerada desde `skills/`: 21 skills (decía 10), sin `bd-best-practices`, `aws-best-practices`, `terraform-best-practices` ni `jsonnet-best-practices`
+- [x] T017 [US1] QA — Ejecutar V1–V4 y dejar el resultado como comentario en el PR de la story, un renglón por Scenario de `US-01.md` con pasa/falla
+  - **Resultado 2026-09-06** (V1 PASA, V2 PASA, V3 PASA, V4 PASA):
+    - Scenario "CLAUDE.md resuelve en un clon fresco" — **pasa**: sobre un árbol sin `.claude/agents/`, los dos `@import` (`@AGENTS.md`, `@agents/planner/AGENTS.md`) resuelven y el Planner sigue siendo el rol por defecto
+    - Scenario "El generador de CLAUDE.md no reintroduce el import roto" — **pasa**: `cargo test claude_md` 3/3; fmt, clippy y la suite completa (55 tests) en verde
+    - Scenario "El Biz Agent solo exige skills del catálogo" — **pasa**: el chequeo sobre los once agentes no encuentra ningún skill inexistente
+    - Scenario "Los README no documentan comandos removidos" — **pasa**: cero ocurrencias fuera de los links a `docs/adr/`
+  - El comentario en el PR queda pendiente de que exista el PR (T005 crea la rama epic)
 
 **Checkpoint**: V1–V4 en verde; US-01 marcable como cerrada.
 
@@ -160,6 +172,20 @@ desde `epic/005-agent-team-projects`, PR a la rama epic.
 - [ ] T038 Planner — Regenerar `docs/STATUS.md` a mano al cierre del sprint (EPIC-02 lo automatiza): stories cerradas, PRs sin review, preguntas abiertas
 - [ ] T039 Planner — Correr `/speckit-converge` sobre esta carpeta y cerrar la iniciativa cuando no queden checkboxes abiertos; mergear `epic/005-agent-team-projects` → `dev` por PR
 - [ ] T040 Planner — Seguimiento para EPIC-02: correr `/speckit-constitution` con la convención de firma y "la story manda" como principios candidatos (Constitution Check del `plan.md`)
+
+---
+
+## Follow-ups descubiertos durante la implementación
+
+Tareas que no estaban en el plan y que salieron de ejecutar US1. No bloquean EPIC-01.
+
+- [ ] T041 Rust — Quitar `bd` y `Dolt` de la verificación de dependencias de `kn doctor` (`cli/src/commands/doctor.rs:66-74` y el caso `"bd"` de la línea 292), y ajustar el conteo "N/N dependencies met" que el README ya documenta como 5/5
+- [ ] T042 DevOps — Quitar la instalación de `bd` de `install.sh` (bloque de las líneas 542-565, la nota de `--skip-deps` y el chequeo obligatorio de la línea 901) y la mención de `uninstall.sh`. Hoy el instalador aborta si no puede instalar `bd`, una dependencia que ya no se usa. Verificar contra los tests de CI de `install.sh`
+- [ ] T043 Rust — Decidir y ejecutar el retiro del subcomando `kn beads` (`cli/src/commands/beads.rs` + wiring en `main.rs`): es lo único que queda de beads en el producto y ya no está documentado. Si se decide conservarlo, hay que volver a documentarlo y reabrir el Scenario 4 de US-01
+
+> T041–T043 nacen de la decisión de T015: la documentación ya no menciona beads, pero el
+> binario lo instala, lo verifica y lo expone. Mientras estén abiertas, doc y binario
+> están desalineados a propósito y con registro.
 
 ---
 
