@@ -42,8 +42,10 @@ compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la
 
 1. **Rol Architect separado del Planner**: sí, con arc42 recortado, ADR y LikeC4 como
    entregables. Nueva EPIC-06, Sprint 2.
-2. **Flujo de ramas fijo**: `epic → dev → test → prod`, rc en `test`, `vX.Y.Z` en `prod`,
-   y el plan de releases como parte del contrato. Nueva EPIC-07, Sprint 2. Primer release
+2. **Flujo de ramas fijo**: `epic → dev → prod`, rc en `dev`, `vX.Y.Z` en `prod`, y el
+   plan de releases como parte del contrato. Una rama `test` intermedia quedó **fuera por
+   ahora**; vuelve si el piloto muestra que hace falta. Nueva EPIC-07, Sprint 2: la
+   jerarquía ya está documentada pero `dev` no existe en el remoto. Primer release
    **v0.12.0** (EPIC-01); `v1.0.0` al cerrar el piloto.
 3. **Beads se retira del producto**, no solo de la doc, con ADR propio (ADR-009).
    T041–T045, dentro de v0.12.0.

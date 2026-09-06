@@ -40,11 +40,16 @@ se formalizan en un ADR dentro de EPIC-01.
 6. **Tracker**: GitHub Issues vía `/speckit-taskstoissues`, publicado por el Planner
    después de aprobar `tasks.md`.
 7. **Flujo de ramas fijo, en todo proyecto**: `<feature-id>/<rol>` → `epic/<feature-id>`
-   → `dev` → `test` → `prod`. `test` es el escalón de validación: ahí viven los release
-   candidate (`vX.Y.Z-rc.N`) y de ahí sale el PR a `prod`. `prod` solo lleva releases
-   estables (`vX.Y.Z`). Nada llega a `prod` sin un rc que lo haya precedido en `test`.
-   Esto cambia la estrategia actual, donde los rc viven en `dev` y `dev` va directo a
-   `prod`; se implementa en EPIC-07.
+   → `dev` → `prod`. `dev` es el escalón de integración y validación: ahí viven los
+   release candidate (`vX.Y.Z-rc.N`) y de ahí sale el PR a `prod`, que solo lleva
+   releases estables (`vX.Y.Z`). Nada llega a `prod` sin un rc que lo haya precedido en
+   `dev`. Coincide con lo que ya documenta el skill `standard-commits`; lo que falta es
+   hacerlo cierto en el remoto (hoy solo existe `prod`) y ponerle protecciones. EPIC-07.
+
+   Una rama `test` entre `dev` y `prod` se evaluó y **queda fuera del alcance por ahora**
+   (decisión del mantenedor, 2026-09-06): con un mantenedor solo, el escalón extra no
+   agrega validación que el rc en `dev` no dé ya. Si el piloto muestra que hace falta un
+   entorno de validación con el cliente antes de producción, vuelve como épica propia.
 8. **El plan de releases es parte del contrato**: la tabla "Plan de releases" de abajo
    dice qué versión sale primero y cuáles siguen. Cada épica cerrada corresponde a un
    release. Cambiar el plan es un cambio de contrato y exige volver a firmar el PRD.
@@ -59,7 +64,7 @@ se formalizan en un ADR dentro de EPIC-01.
 | EPIC-04 | Automatización n8n: daily digest de issues/PRs y reporte semanal desde `STATUS.md` | P3 | 3 | se crea al entrar al sprint | Sin spec |
 | EPIC-05 | Proyecto piloto: primer cliente real recorriendo la cadena completa en su propio repo | P2 | 4–5 | fuera de este repo | Sin spec |
 | EPIC-06 | Rol Architect: `agents/architect/`, arquitectura sobre arc42 recortado, ADR y modelos LikeC4 | P1 | 2 | se crea al entrar al sprint | Sin spec |
-| EPIC-07 | Estrategia de ramas y releases: escalón `test`, rc en `test`, `vX.Y.Z` en `prod`, y la doc y CI que lo sostienen | P1 | 2 | se crea al entrar al sprint | Sin spec |
+| EPIC-07 | Estrategia de ramas y releases: crear `dev`, protecciones, rc en `dev`, `vX.Y.Z` en `prod`, y la doc y CI alineadas | P1 | 2 | se crea al entrar al sprint | Sin spec |
 
 ### EPIC-01 — Cadena de producto sobre spec-kit (Sprint 1)
 
@@ -136,20 +141,25 @@ El `plan.md` de cada spec pasa del Planner al Architect. Queda por decidir en la
 
 ### EPIC-07 — Estrategia de ramas y releases (Sprint 2)
 
-**Valor**: hoy no hay escalón entre integración y producción, y el plan de releases no
-existe como contrato. Esta épica cierra las dos cosas.
+**Valor**: la estrategia `epic → dev → prod` está escrita en todos lados pero no es cierta
+en el remoto, y el plan de releases no existía como contrato. Esta épica cierra la brecha
+entre lo documentado y lo real.
 
 **Alcance previsto**:
 
-- Insertar `test` entre `dev` y `prod`, y mover los tags rc de `dev` a `test`.
-- Actualizar la estrategia en los seis lugares donde está escrita: `AGENTS.md`,
-  `agents/*/AGENTS.md` (once archivos), `agents/planner/AGENTS.md`, `CONTRIBUTING.md`,
-  el skill `standard-commits` y la sección de ramas de los README.
-- CI: `.github/workflows/ci.yml` hoy corre sobre `[prod, dev, main]`; suma `test`.
-  `release.yml` dispara con `v*`, que ya cubre `vX.Y.Z-rc.N` — verificar que un rc no
-  publique un release estable.
-- Crear las ramas: hoy el remoto solo tiene `prod`. `dev` y `test` no existen.
-- Reglas de protección: `prod` solo acepta PR desde `test` o `hotfix/*`.
+- **Crear `dev`** desde `prod` y pasarla a ser la base por defecto del repo: hoy el remoto
+  solo tiene `prod`, así que toda la jerarquía documentada (`<feature-id>/<rol>` →
+  `epic/<id>` → `dev` → `prod`) apunta a una rama que no existe.
+- Protecciones: `prod` solo acepta PR desde `dev` o `hotfix/*`; `dev` solo desde
+  `epic/*` o `task/*`.
+- Verificar que la doc existente ya diga esto y corregir lo que no: `AGENTS.md`,
+  `agents/*/AGENTS.md`, `CONTRIBUTING.md`, el skill `standard-commits` y la sección de
+  ramas de los README. La jerarquía coincide; lo que hay que revisar es que ninguno
+  contradiga el plan de releases.
+- CI: `.github/workflows/ci.yml` corre sobre `[prod, dev, main]` — `main` no se usa en
+  este repo y sobra. `release.yml` dispara con `v*`, que también matchea `vX.Y.Z-rc.N`:
+  verificar que un rc no publique un GitHub Release estable, o restringir el patrón.
+- Dejar registrado que `test` quedó fuera y bajo qué condición volvería.
 
 ## Plan de releases
 
@@ -158,21 +168,21 @@ pre-1.0 a propósito, con los breaking changes en la posición minor.
 
 | Release | Sale de | Épicas que cierra | Contenido |
 |---|---|---|---|
-| **v0.12.0** ← **primero** | `test` → `prod` al cerrar Sprint 1 | EPIC-01 | Cadena de producto: rol Analyst, plantillas, comandos `product-*`, compuertas de firma, ADR-008, saneamiento de referencias y retiro de Beads |
-| v0.13.0 | Sprint 2 | EPIC-06, EPIC-07 | Rol Architect (arc42 recortado, ADR, LikeC4) y el escalón `test` con su disciplina de releases |
+| **v0.12.0** ← **primero** | `dev` → `prod` al cerrar Sprint 1 | EPIC-01 | Cadena de producto: rol Analyst, plantillas, comandos `product-*`, compuertas de firma, ADR-008, saneamiento de referencias y retiro de Beads |
+| v0.13.0 | Sprint 2 | EPIC-06, EPIC-07 | Rol Architect (arc42 recortado, ADR, LikeC4) y la disciplina de ramas y releases hecha real en el remoto |
 | v0.14.0 | Sprint 3 | EPIC-02, EPIC-03 | `STATUS.md` regenerable y scaffolding de la cadena en `kn init` |
 | v0.15.0 | Sprint 4 | EPIC-04 | Automatización n8n: daily digest y reporte semanal |
 | **v1.0.0** | Sprint 5 | EPIC-05 | El piloto recorrió la cadena completa con un cliente real. Recién ahí la metodología deja de ser una hipótesis |
 
-Cada release estable en `prod` va precedido de al menos un `vX.Y.Z-rc.N` en `test`. El
-tag lo crea el mantenedor a mano después del merge, como hoy.
+Cada release estable en `prod` va precedido de al menos un `vX.Y.Z-rc.N` en `dev`. El tag
+lo crea el mantenedor a mano después del merge, como hoy.
 
 ## Roadmap
 
 | Sprint | Semana | Épicas | Release | Hito |
 |---|---|---|---|---|
 | 1 | 1 | EPIC-01 | v0.12.0 | Cadena operable; esta iniciativa firmada de punta a punta |
-| 2 | 2 | EPIC-06, EPIC-07 | v0.13.0 | Architect con entregable propio; `test` en el flujo y el plan de releases vigente |
+| 2 | 2 | EPIC-06, EPIC-07 | v0.13.0 | Architect con entregable propio; `dev` existe y protegida, plan de releases vigente |
 | 3 | 3 | EPIC-02, EPIC-03 | v0.14.0 | `STATUS.md` regenerable; `kn init` scaffoldea la cadena |
 | 4 | 4 | EPIC-04, arranque EPIC-05 | v0.15.0 | Daily automático; piloto inicializado |
 | 5 | 5 | EPIC-05 | v1.0.0 | Primer sprint de cliente cerrado con demo y changelog |
@@ -191,7 +201,7 @@ herramientas, ClickUp, cambios al modelo comercial, plataformas fuera de Apple S
 | ~~El Planner no se sostiene como PM + Architect~~ | — | — | **Cerrado 2026-09-06**: rol Architect separado (EPIC-06) |
 | El rol Architect suma ceremonia sin valor en proyectos chicos | Media | Medio | arc42 **recortado**, no completo; el subconjunto de secciones se decide en EPIC-06 y se revisa después del piloto |
 | LikeC4 queda como diagrama que nadie actualiza | Media | Bajo | Los modelos viven en el repo como código y se renderizan en CI; si no se sostiene, se retira en una épica posterior |
-| Insertar `test` frena la entrega en un equipo de una persona | Media | Medio | El rc en `test` puede ser el mismo día que el release; el escalón es de tag, no de calendario |
+| Sin escalón entre `dev` y `prod`, un rc mal validado llega a producción | Media | Medio | `test` quedó fuera a propósito; la mitigación es que el rc en `dev` tenga CI verde y QA contra el Gherkin antes del PR a `prod`. Si el piloto muestra que no alcanza, `test` vuelve como épica |
 | EPIC-03 toca Rust y la CI de `kn` | Baja | Medio | Se aísla en su propia spec y rama; no bloquea EPIC-01/02 |
 | El piloto no aparece a tiempo | Media | Bajo | EPIC-01 a 04 tienen valor en `knowledge` aunque no haya cliente |
 
