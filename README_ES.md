@@ -64,7 +64,7 @@ chmod +x install.sh
 ```bash
 ./install.sh --help              # Mostrar todas las opciones
 ./install.sh --version v0.2.0    # Instalar versión específica
-./install.sh --skip-deps         # Saltar instalación de dependencias (Git, Node.js, bd)
+./install.sh --skip-deps         # Saltar instalación de dependencias (Git, Node.js)
 ./install.sh --no-confirm        # Modo no interactivo
 ./install.sh --no-modify-path    # No modificar archivos de configuración del shell
 ```
@@ -102,7 +102,6 @@ Si prefieres compilar desde el código fuente o necesitas personalizar la instal
 ```bash
 # 1. Instalar dependencias
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh  # Rust
-cargo install bd                                                  # Beads
 # Instalar Node.js desde https://nodejs.org/ o tu gestor de paquetes
 
 # 2. Clonar y compilar
@@ -169,7 +168,7 @@ Elimina todo incluyendo todos los recursos globales:
 - ✅ Entradas de configuración del shell (`.bashrc`, `.zshrc`, etc.)
 - ⚠️ Directorio `~/.kn/` (solo con `--remove-data`)
 - ⚠️ Configuraciones de proyectos (solo con `--remove-config`)
-- ❌ Dependencias (Git, Node.js, bd) NO se eliminan
+- ❌ Dependencias (Git, Node.js) NO se eliminan
 
 **Nota:** El script de desinstalación crea respaldos de los archivos de configuración del shell antes de modificarlos.
 
@@ -212,20 +211,6 @@ kn skills install <nombre-skill>
 # Instalar desde URL o ruta local
 kn skills install https://example.com/skill/SKILL.md
 kn skills install ./local/skill/SKILL.md
-```
-
-### Generar Plantillas de Issues
-
-```bash
-# Crear directorio de plantillas
-mkdir -p .beads/templates
-
-# Generar todas las plantillas
-kn beads template epic -o .beads/templates/epic.md
-kn beads template task -o .beads/templates/task.md
-kn beads template bug -o .beads/templates/bug.md
-kn beads template feature -o .beads/templates/feature.md
-kn beads template chore -o .beads/templates/chore.md
 ```
 
 ---
@@ -284,15 +269,6 @@ kn agents install ./agents/rust     # O desde una ruta local
 kn agents install rust --force      # Reinstalar sobre un agente existente
 ```
 
-### 📋 Plantillas de Beads
-```bash
-kn beads template epic -o epic.md   # Generar plantillas estructuradas de issues
-kn beads template task              # Imprimir a stdout para piping
-kn beads template bug --force       # Sobrescribir archivos existentes
-```
-
-> **Estado**: el flujo de trabajo propio de este proyecto usa spec-kit, no Beads — ver [ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md). Los comandos `kn beads` siguen disponibles y con soporte para proyectos que usen Beads de forma independiente.
-
 ### 🔌 Gestión de Servidores MCP
 ```bash
 kn mcp add filesystem               # Agregar servidores MCP preconfigurados
@@ -312,7 +288,6 @@ knowledge/
 │   │   └── commands/
 │   │       ├── init.rs       # Inicializacion de proyecto
 │   │       ├── skills.rs     # Gestion de skills
-│   │       ├── beads.rs      # Plantillas de issues
 │   │       ├── mcp.rs        # Gestion de servidores MCP
 │   │       ├── doctor.rs     # Verificacion de dependencias
 │   │       ├── update.rs     # Auto-actualizacion
@@ -332,23 +307,15 @@ knowledge/
 │   └── finanzas/AGENTS.md    # Finanzas — seguimiento de costos, presupuestos
 ├── .opencode/skills/         # Skills de agentes IA instalados (21 skills)
 │   ├── bash-best-practices/
-│   ├── bd-best-practices/    # Manual de workflow de 5 fases
 │   ├── docker-best-practices/
 │   ├── github-actions-best-practices/
-│   ├── jsonnet-best-practices/
 │   ├── python-best-practices/
 │   ├── rust-best-practices/
 │   ├── security-gitleaks/
 │   ├── security-owasp-zap/
 │   ├── security-semgrep/
 │   └── security-trivy/
-├── .beads/                   # Seguimiento de issues (Beads)
-│   ├── issues.jsonl          # Base de datos de issues
-│   └── formulas/             # Plantillas de workflow
-│       ├── mol-feature.formula.json
-│       ├── mol-bugfix.formula.json
-│       ├── mol-spike.formula.json
-│       └── mol-release.formula.json
+├── specs/                    # Iniciativas de spec-kit (spec.md, plan.md, tasks.md)
 ├── docs/                     # Documentacion
 │   ├── GETTING_STARTED.md
 │   ├── ARCHITECTURE.md
@@ -417,7 +384,6 @@ Cada iniciativa vive en su propia carpeta `specs/NNN-feature-name/` (`spec.md`, 
 ### Fase 1: CLI Base (Completada)
 - [x] `kn init` - Inicializacion de proyecto con auto-deteccion
 - [x] `kn skills install/list` - Gestion de skills
-- [x] `kn beads template` - Generacion de plantillas de issues
 - [x] `kn mcp add/list/remove` - Configuracion de servidores MCP
 - [x] `kn doctor` - Verificacion de dependencias
 - [x] `kn update` - Mecanismo de auto-actualizacion
@@ -432,7 +398,6 @@ Cada iniciativa vive en su propia carpeta `specs/NNN-feature-name/` (`spec.md`, 
 - [x] Framework de workflow en 5 fases (Exploracion hasta Verificacion)
 - [x] 4 plantillas de workflow formula (feature, bugfix, spike, release)
 - [x] Merge-slot para coordinacion serializada de pushes
-- [x] Skill `bd-best-practices` como manual completo de 5 fases
 
 ### Fase 4: Caracteristicas Avanzadas
 - [ ] `kn agent create` - Generacion de agentes personalizados
@@ -473,13 +438,7 @@ kn skills install estándares-empresa
 # → Todos los proyectos siguen los mismos patrones
 ```
 
-### 3. Planificación de Issues
-```bash
-kn beads template epic > planificacion/mvp.md
-# → Plantillas de planificación estructuradas
-```
-
-### 4. Acceso a Documentación
+### 3. Acceso a Documentación
 ```bash
 kn mcp add rust-docs mdn-web-docs
 # → Los agentes IA tienen acceso instantáneo a docs
@@ -529,7 +488,7 @@ abri un PR contra esa carpeta antes de implementar.
 
 **Version**: 0.5.1
 
-**CLI**: Todos los comandos core implementados (`init`, `skills`, `beads`, `mcp`, `doctor`, `update`, `sync`, `agents`)
+**CLI**: Todos los comandos core implementados (`init`, `skills`, `mcp`, `doctor`, `update`, `sync`, `agents`)
 
 **Agentes**: 9 agentes especializados operativos con MCP scoping por agente
 
@@ -547,8 +506,6 @@ Licencia MIT - ver [LICENSE](LICENSE) para detalles.
 
 ## 🙏 Agradecimientos
 
-- **[Beads](https://github.com/beadlist/beads)** por Steve Yegge - Framework de seguimiento de issues
-- **[Dolt](https://doltdb.com)** - Control de versiones tipo Git para datos
 - **[agentskills.io](https://agentskills.io)** - Estándar de repositorio de skills
 - **Comunidad Rust** - Increíble tooling y ecosistema
 

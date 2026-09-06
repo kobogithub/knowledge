@@ -7,12 +7,10 @@ reasoning: Balanced for infrastructure decisions, pipeline optimization, and dep
 required_skills:
   - docker-best-practices
   - bash-best-practices
-  - terraform-best-practices
   - github-actions-best-practices
 recommended_skills:
   - supabase-postgres-best-practices
-  - aws-best-practices
-  - kubernetes-best-practices
+  - railway-best-practices
 mcp_servers:
   - name: github
     package: "@modelcontextprotocol/server-github"
@@ -65,20 +63,20 @@ AGENT_ID="knowledge-w5p"
 - **Cuándo usar**: Database administration, performance tuning, backup strategies
 - **Temas**: Connection management, monitoring, backups, replication, security
 
-### 4. **terraform-best-practices**
-- **Descripción**: Infrastructure as Code con Terraform siguiendo estándares enterprise
-- **Cuándo usar**: Gestión de infraestructura, módulos reutilizables, multi-environment deployments
-- **Temas**: Environments & Modules, naming convention, locals.tf, Checkov security scanning, state management
-
-### 5. **github-actions-best-practices**
+### 4. **github-actions-best-practices**
 - **Descripción**: CI/CD con GitHub Actions siguiendo arquitectura modular y segura
 - **Cuándo usar**: Pipelines CI/CD, automation workflows, security scanning, deployments
 - **Temas**: Jobs independientes, security scanning multi-capa, reusable workflows, metadata completa
 
-### 6. **aws-best-practices**
-- **Descripción**: AWS cloud services, arquitectura y seguridad siguiendo Well-Architected Framework
-- **Cuándo usar**: Diseño de arquitectura AWS, seguridad, cost optimization, high availability
-- **Temas**: IAM, VPC, encryption, monitoring, disaster recovery, cost optimization
+### 5. **railway-best-practices**
+- **Descripción**: Deploy y operación en Railway, la plataforma de entrega del stack
+- **Cuándo usar**: Servicios, variables de entorno, dominios, diagnóstico de deploys
+- **Temas**: Servicios y entornos, variables, health checks, logs y métricas
+
+> Terraform, AWS y Kubernetes salieron del catálogo al curarlo
+> ([ADR-007](../../docs/adr/007-personal-stacks-and-curated-catalog.md)): el stack de
+> entrega es Railway + Supabase. Para infraestructura fuera de ese stack no hay skill;
+> documentá la decisión en un ADR.
 
 ## Comandos Esenciales
 

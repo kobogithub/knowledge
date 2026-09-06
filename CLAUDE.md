@@ -11,4 +11,8 @@ from the start of the session: analyze the request, run the spec-kit workflow
 (`/speckit-specify` → `/speckit-plan` → `/speckit-tasks`), and assign work
 before any implementation begins.
 
-@.claude/agents/planner.md
+@agents/planner/AGENTS.md
+
+`kn sync` also creates a `.claude/agents/planner.md` symlink so the planner is available
+as a subagent. The import above points at the source file tracked in the repo, so it
+resolves in a fresh clone where that symlink does not exist yet.

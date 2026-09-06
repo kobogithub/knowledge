@@ -9,6 +9,11 @@ use std::path::Path;
 /// loaded automatically at session start. `@path` imports are expanded at
 /// load time, so this pulls in the team overview and the planner's own
 /// instructions without duplicating their content.
+///
+/// Both imports point at files tracked in the project repo. `kn sync` also
+/// symlinks the planner into `.claude/agents/`, but importing that symlink
+/// would break in a fresh clone (it is gitignored), so the import targets
+/// `agents/planner/AGENTS.md` instead.
 pub fn generate_claude_md(project_name: &str) -> String {
     format!(
         r#"# CLAUDE.md
@@ -24,7 +29,11 @@ from the start of the session: analyze the request, run the spec-kit workflow
 (`/speckit-specify` → `/speckit-plan` → `/speckit-tasks`), and assign work
 before any implementation begins.
 
-@.claude/agents/planner.md
+@agents/planner/AGENTS.md
+
+`kn sync` also creates a `.claude/agents/planner.md` symlink so the planner is available
+as a subagent. The import above points at the source file tracked in the repo, so it
+resolves in a fresh clone where that symlink does not exist yet.
 "#,
         project_name = project_name
     )
@@ -63,9 +72,13 @@ mod tests {
     fn test_generate_claude_md_imports_agents_and_planner() {
         let content = generate_claude_md("my-project");
         assert!(content.contains("@AGENTS.md"));
-        assert!(content.contains("@.claude/agents/planner.md"));
+        assert!(content.contains("@agents/planner/AGENTS.md"));
         assert!(content.contains("Planner Agent"));
         assert!(content.contains("my-project"));
+
+        // The generated file must resolve in a fresh clone: `.claude/agents/`
+        // is created by `kn sync` and gitignored, so no import may target it.
+        assert!(!content.contains("@.claude/agents/"));
     }
 
     #[test]
