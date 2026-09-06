@@ -37,6 +37,11 @@ anterior esté **Aprobado**:
 
 El agente propone; el humano firma. Firmar es completar esos tres campos, nada más.
 
+El humano puede autorizar al agente a **transcribir** su firma sobre algo que ya aprobó, y
+entonces el campo lo registra (`Kevin Barroso (firma transcrita por el Planner…)`). Lo que
+ningún agente hace es decidir que un artefacto está listo, ni firmar algo que el mantenedor
+no leyó: la compuerta vale porque el registro es cierto.
+
 ### Dos aprobaciones sobre el brief y el PRD
 
 `PROJECT.md` (el **brief**) y `PRD.md` (el **contrato de alcance**) llevan además un

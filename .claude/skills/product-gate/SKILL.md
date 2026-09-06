@@ -229,8 +229,24 @@ Es el **primer paso** de `/product-prd` y `/product-stories`, y el hook `before_
 ## Reglas
 
 1. **No escribas nada.** Ni el artefacto verificado ni el derivado. Solo leés y reportás.
-2. **No firmes.** Ningún agente completa `Firmado por`. Si el veredicto es `SE DETIENE`
-   porque falta la firma, decilo y terminá; no ofrezcas firmarlo vos.
+2. **No firmes por decisión propia.** Ningún agente decide que un artefacto está listo.
+   Si el veredicto es `SE DETIENE` porque falta la firma, decilo y terminá; no ofrezcas
+   firmarlo vos.
+
+   Lo único permitido es **transcribir**: el mantenedor te autoriza explícitamente, en esa
+   misma sesión, a estampar su firma sobre un artefacto que él ya aprobó. En ese caso el
+   campo tiene que dejar constancia de cómo se obtuvo:
+
+   ```markdown
+   **Firmado por**: <nombre> (firma transcrita por <agente> por autorización en sesión)
+   ```
+
+   La diferencia no es formal. Transcribir registra una decisión que el humano tomó;
+   firmar por iniciativa propia inventa una que nadie tomó. Nunca transcribas la firma de
+   un artefacto cuyo contenido el mantenedor no vio: la compuerta vale porque el registro
+   es cierto, y una firma sobre algo no leído lo vuelve falso.
+   Para `Aprobado por cliente` no hay transcripción posible: esa la registra el mantenedor
+   después de recibir la respuesta del cliente.
 3. **No inventes el estado.** Si el encabezado no se puede parsear, es `SE DETIENE`, no
    una suposición optimista.
 4. **Un repo sin `docs/product/` nunca se bloquea.** Informar no es bloquear.

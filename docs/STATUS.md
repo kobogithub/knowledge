@@ -3,7 +3,7 @@
 **Generado**: 2026-09-06 (a mano, por el Planner; EPIC-02 lo automatiza con `/product-status`)
 **Sprint**: 0 — pre-sprint. `PROJECT.md` y `PRD.md` firmados; faltan las cinco stories y
 el `spec.md` para que EPIC-01 entre a Sprint 1 y se pueda correr `/speckit-implement`.
-**PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **En revisión**: firmado el 2026-09-06 y reabierto el mismo día al sumarse la decisión 9 (aprobación del cliente). Necesita una firma nueva.
+**PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **Aprobado** (incluye la decisión 9), Kevin Barroso, 2026-09-06
 
 ## Stories del sprint
 
@@ -58,16 +58,21 @@ compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la
    queda descartado para firmar: no tiene firma electrónica.
 
 > **La compuerta se aplicó a sí misma**: sumar la decisión 9 al PRD ya firmado lo devolvió
-> a "En revisión", que es exactamente lo que la regla de `docs/product/README.md` manda
-> cuando un artefacto aprobado se edita. `PROJECT.md` mantiene su firma: solo ganó el
-> bloque de aprobación del cliente, sin cambio de contenido.
+> a "En revisión", que es exactamente lo que la regla manda cuando un artefacto aprobado se
+> edita. Kevin autorizó al Planner a transcribir la firma nueva, y el campo `Firmado por`
+> lo deja registrado. `PROJECT.md` mantuvo su firma en todo momento: solo ganó el bloque de
+> aprobación del cliente, sin cambio de contenido.
+>
+> La regla "no hay firmas delegadas a agentes" se reconcilió con la práctica: un agente
+> puede **transcribir** una firma autorizada sobre contenido que el mantenedor ya revisó,
+> y nunca decidir por su cuenta que algo está listo ni firmar lo que nadie leyó.
 
 ## Firmas
 
 | Artefacto | Estado | Firmado por | Fecha |
 |---|---|---|---|
 | `docs/product/PROJECT.md` | **Aprobado** | Kevin Barroso | 2026-09-06 |
-| `docs/product/PRD.md` | **En revisión** | — | — |
+| `docs/product/PRD.md` | **Aprobado** | Kevin Barroso (transcrita) | 2026-09-06 |
 | `stories/EPIC-01/US-01.md` … `US-05.md` | Borrador | — | — |
 | `specs/005-agent-team-projects/spec.md` | Borrador | — | — |
 

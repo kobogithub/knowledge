@@ -1,8 +1,8 @@
 # PRD: Metodología de proyectos con equipo de agentes
 
-**Estado**: En revisión — la decisión 9 se agregó después de la firma del 2026-09-06
-**Firmado por**: — (relanzar: Kevin Barroso firmó la versión previa a la decisión 9)
-**Fecha de firma**: —
+**Estado**: Aprobado
+**Firmado por**: Kevin Barroso (firma transcrita por el Planner por autorización explícita en sesión)
+**Fecha de firma**: 2026-09-06
 **Aprobado por cliente**: Kevin Barroso — en esta iniciativa el cliente es el propio mantenedor
 **Fecha de aprobación**: 2026-09-06
 **Evidencia de aprobación**: no aplica; no hay cliente externo

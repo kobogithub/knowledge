@@ -213,7 +213,9 @@ aprobar y volver a correr (avanza). No requiere código de aplicación.
 
 ## Assumptions
 
-- El firmante es siempre el mantenedor humano; no hay firmas delegadas a agentes.
+- El firmante es siempre el mantenedor humano. Un agente nunca decide que un artefacto
+  está listo; sí puede **transcribir** una firma que el mantenedor autorizó explícitamente
+  sobre contenido que ya revisó, y el campo deja constancia de que fue transcrita.
 - El idioma de los artefactos de esta iniciativa es español; para proyectos de cliente
   queda como pregunta abierta en `PROJECT.md`.
 - Los hooks de `.specify/extensions.yml` se ejecutan como pre-hooks obligatorios cuando se
