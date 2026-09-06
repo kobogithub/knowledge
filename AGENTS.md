@@ -31,6 +31,12 @@ Each agent has specialized responsibilities and autonomy to close their own task
 ## Quick Reference (All Agents)
 
 ```bash
+# Product layer — comes BEFORE the spec (see ADR-008)
+/product-discovery <input>       # Analyst: discovery input -> docs/product/PROJECT.md (the brief)
+/product-prd                     # Planner: approved PROJECT.md -> docs/product/PRD.md (scope contract)
+/product-stories EPIC-xx         # Planner: approved PRD -> docs/product/stories/EPIC-xx/US-*.md
+/product-gate <artefacto> [EPIC] # anyone: is this signed? answers PASA or SE DETIENE
+
 # New initiative (Planner runs these; see agents/planner/AGENTS.md)
 /speckit-specify <feature description>   # creates specs/NNN-feature-name/spec.md
 /speckit-clarify                          # optional, resolves ambiguity before planning
@@ -51,6 +57,19 @@ Each agent has specialized responsibilities and autonomy to close their own task
 # Push your work (no merge-slot serialization anymore — rely on your own branch)
 git push
 ```
+
+## La regla de derivación
+
+Las secciones **"User Story N" de un `spec.md` se derivan de `docs/product/stories/EPIC-xx/US-NN.md`**:
+mismo ID, mismos escenarios Gherkin. **Si divergen, manda la story** y el spec se corrige;
+`/speckit-analyze` reporta la divergencia.
+
+La story manda porque es el artefacto que el humano revisó y firmó, y el que QA usa para
+validar cada PR. El spec es una vista técnica de eso, no una fuente paralela.
+
+Una épica del PRD equivale a una carpeta `specs/NNN-*/`. Nada se especifica sin que su
+épica esté en un PRD aprobado — ver [ADR-008](./docs/adr/008-product-layer-over-speckit.md)
+y `docs/product/README.md`.
 
 ## Framework de 5 Fases
 

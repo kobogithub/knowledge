@@ -147,10 +147,12 @@ desde `epic/005-agent-team-projects`, PR a la rama epic.
 
 **Independent Test**: escenarios 1–3 de `US-04.md` (el 4 se prueba completo en EPIC-02).
 
-- [ ] T027 [US4] Planner — Escribir `.claude/skills/product-stories/SKILL.md`: argumento = `EPIC-xx`; invoca `product-gate docs/product/PRD.md EPIC-xx`; carga `docs/product/templates/US.md`; crea `docs/product/stories/EPIC-xx/US-NN.md` numeradas desde la última existente; cada una en Borrador (FR-005, FR-006)
-- [ ] T028 [US4] Planner — Agregar a `AGENTS.md` (sección "Quick Reference") los tres comandos `product-*` y la regla "las User Story N del spec se derivan de `US-NN.md`: mismo ID, mismos escenarios; si divergen manda la story" (FR-009, FR-011)
-- [ ] T029 [P] [US4] QA — En `agents/qa/AGENTS.md` agregar la sección "Validación contra Gherkin": para cada PR que referencie `US-xx`, listar cada Scenario con pasa/falla como comentario del PR antes de aprobar; un Scenario que falla bloquea el merge (FR-011)
-- [ ] T030 [US4] QA — Validar escenarios 1–3 de `US-04.md` en una rama descartable; comentar en el PR
+- [x] T027 [US4] Planner — Escribir `.claude/skills/product-stories/SKILL.md`: argumento = `EPIC-xx`; invoca `product-gate docs/product/PRD.md EPIC-xx`; carga `docs/product/templates/US.md`; crea `docs/product/stories/EPIC-xx/US-NN.md` numeradas desde la última existente; cada una en Borrador (FR-005, FR-006). Incluye una guía de cómo escribir el Gherkin: Given verificable, When una sola acción, Then **observable**, y al menos un escenario de rechazo además del camino feliz
+- [x] T028 [US4] Planner — Agregar a `AGENTS.md` (sección "Quick Reference") los tres comandos `product-*` y la regla "las User Story N del spec se derivan de `US-NN.md`: mismo ID, mismos escenarios; si divergen manda la story" (FR-009, FR-011)
+- [x] T029 [P] [US4] QA — En `agents/qa/AGENTS.md` agregar la sección "Validación contra Gherkin": para cada PR que referencie `US-xx`, listar cada Scenario con pasa/falla como comentario del PR antes de aprobar; un Scenario que falla bloquea el merge (FR-011)
+- [x] T030 [US4] QA — Validar escenarios 1–3 de `US-04.md` en una rama descartable; comentar en el PR
+  - **Resultado 2026-09-06**: escenario 1 **pasa** — con el PRD Aprobado avanza, y una épica inexistente (`EPIC-99`) da SE DETIENE por cambio de alcance. Escenario 2 **pasa** — las cinco stories llevan encabezado completo, frase Como/quiero/para, bloque gherkin y Notas. Escenario 3 **pasa** — los 21 escenarios coinciden uno a uno entre `docs/product/stories/EPIC-01/` y las "User Story N" del spec, y cada sección enlaza su story
+  - Escenario 4 (QA comenta pasa/falla en un PR real) **pendiente**: la regla está escrita en `agents/qa/AGENTS.md` pero se ejerce recién con un PR abierto. Queda para EPIC-02, como anticipaba la story
 
 **Checkpoint**: stories generables solo desde PRD aprobado; regla de derivación documentada.
 
