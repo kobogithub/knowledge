@@ -20,9 +20,9 @@ Si divergen, manda la story (decisión 2 del PRD).
 
 Fuente: [US-01](../../docs/product/stories/EPIC-01/US-01.md). Un agente que arranca en un
 clon fresco o en una sesión remota encuentra un `CLAUDE.md` que importa un archivo que
-solo existe tras `kn sync`, un Biz Agent que exige un skill borrado del catálogo y READMEs
-que documentan un comando removido. La story deja el repo sin referencias a artefactos
-inexistentes.
+solo existe tras `kn sync`, agentes que exigen skills borrados del catálogo y READMEs que
+documentan Beads. La story deja el repo sin referencias a artefactos inexistentes y retira
+la documentación de Beads, cuyo código sale después en T041–T045 (ADR-009).
 
 **Why this priority**: destraba a todos los agentes; sin esto las stories siguientes
 arrancan en un entorno inconsistente.
@@ -34,8 +34,8 @@ búsquedas de texto de los escenarios. No requiere nada de las otras stories.
 
 1. **Given** un clon fresco sin `kn sync`, **When** Claude Code carga `CLAUDE.md`, **Then** todo archivo importado con `@` existe en el repo y el Planner sigue siendo el rol por defecto.
 2. **Given** el generador de `CLAUDE.md` en la CLI, **When** corren los tests de la CLI, **Then** el contenido generado no importa rutas que solo existen tras `kn sync` y los tests reflejan el nuevo contenido.
-3. **Given** `agents/biz/AGENTS.md`, **When** se comparan sus `required_skills` con `skills/`, **Then** no hay skill requerido inexistente.
-4. **Given** `README.md`, `README_ES.md` y `.agent/README.md`, **When** se busca "beads", "bd-best-practices" o "aws-best-practices", **Then** no hay ocurrencias fuera de `docs/adr/` y `CHANGELOG.md`.
+3. **Given** las definiciones `agents/*/AGENTS.md`, **When** se comparan sus `required_skills` y `recommended_skills` con `skills/`, **Then** no hay skill declarado inexistente y ningún documento remite a un skill removido como si existiera.
+4. **Given** `README.md`, `README_ES.md` y `.agent/README.md`, **When** se busca "beads", "bd-best-practices" o "aws-best-practices", **Then** las únicas ocurrencias son links a `docs/adr/` y ninguna sección documenta el comando, la dependencia ni el directorio.
 
 ---
 
@@ -146,7 +146,13 @@ aprobar y volver a correr (avanza). No requiere código de aplicación.
 
 - **FR-001**: El repo NO DEBE contener referencias a archivos, skills o comandos que no
   existan en el repo o en el catálogo vigente (`skills/`), excepto en `docs/adr/` y
-  `CHANGELOG.md` como registro histórico.
+  `CHANGELOG.md` como registro histórico. Un link a un ADR cuyo nombre de archivo contenga
+  el término buscado cuenta como registro histórico, no como referencia.
+- **FR-001b**: La documentación NO DEBE describir Beads como parte del producto. Beads se
+  retira por completo (decisión del mantenedor, 2026-09-06): la documentación sale en esta
+  iniciativa y el código —subcomando `kn beads`, chequeo de `kn doctor`, dependencia de
+  `install.sh`— en T041–T045, con la decisión registrada en un ADR propio. Hasta que esas
+  tareas cierren, la documentación va por delante del código a propósito.
 - **FR-002**: El `CLAUDE.md` del repo y el generado por la CLI DEBEN cargar sin depender de
   archivos creados por `kn sync`, y DEBEN seguir funcionando cuando esos archivos existen.
 - **FR-003**: DEBE existir un rol `analyst` en `agents/analyst/AGENTS.md`, declarado en la
@@ -192,8 +198,9 @@ aprobar y volver a correr (avanza). No requiere código de aplicación.
 ### Measurable Outcomes
 
 - **SC-001**: Un clon fresco del repo carga `CLAUDE.md` sin ningún import roto (cero
-  archivos faltantes) y las tres búsquedas de texto de US-01 devuelven cero resultados
-  fuera de `docs/adr/` y `CHANGELOG.md`.
+  archivos faltantes), ningún `agents/*/AGENTS.md` declara un skill que no esté en
+  `skills/`, y las tres búsquedas de texto de US-01 sobre los README no devuelven más que
+  links a `docs/adr/`.
 - **SC-002**: Un PM recorre Discovery → PRD → Stories con tres comandos y sin editar a
   mano nada más que los encabezados de firma.
 - **SC-003**: Correr `/product-prd`, `/product-stories`, `/speckit-specify` o

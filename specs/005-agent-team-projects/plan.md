@@ -188,8 +188,8 @@ hooks:
 |---|---|---|
 | V1 | Clon fresco carga `CLAUDE.md` | `git clone` a un dir temporal; cada `@ruta` de `CLAUDE.md` existe |
 | V2 | CLI no genera import roto | `cd cli && cargo test claude_md` |
-| V3 | Biz sin skill inexistente | script: cada `required_skills` de `agents/*/AGENTS.md` existe en `skills/` |
-| V4 | READMEs limpios | `grep -rn "beads\|bd-best-practices\|aws-best-practices" README*.md .agent/README.md` → vacío |
+| V3 | Ningún agente con skill inexistente | script: cada `required_skills` y `recommended_skills` de `agents/*/AGENTS.md` existe en `skills/` |
+| V4 | READMEs limpios | `grep -rn "beads\|bd-best-practices\|aws-best-practices" README*.md .agent/README.md` → solo links a `docs/adr/` |
 | V5 | Analyst instalable | `agents/analyst/AGENTS.md` con frontmatter; fila en `AGENTS.md`; `[agents.analyst]` en `kn.toml` |
 | V6 | Compuerta detiene | poner `PROJECT.md` en Borrador y correr `/product-prd` → no escribe |
 | V7 | Compuerta avanza | aprobar y repetir → escribe |

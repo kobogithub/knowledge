@@ -95,8 +95,8 @@ desde `epic/005-agent-team-projects`, PR a la rama epic.
   - **Resultado 2026-09-06** (V1 PASA, V2 PASA, V3 PASA, V4 PASA):
     - Scenario "CLAUDE.md resuelve en un clon fresco" — **pasa**: sobre un árbol sin `.claude/agents/`, los dos `@import` (`@AGENTS.md`, `@agents/planner/AGENTS.md`) resuelven y el Planner sigue siendo el rol por defecto
     - Scenario "El generador de CLAUDE.md no reintroduce el import roto" — **pasa**: `cargo test claude_md` 3/3; fmt, clippy y la suite completa (55 tests) en verde
-    - Scenario "El Biz Agent solo exige skills del catálogo" — **pasa**: el chequeo sobre los once agentes no encuentra ningún skill inexistente
-    - Scenario "Los README no documentan comandos removidos" — **pasa**: cero ocurrencias fuera de los links a `docs/adr/`
+    - Scenario "Ningún agente exige skills fuera del catálogo" — **pasa**: el chequeo sobre los once agentes, `required_skills` y `recommended_skills`, no encuentra ningún skill inexistente
+    - Scenario "La documentación no menciona Beads" — **pasa**: cero ocurrencias fuera de los links a `docs/adr/`, y ninguna sección documenta el comando, la dependencia ni el directorio
   - El comentario en el PR queda pendiente de que exista el PR (T005 crea la rama epic)
 
 **Checkpoint**: V1–V4 en verde; US-01 marcable como cerrada.
