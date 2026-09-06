@@ -3,7 +3,7 @@
 **Generado**: 2026-09-06 (a mano, por el Planner; EPIC-02 lo automatiza con `/product-status`)
 **Sprint**: 0 — pre-sprint. `PROJECT.md` y `PRD.md` firmados; faltan las cinco stories y
 el `spec.md` para que EPIC-01 entre a Sprint 1 y se pueda correr `/speckit-implement`.
-**PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **Aprobado** por Kevin Barroso, 2026-09-06
+**PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **En revisión**: firmado el 2026-09-06 y reabierto el mismo día al sumarse la decisión 9 (aprobación del cliente). Necesita una firma nueva.
 
 ## Stories del sprint
 
@@ -53,13 +53,21 @@ compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la
 4. **Los artefactos viven en git; el cliente ve una copia derivada** (decisión 8 del PRD).
    Notion para el dashboard de avance (Biz Agent, EPIC-02) y Drive para el PDF de
    constancia al firmar. La copia derivada nunca se edita.
+5. **El cliente aprueba el brief y el PRD, aparte de la firma** (decisión 9). Bloque
+   propio en el encabezado, mecanismo mail + PDF, evidencia transcrita al `.md`. Notion
+   queda descartado para firmar: no tiene firma electrónica.
+
+> **La compuerta se aplicó a sí misma**: sumar la decisión 9 al PRD ya firmado lo devolvió
+> a "En revisión", que es exactamente lo que la regla de `docs/product/README.md` manda
+> cuando un artefacto aprobado se edita. `PROJECT.md` mantiene su firma: solo ganó el
+> bloque de aprobación del cliente, sin cambio de contenido.
 
 ## Firmas
 
 | Artefacto | Estado | Firmado por | Fecha |
 |---|---|---|---|
 | `docs/product/PROJECT.md` | **Aprobado** | Kevin Barroso | 2026-09-06 |
-| `docs/product/PRD.md` | **Aprobado** | Kevin Barroso | 2026-09-06 |
+| `docs/product/PRD.md` | **En revisión** | — | — |
 | `stories/EPIC-01/US-01.md` … `US-05.md` | Borrador | — | — |
 | `specs/005-agent-team-projects/spec.md` | Borrador | — | — |
 

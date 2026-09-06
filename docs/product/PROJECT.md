@@ -3,6 +3,9 @@
 **Estado**: Aprobado
 **Firmado por**: Kevin Barroso
 **Fecha de firma**: 2026-09-06
+**Aprobado por cliente**: Kevin Barroso — en esta iniciativa el cliente es el propio mantenedor
+**Fecha de aprobación**: 2026-09-06
+**Evidencia de aprobación**: no aplica; no hay cliente externo
 **Agente autor**: Planner (`knowledge-x6e`), actuando como Analyst hasta que exista el rol
 **Input**: [`discovery/2026-09-06-metodologia-agentes.md`](./discovery/2026-09-06-metodologia-agentes.md)
 

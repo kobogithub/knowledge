@@ -1,8 +1,11 @@
 # PRD: Metodología de proyectos con equipo de agentes
 
-**Estado**: Aprobado
-**Firmado por**: Kevin Barroso
-**Fecha de firma**: 2026-09-06
+**Estado**: En revisión — la decisión 9 se agregó después de la firma del 2026-09-06
+**Firmado por**: — (relanzar: Kevin Barroso firmó la versión previa a la decisión 9)
+**Fecha de firma**: —
+**Aprobado por cliente**: Kevin Barroso — en esta iniciativa el cliente es el propio mantenedor
+**Fecha de aprobación**: 2026-09-06
+**Evidencia de aprobación**: no aplica; no hay cliente externo
 **Agente autor**: Planner (`knowledge-x6e`)
 **Derivado de**: [`PROJECT.md`](./PROJECT.md) (etapa 1)
 
@@ -65,7 +68,25 @@ se formalizan en un ADR dentro de EPIC-01.
    siempre en el repo y se vuelve a exportar. Si alguna vez hay que editar del otro lado,
    hay dos fuentes de verdad y la firma deja de significar algo.
 
-9. **El plan de releases es parte del contrato**: la tabla "Plan de releases" de abajo
+9. **El cliente aprueba el brief y el PRD; son dos gestos distintos de la firma.**
+   `PROJECT.md` y `PRD.md` llevan un segundo bloque en el encabezado —
+   `Aprobado por cliente`, `Fecha de aprobación`, `Evidencia de aprobación` — separado de
+   `Firmado por`. La firma dice "el artefacto es correcto" y la da el mantenedor; la
+   aprobación dice "acepto este alcance" y la da el cliente. Nunca una completa a la otra:
+   `product-gate` esperando a un cliente que tarda tres días bloquearía la cadena entera.
+
+   **Mecanismo**: se exporta el artefacto a PDF, se manda por mail, y el cliente responde
+   "aprobado". Ese mail es la evidencia — timestamp de un tercero, difícil de repudiar,
+   sin costo. El PDF va a Drive y el mantenedor transcribe nombre, fecha y link al
+   encabezado del `.md`. Notion no sirve para esto: no tiene firma electrónica, y un
+   checkbox del lado del cliente rompería la decisión 8 (la copia derivada no se edita).
+
+   **Qué aprueba el cliente**: el brief (entendimiento del problema) y el PRD (alcance y
+   orden). Las stories y los `spec.md` no: al cliente no se le hace revisar Gherkin.
+
+   Un proyecto sin cliente externo borra el bloque; `product-gate` no bloquea si falta.
+
+10. **El plan de releases es parte del contrato**: la tabla "Plan de releases" de abajo
    dice qué versión sale primero y cuáles siguen. Cada épica cerrada corresponde a un
    release. Cambiar el plan es un cambio de contrato y exige volver a firmar el PRD.
 
@@ -178,7 +199,7 @@ entre lo documentado y lo real.
 
 ## Plan de releases
 
-Parte del contrato (decisión 9). La versión vigente es **0.11.0**; el proyecto sigue
+Parte del contrato (decisión 10). La versión vigente es **0.11.0**; el proyecto sigue
 pre-1.0 a propósito, con los breaking changes en la posición minor.
 
 | Release | Sale de | Épicas que cierra | Contenido |

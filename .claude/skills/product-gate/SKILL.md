@@ -44,6 +44,33 @@ Todo artefacto de la cadena lleva estas tres líneas en su encabezado (FR-008):
 
 Firmar es completar esos tres campos. El agente propone; el humano firma.
 
+### Aprobación del cliente (solo `PROJECT.md` y `PRD.md`)
+
+Esos dos artefactos llevan además un segundo bloque, porque son los que el cliente ve y
+acepta: el brief ("esto entendí de tu problema") y el contrato de alcance ("esto construyo
+y en qué orden").
+
+```markdown
+**Aprobado por cliente**: <nombre>
+**Fecha de aprobación**: YYYY-MM-DD
+**Evidencia de aprobación**: <link al mail, PDF o registro>
+```
+
+Son **dos gestos distintos y no intercambiables**:
+
+| | Firma | Aprobación del cliente |
+|---|---|---|
+| Qué afirma | el artefacto es correcto | el cliente acepta este alcance |
+| Quién | el mantenedor | el cliente |
+| Para qué | destraba al siguiente agente | protege comercialmente |
+
+Nunca completes uno con el otro. Un artefacto firmado sin aprobación del cliente es un
+documento correcto que todavía nadie autorizó; uno aprobado sin firmar es un acuerdo que
+nadie revisó.
+
+Las stories y los `spec.md` **no** llevan este bloque: al cliente no se le hace revisar
+Gherkin.
+
 ## Procedimiento
 
 ### 1. ¿El repo tiene capa de producto?
@@ -119,7 +146,37 @@ Cuando el estado es `Reemplazado`:
 SE DETIENE: <ruta> está Reemplazado. Buscá el artefacto vigente que lo sucede.
 ```
 
-### 5. Verificación de épica (solo si recibiste `EPIC-xx`)
+### 5. Aprobación del cliente (solo `PROJECT.md` y `PRD.md`)
+
+Se corre **además** de los pasos anteriores, y solo si el veredicto hasta acá es `PASA`.
+Para cualquier otro artefacto, salteá este paso.
+
+Buscá `**Aprobado por cliente**:`, `**Fecha de aprobación**:` y
+`**Evidencia de aprobación**:`, con el mismo criterio de campo vacío del paso 3.
+
+- **Faltan las tres líneas** → el artefacto es anterior a esta convención:
+
+  ```
+  PASA (sin aprobación de cliente): <ruta> está firmado pero no tiene el bloque de
+  aprobación del cliente. Agregalo si el proyecto tiene un cliente externo.
+  ```
+
+  No bloquea: hay proyectos sin cliente externo, donde el mantenedor es su propio cliente.
+
+- **Están pero vacías** → el bloque existe, así que el proyecto declaró tener cliente:
+
+  ```
+  SE DETIENE: <ruta> está firmado pero el cliente todavía no lo aprobó. Mandale el PDF y
+  esperá su respuesta antes de arrancar el trabajo que este artefacto habilita.
+  ```
+
+- **Completas** → sumá al mensaje de PASA: `y aprobado por el cliente <nombre> el <fecha>`.
+
+**No completes vos ninguno de esos campos.** La evidencia la registra el mantenedor
+después de recibir la respuesta del cliente; un agente no puede afirmar que un cliente
+aprobó algo.
+
+### 6. Verificación de épica (solo si recibiste `EPIC-xx`)
 
 Se corre **además** de los pasos anteriores, y solo si el veredicto hasta acá es `PASA`.
 La invoca `/product-stories EPIC-xx` y el hook `before_specify`.

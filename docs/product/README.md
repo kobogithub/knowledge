@@ -37,6 +37,35 @@ anterior esté **Aprobado**:
 
 El agente propone; el humano firma. Firmar es completar esos tres campos, nada más.
 
+### Dos aprobaciones sobre el brief y el PRD
+
+`PROJECT.md` (el **brief**) y `PRD.md` (el **contrato de alcance**) llevan además un
+segundo bloque, porque son los dos que el cliente ve y acepta:
+
+```markdown
+**Aprobado por cliente**: <nombre>
+**Fecha de aprobación**: YYYY-MM-DD
+**Evidencia de aprobación**: <link al mail o al PDF>
+```
+
+| | `Firmado por` | `Aprobado por cliente` |
+|---|---|---|
+| Qué afirma | el artefacto es correcto | el cliente acepta este alcance |
+| Quién | el mantenedor | el cliente |
+| Para qué sirve | destraba al siguiente agente | protege comercialmente |
+
+**No se completan entre sí.** Un artefacto firmado sin aprobación es un documento correcto
+que todavía nadie autorizó; uno aprobado sin firmar es un acuerdo que nadie revisó.
+
+**Cómo se obtiene**: se exporta el artefacto a PDF, se manda por mail y el cliente
+responde "aprobado". Ese mail es la evidencia: lleva timestamp de un tercero, es difícil de
+repudiar y no cuesta nada. El PDF va a Drive; el mantenedor transcribe nombre, fecha y link
+al encabezado. Notion no sirve para firmar — no tiene firma electrónica, y que el cliente
+tilde algo del lado de Notion rompería la regla de que la copia derivada no se edita.
+
+Las stories y los `spec.md` no llevan este bloque: al cliente no se le hace revisar
+Gherkin. Un proyecto sin cliente externo borra el bloque y `product-gate` no bloquea.
+
 ## Dónde viven los artefactos
 
 En git, y en ningún otro lado. `docs/product/` es la fuente de verdad porque es donde los

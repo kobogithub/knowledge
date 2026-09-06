@@ -3,10 +3,14 @@
 **Estado**: Borrador
 **Firmado por**: —
 **Fecha de firma**: —
+**Aprobado por cliente**: —
+**Fecha de aprobación**: —
+**Evidencia de aprobación**: —
 **Agente autor**: Analyst (`<prefijo>-an1`)
 **Input**: [`discovery/[fecha]-[tema].md`](./discovery/[fecha]-[tema].md)
 
-> Etapa 1 de la cadena. Este documento se deriva del input de discovery y **no** agrega
+> Etapa 1 de la cadena. Es el **brief**: lo que el cliente aprueba antes de que arranque
+> nada. Se deriva del input de discovery y **no** agrega
 > requerimientos que el cliente no haya expresado. Lo que no está en el input aparece en
 > "Preguntas abiertas", nunca como decisión tomada.
 
@@ -69,3 +73,8 @@ medirlo, la métrica va a Preguntas abiertas y acá queda el objetivo cualitativ
 **Plantilla**: etapa 1 de la cadena de producto. La genera `/product-discovery <input>`.
 Ver [`../README.md`](../README.md). Las diez secciones (título + nueve) son las de la guía
 de discovery; no se quitan ni se reordenan, aunque queden con "no especificado".
+
+> **Dos aprobaciones, no una.** *Firmado por* es el mantenedor diciendo "el artefacto es
+> correcto"; *Aprobado por cliente* es el cliente diciendo "acepto este alcance". No se
+> completan entre sí. La evidencia es el mail de respuesta del cliente sobre el PDF que le
+> mandaste; el PDF queda en Drive. En un proyecto sin cliente externo, borrá el bloque.

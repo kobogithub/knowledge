@@ -3,6 +3,9 @@
 **Estado**: Borrador
 **Firmado por**: —
 **Fecha de firma**: —
+**Aprobado por cliente**: —
+**Fecha de aprobación**: —
+**Evidencia de aprobación**: —
 **Agente autor**: Planner (`<prefijo>-x6e`)
 **Derivado de**: [`PROJECT.md`](./PROJECT.md) (etapa 1)
 
@@ -81,3 +84,8 @@ la épica que depende de ella: anotalo en la épica.]
 
 **Plantilla**: etapa 2 de la cadena de producto. La genera `/product-prd`, que exige
 `PROJECT.md` en Estado "Aprobado". Ver [`../README.md`](../README.md).
+
+> **Dos aprobaciones, no una.** *Firmado por* es el mantenedor diciendo "el artefacto es
+> correcto"; *Aprobado por cliente* es el cliente diciendo "acepto este alcance". No se
+> completan entre sí. La evidencia es el mail de respuesta del cliente sobre el PDF que le
+> mandaste; el PDF queda en Drive. En un proyecto sin cliente externo, borrá el bloque.
