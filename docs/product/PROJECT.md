@@ -39,13 +39,20 @@ código, antes del primer proyecto piloto.
   `stories/EPIC-xx/US-xx.md`, más el rol **Analyst** y los comandos por compuerta.
 - Compuertas de firma explícitas en cada artefacto y regla para que ningún agente derive
   el siguiente artefacto sin la firma del anterior.
-- Adaptación de los roles de la guía (analyst, pm, architect, dev, qa) a los once roles
-  existentes de `knowledge`, sin duplicar agentes.
+- Adaptación de los roles de la guía (analyst, pm, architect, dev, qa) a los roles
+  existentes de `knowledge`. Se agregan dos roles nuevos: **Analyst** (relevamiento) y
+  **Architect**, que produce la arquitectura sobre arc42 recortado, los ADR y los modelos
+  LikeC4, separado del Planner.
 - Seguimiento PM: `docs/STATUS.md` regenerable con las métricas de la sección 5 de la guía.
 - Publicación de tareas como issues (GitHub Issues por defecto) con link a story y spec.
 - QA validando cada PR contra el Gherkin de la story.
 - Scaffolding de la estructura de producto desde `kn init`, para que cada proyecto de
   cliente arranque con la cadena lista.
+- Disciplina de ramas y releases: `epic → dev → test → prod` en todo proyecto, con
+  release candidate en `test` y release estable en `prod`, y el plan de releases acordado
+  en el PRD.
+- Retiro completo de Beads del producto (comando, chequeo de dependencias e instalador),
+  registrado en un ADR, cerrando lo que ADR-006 dejó a medias al elegir spec-kit.
 - Aplicar la cadena a esta misma iniciativa (dogfooding) para validarla antes del piloto.
 
 ## Fuera de alcance
@@ -64,6 +71,9 @@ código, antes del primer proyecto piloto.
 
 - **Técnicas**: todo artefacto vive en git; nada en chats. spec-kit es la única capa de
   specs. Los agentes se definen en `agents/<rol>/AGENTS.md` y se instalan con `kn`.
+  El flujo de ramas es siempre `epic/<feature-id> → dev → test → prod`: `test` lleva los
+  release candidate (`vX.Y.Z-rc.N`) y `prod` solo releases estables (`vX.Y.Z`). Ningún
+  cambio llega a `prod` sin haber pasado por un rc en `test`.
 - **Tiempo**: un mantenedor, sprints de una semana. La cadena tiene que ser operable por
   una persona sola sin dedicarle más que el tiempo de firma y revisión.
 - **Presupuesto**: sin gasto nuevo. GitHub, Claude Code, Railway y Supabase ya están.
@@ -87,17 +97,30 @@ código, antes del primer proyecto piloto.
 | Riesgo | Impacto | Mitigación |
 |---|---|---|
 | Duplicar capas: stories en `docs/product` y user stories en `spec.md` divergen | Dos fuentes de verdad | Regla de derivación: el spec referencia el ID de la story y copia sus escenarios; la story manda |
-| El Planner sigue haciendo PM + Architect en la misma sesión | Pierde criterio (trampa 4) | Separar por sesión primero; evaluar un rol Architect en una épica posterior |
+| El Planner sigue haciendo PM + Architect en la misma sesión | Pierde criterio (trampa 4) | **Resuelto**: rol Architect separado, con arc42 recortado, ADR y LikeC4 como entregables propios (EPIC-06) |
+| `test` se saltea y un cambio va de `dev` a `prod` directo | Un release sin rc que lo valide | La regla queda en el PRD como contrato y en la estrategia de ramas; `prod` solo acepta PR desde `test` o `hotfix/*` |
 | Las compuertas se vuelven burocracia y se saltean | La cadena deja de proteger | Firma = un campo en el encabezado; el agente la verifica, el humano solo la completa |
 | `kn init` scaffoldea algo que después no se usa | Ruido en proyectos de cliente | Scaffolding mínimo (plantillas + STATUS vacío), sin contenido inventado |
+
+## Decisiones tomadas
+
+Preguntas que estaban abiertas y el mantenedor respondió el 2026-09-06:
+
+- **Rol Architect separado del Planner**: sí. Trabaja sobre **arc42 recortado** (no la
+  plantilla completa), **ADR** y **LikeC4** para los modelos. El Planner deja de producir
+  la arquitectura; sigue con PRD, stories y coordinación. Se implementa en EPIC-06.
+- **Flujo de ramas y releases**: `epic → dev → test → prod`, siempre. `test` lleva `rcN`,
+  `prod` lleva `vX.Y.Z`. El PRD fija cuál es el primer release y los siguientes. Se
+  implementa en EPIC-07.
+- **Beads**: se retira por completo del producto, no solo de la documentación, y la
+  decisión se registra en un ADR propio, porque la elección de spec-kit (ADR-006) ya lo
+  había reemplazado.
 
 ## Preguntas abiertas
 
 - ¿El idioma de los artefactos de producto es español siempre, o depende del cliente?
   (Los specs existentes en `knowledge` están en inglés; esta iniciativa se escribe en
   español.)
-- ¿Se quiere un rol **Architect** separado del Planner, o el Planner sigue produciendo
-  `plan.md`?
 - ¿Qué proyecto es el piloto y cuándo arranca? Define la fecha límite real de la cadena.
 - ¿Dónde vive la guía comercial (sección 7 del input)? Hoy queda solo en el input de
   discovery.

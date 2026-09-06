@@ -22,7 +22,7 @@ plantillas PROJECT/PRD/US) y Fase 3 (US-01 completa) implementadas en la rama
 
 ## Specs sin issue
 
-- `specs/005-agent-team-projects/` — 43 tareas (40 del plan + T041–T043 de follow-up), ninguna publicada como issue. Se publican
+- `specs/005-agent-team-projects/` — 45 tareas (40 del plan + T041–T045 del retiro de Beads), ninguna publicada como issue. Se publican
   con `/speckit-taskstoissues` después de la firma del spec (T004).
 
 ## Issues sin PR
@@ -38,12 +38,21 @@ Ninguno.
 Ver tabla de riesgos en [`PRD.md`](./product/PRD.md). El más relevante hoy: que las
 compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la memoria.
 
+## Decisiones del mantenedor (2026-09-06)
+
+1. **Rol Architect separado del Planner**: sí, con arc42 recortado, ADR y LikeC4 como
+   entregables. Nueva EPIC-06, Sprint 2.
+2. **Flujo de ramas fijo**: `epic → dev → test → prod`, rc en `test`, `vX.Y.Z` en `prod`,
+   y el plan de releases como parte del contrato. Nueva EPIC-07, Sprint 2. Primer release
+   **v0.12.0** (EPIC-01); `v1.0.0` al cerrar el piloto.
+3. **Beads se retira del producto**, no solo de la doc, con ADR propio (ADR-009).
+   T041–T045, dentro de v0.12.0.
+
 ## Preguntas al cliente pendientes
 
 1. Idioma de los artefactos de producto (español fijo o por cliente).
-2. Rol Architect separado del Planner, o no.
-3. Proyecto piloto y fecha.
-4. Dónde vive la guía comercial (sección 7 del input de discovery).
+2. Proyecto piloto y fecha.
+3. Dónde vive la guía comercial (sección 7 del input de discovery).
 
 ## Deuda técnica registrada
 
@@ -56,10 +65,10 @@ compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la
   (T012–T017). El chequeo encontró más de lo que la story listaba: seis skills fantasma en
   tres agentes (biz, devops, backend), no uno solo, y `docs/reports/README.md` también
   apuntaba al skill removido.
-- **Beads en el binario, no en la doc (2026-09-06)**: por decisión del mantenedor, T015
-  borró toda mención a beads de los README aunque `kn beads template` siga existiendo. El
-  binario todavía instala `bd` desde `install.sh` (como dependencia obligatoria), lo
-  verifica en `kn doctor` y expone el subcomando. Doc y binario están desalineados a
-  propósito hasta que cierren T041–T043 de `specs/005-agent-team-projects/tasks.md`.
+- **Beads en el binario, no en la doc (2026-09-06)**: T015 borró toda mención a beads de
+  los README aunque el binario siga instalando `bd` desde `install.sh` (como dependencia
+  obligatoria), verificándolo en `kn doctor` y exponiendo `kn beads`. El mantenedor
+  decidió el retiro completo con ADR propio: T041–T045. Doc y binario están desalineados
+  a propósito hasta que esas tareas cierren, dentro de v0.12.0.
 - **`analyst` en el `CLAUDE.md` generado**: T013 no agregó el rol a la lista del generador
   porque el rol se crea en T018/T019. Va en el mismo commit que lo cree.

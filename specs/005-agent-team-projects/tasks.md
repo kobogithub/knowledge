@@ -175,17 +175,23 @@ desde `epic/005-agent-team-projects`, PR a la rama epic.
 
 ---
 
-## Follow-ups descubiertos durante la implementación
+## Retiro completo de Beads (decisión del mantenedor, 2026-09-06)
 
-Tareas que no estaban en el plan y que salieron de ejecutar US1. No bloquean EPIC-01.
+Salió de ejecutar US1 y el mantenedor lo confirmó como alcance: Beads se retira **del
+producto**, no solo de la documentación, y la decisión queda en un ADR propio porque
+ADR-006 eligió spec-kit pero dejó el comando, el chequeo y el instalador en pie.
+
+Entra en el release **v0.12.0** junto con el resto de EPIC-01 (ver Plan de releases del
+PRD). T044 es un `feat!`: quita un subcomando público de la CLI.
 
 - [ ] T041 Rust — Quitar `bd` y `Dolt` de la verificación de dependencias de `kn doctor` (`cli/src/commands/doctor.rs:66-74` y el caso `"bd"` de la línea 292), y ajustar el conteo "N/N dependencies met" que el README ya documenta como 5/5
 - [ ] T042 DevOps — Quitar la instalación de `bd` de `install.sh` (bloque de las líneas 542-565, la nota de `--skip-deps` y el chequeo obligatorio de la línea 901) y la mención de `uninstall.sh`. Hoy el instalador aborta si no puede instalar `bd`, una dependencia que ya no se usa. Verificar contra los tests de CI de `install.sh`
-- [ ] T043 Rust — Decidir y ejecutar el retiro del subcomando `kn beads` (`cli/src/commands/beads.rs` + wiring en `main.rs`): es lo único que queda de beads en el producto y ya no está documentado. Si se decide conservarlo, hay que volver a documentarlo y reabrir el Scenario 4 de US-01
+- [ ] T043 Rust — Quitar el subcomando `kn beads` completo: `cli/src/commands/beads.rs`, su `mod` en `commands/mod.rs`, el `use` y la variante `Commands::Beads` de `main.rs`. Actualizar los tests que lo cubran. Es un **breaking change** de la CLI: el commit va como `feat(cli)!: remove the kn beads subcommand`
+- [ ] T044 Docs Writer — Escribir `docs/adr/009-remove-beads-from-the-product.md` (plantilla `000-template.md`): contexto (ADR-006 eligió spec-kit y sacó Beads del workflow, pero el producto siguió instalándolo, verificándolo y exponiéndolo; la doc se retiró primero en T015 y dejó la brecha), decisión (retiro completo: comando, `kn doctor`, instalador), consecuencias (breaking change de CLI en v0.12.0, `bd` deja de ser dependencia de instalación, quien use Beads de forma independiente lo instala por su cuenta), alternativas descartadas (conservar el comando y volver a documentarlo). Agregar la fila en `docs/adr/README.md`
+- [ ] T045 Docs Writer — Anotar en `CHANGELOG.md` `[Unreleased]` el retiro de Beads bajo un encabezado `⚠️ BREAKING`, con la nota de que `bd` deja de instalarse
 
-> T041–T043 nacen de la decisión de T015: la documentación ya no menciona beads, pero el
-> binario lo instala, lo verifica y lo expone. Mientras estén abiertas, doc y binario
-> están desalineados a propósito y con registro.
+**Orden**: T044 (el ADR) antes que T041–T043, para que la decisión esté registrada antes
+de ejecutarla. T045 al cierre.
 
 ---
 
