@@ -16,6 +16,8 @@ An Architecture Decision Record captures an important architectural decision mad
 | [004](./004-3-tier-skill-distribution.md) | 3-Tier Skill Distribution System | Accepted | 2025-01-20 |
 | [005](./005-openrouter-llm-provider.md) | OpenRouter as Unified LLM Provider with Differentiated Models | Accepted | 2025-02-15 |
 | [006](./006-adopt-speckit-remove-beads.md) | Adopt GitHub Spec Kit, Remove Beads (bd) | Accepted | 2026-07-17 |
+| [007](./007-personal-stacks-and-curated-catalog.md) | Personal Stacks & Curated Skill Catalog | Accepted | 2026-08-01 |
+| [008](./008-product-layer-over-speckit.md) | A Product Layer Above spec-kit, With Signature Gates | Accepted | 2026-09-06 |
 
 <!-- Add new ADRs above this line -->
 

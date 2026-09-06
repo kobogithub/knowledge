@@ -130,10 +130,12 @@ desde `epic/005-agent-team-projects`, PR a la rama epic.
 
 **Independent Test**: quickstart V6–V7.
 
-- [ ] T023 [US3] Planner — Escribir `.claude/skills/product-prd/SKILL.md`: primer paso invoca `product-gate docs/product/PROJECT.md`; carga `docs/product/templates/PRD.md`; genera `docs/product/PRD.md` en Borrador con tabla de épicas, sección por épica, roadmap y riesgos; hereda Preguntas abiertas del PROJECT (FR-005, FR-006)
-- [ ] T024 [US3] Docs Writer — Escribir `docs/adr/008-product-layer-over-speckit.md` (plantilla `000-template.md`): contexto (guía de discovery, brechas), decisión (capa `docs/product/`, épica ↔ `specs/NNN`, la story manda, encabezado de firma, comandos como skills, hooks de spec-kit), consecuencias, alternativas descartadas (BMAD/OpenSpec como herramienta, spec por story). Agregar la fila en `docs/adr/README.md` (FR-010)
-- [ ] T025 [US3] Planner — Documentar en `agents/planner/AGENTS.md` la cadena completa antes de la "REGLA FUNDAMENTAL": `/product-prd` → `/product-stories` → `/speckit-specify` por épica, con la tabla de compuertas del `plan.md`; actualizar el ejemplo práctico para que arranque desde una épica del PRD y no desde una frase del usuario (FR-011)
-- [ ] T026 [US3] QA — Ejecutar V6 y V7 sobre una rama descartable; comentar en el PR
+- [x] T023 [US3] Planner — Escribir `.claude/skills/product-prd/SKILL.md`: primer paso invoca `product-gate docs/product/PROJECT.md`; carga `docs/product/templates/PRD.md`; genera `docs/product/PRD.md` en Borrador con tabla de épicas, sección por épica, roadmap y riesgos; hereda Preguntas abiertas del PROJECT (FR-005, FR-006)
+- [x] T024 [US3] Docs Writer — Escribir `docs/adr/008-product-layer-over-speckit.md` (plantilla `000-template.md`): contexto (guía de discovery, brechas), decisión (capa `docs/product/`, épica ↔ `specs/NNN`, la story manda, encabezado de firma, comandos como skills, hooks de spec-kit), consecuencias, alternativas descartadas (BMAD/OpenSpec como herramienta, spec por story). Agregar la fila en `docs/adr/README.md` (FR-010). **Además**: el índice tampoco listaba ADR-007, que sí existe desde el 2026-08-01; se agregaron las dos filas y ahora los ocho ADR están indexados
+- [x] T025 [US3] Planner — Documentar en `agents/planner/AGENTS.md` la cadena completa antes de la "REGLA FUNDAMENTAL": `/product-prd` → `/product-stories` → `/speckit-specify` por épica, con la tabla de compuertas del `plan.md`; actualizar el ejemplo práctico para que arranque desde una épica del PRD y no desde una frase del usuario (FR-011). El ejemplo abre con un PASO 0 (`/product-gate docs/product/PRD.md EPIC-04`) y con la frase que ordena el rol: "tu primera pregunta no es cómo, es de dónde sale"
+- [x] T026 [US3] QA — Ejecutar V6 y V7 sobre una rama descartable; comentar en el PR
+  - **Resultado 2026-09-06**: V6 **pasa** — con `PROJECT.md` forzado a Borrador, el paso 1 de `/product-prd` aborta antes de escribir nada. V7 **pasa** — restaurado a Aprobado, el comando avanza. El estado del archivo quedó restaurado y `git diff` no muestra residuo
+  - Verificado el comportamiento de compuerta, no la generación del PRD en sí: ese contenido ya existe y regenerarlo habría pisado un artefacto firmado, que es justo lo que la regla 4 del skill prohíbe
 
 **Checkpoint**: PRD generable solo desde PROJECT aprobado; decisión registrada en ADR.
 
