@@ -36,6 +36,11 @@ Everything beyond the [README](../README.md). If you are new to `kn`, start with
 - **[Architecture Decision Records](./adr/README.md)** — why the project is built the way it is. Start with [ADR-001](./adr/001-rust-cli-tool.md) for the choice of Rust, and [ADR-006](./adr/006-adopt-speckit-remove-beads.md) for the move from Beads to spec-kit.
 - **[Stakeholder Reports](./reports/README.md)** — periodic status summaries.
 
+## Product layer and status
+
+- **[Product layer](./product/README.md)** — what comes *before* a spec: discovery input, `PROJECT.md`, `PRD.md` with epics, and user stories with Gherkin, each with a sign-off gate.
+- **[STATUS.md](./STATUS.md)** — the PM view: stories per sprint, specs without issues, issues without PRs, open risks and questions.
+
 ## Initiatives
 
-Feature work is specified before it is built. Each initiative lives in [`specs/`](../specs/) as a `spec.md`, `plan.md` and `tasks.md`. The workflow is documented in [AGENTS.md](../AGENTS.md).
+Feature work is specified before it is built. An initiative starts as an epic in [`docs/product/PRD.md`](./product/PRD.md) and, once signed, lives in [`specs/`](../specs/) as a `spec.md`, `plan.md` and `tasks.md`. The workflow is documented in [AGENTS.md](../AGENTS.md).
