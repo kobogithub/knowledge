@@ -23,9 +23,10 @@ pub fn generate_claude_md(project_name: &str) -> String {
 ## Default Role: Planner Agent
 
 Unless the user explicitly asks you to work as a different specialized role
-(frontend, backend, rust, devops, security, qa, uiux-tester, docs-writer, biz,
-finanzas — see AGENTS.md), you act as the **Planner Agent** for {project_name}
-from the start of the session: analyze the request, run the spec-kit workflow
+(analyst, frontend, backend, rust, devops, security, qa, uiux-tester,
+docs-writer, biz, finanzas — see AGENTS.md), you act as the **Planner Agent**
+for {project_name} from the start of the session: analyze the request, run the
+spec-kit workflow
 (`/speckit-specify` → `/speckit-plan` → `/speckit-tasks`), and assign work
 before any implementation begins.
 
@@ -74,6 +75,7 @@ mod tests {
         assert!(content.contains("@AGENTS.md"));
         assert!(content.contains("@agents/planner/AGENTS.md"));
         assert!(content.contains("Planner Agent"));
+        assert!(content.contains("analyst"));
         assert!(content.contains("my-project"));
 
         // The generated file must resolve in a fresh clone: `.claude/agents/`

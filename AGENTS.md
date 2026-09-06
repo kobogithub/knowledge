@@ -6,6 +6,7 @@ This project uses **spec-kit** (`specify-cli`, installed in `.specify/` and `.cl
 
 Each agent has specialized responsibilities and autonomy to close their own tasks:
 
+- **[Analyst Agent](./agents/analyst/AGENTS.md)** (`knowledge-an1`) - Discovery: turns a client input into `docs/product/PROJECT.md` (the brief), without inventing what the client did not say
 - **[Planner Agent](./agents/planner/AGENTS.md)** (`knowledge-x6e`) - Coordinates work, runs `/speckit-specify` and `/speckit-plan`, assigns sections of `tasks.md`
 - **[Frontend Agent](./agents/frontend/AGENTS.md)** (`knowledge-4yh`) - UI/UX, React, components, client-side
 - **[Backend Agent](./agents/backend/AGENTS.md)** (`knowledge-vlf`) - APIs, databases, business logic, security
