@@ -45,9 +45,24 @@ de `US-NN.md`: mismo ID, mismos escenarios Gherkin. Si divergen, **manda la stor
 
 ### Verificá la compuerta antes de cada comando
 
-Corré `/product-gate <artefacto>` antes de `/speckit-specify` y `/speckit-plan`. Los hooks
-de `.specify/extensions.yml` lo hacen automáticamente, pero **la verificación es tuya**: si
-el hook no corrió, corré el gate a mano. Nunca derives un artefacto de uno sin firmar.
+Los hooks de `.specify/extensions.yml` lo hacen automáticamente: están declarados con
+`optional: false`, que es lo que hace que el skill espere el resultado antes de seguir.
+
+**Pero la verificación es tuya, no del hook.** Corré `/product-gate <artefacto>` a mano
+antes de `/speckit-specify` y `/speckit-plan` si:
+
+- no viste el bloque `Automatic Pre-Hook` en la salida del comando;
+- el hook corrió sin argumentos y no estás seguro de qué artefacto miró;
+- estás en un repo donde `.specify/extensions.yml` no existe o fue regenerado.
+
+Pasarle la ruta explícita siempre es mejor que confiar en la inferencia:
+
+```bash
+/product-gate docs/product/PRD.md EPIC-04     # antes de /speckit-specify
+/product-gate specs/005-agent-team-projects/spec.md   # antes de /speckit-plan
+```
+
+Nunca derives un artefacto de uno sin firmar.
 
 Si el repo no tiene `docs/product/`, la capa de producto no está inicializada: el gate
 informa y deja avanzar. Ahí sí arrancás directo en `/speckit-specify`.

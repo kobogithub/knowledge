@@ -16,12 +16,35 @@ disable-model-invocation: false
 $ARGUMENTS
 ```
 
-Primer argumento: ruta del artefacto a verificar (obligatorio).
+Primer argumento: ruta del artefacto a verificar.
 Segundo argumento opcional: ID de épica (`EPIC-xx`), que activa las verificaciones extra
 de la sección "Verificación de épica".
 
-Si `$ARGUMENTS` está vacío, respondé `SE DETIENE: product-gate necesita la ruta del
-artefacto a verificar` y terminá.
+### Invocación sin argumentos (desde un hook de spec-kit)
+
+Los hooks de `.specify/extensions.yml` emiten `EXECUTE_COMMAND: product-gate` **sin
+argumentos**: el mecanismo no los transporta. Cuando `$ARGUMENTS` esté vacío, **inferí el
+objetivo del contexto en lugar de detenerte** — un gate que frena siempre se termina
+desactivando, y entonces no protege nada.
+
+Mirá qué comando te invocó:
+
+| Invocado desde | Verificá |
+|---|---|
+| `before_plan` (`/speckit-plan`) | el `spec.md` de la feature activa: leé `feature_directory` de `.specify/feature.json` y verificá `<feature_directory>/spec.md` |
+| `before_specify` (`/speckit-specify`) | `docs/product/PRD.md`, más la épica que corresponda a la feature que se está por crear |
+| directamente por una persona, sin contexto | pedí la ruta: `SE DETIENE: product-gate necesita la ruta del artefacto a verificar.` |
+
+En `before_specify` puede que todavía no sepas qué épica es —la feature no existe—. En ese
+caso verificá solo que `docs/product/PRD.md` esté Aprobado, y sumá al resultado:
+
+```
+Recordá que la épica de esta feature tiene que estar en el PRD y tener stories. Si no las
+tiene, corré /product-stories <EPIC-xx> antes de seguir.
+```
+
+Si `.specify/feature.json` no existe o apunta a un directorio inexistente, informá y dejá
+avanzar: es un repo sin feature activa, no un incumplimiento.
 
 ## Qué es esto
 
@@ -102,8 +125,28 @@ Leé el archivo de la ruta recibida.
 Buscá en el archivo, en cualquier orden y en las primeras 40 líneas, las tres líneas que
 empiezan con `**Estado**:`, `**Firmado por**:` y `**Fecha de firma**:`.
 
-- Falta alguna de las tres → `SE DETIENE: <ruta> no tiene encabezado de firma. Le faltan:
-  <campos>. Agregalos según el contrato de docs/product/README.md.`
+Distinguí dos casos, porque significan cosas distintas:
+
+- **Faltan las tres** → el artefacto es **anterior a la capa de producto**. Existe desde
+  antes de que hubiera compuertas, y bloquearlo sería romper trabajo válido:
+
+  ```
+  PASA (sin compuerta): <ruta> no tiene encabezado de firma; es anterior a la capa de
+  producto. Si querés someterlo a la cadena, agregale el encabezado y firmalo.
+  ```
+
+  Es lo que mantiene válidas las iniciativas previas que conviven en un repo que **sí**
+  tiene `docs/product/` — el caso de `specs/001-*` a `004-*` en este repo, y lo que exige
+  SC-005 del spec. La escapatoria del paso 1 cubre repos enteros sin capa de producto;
+  esta cubre artefactos sueltos anteriores dentro de un repo que ya la tiene.
+
+- **Falta una o dos** → el encabezado existe pero está mal formado, y eso sí es un
+  incumplimiento: alguien empezó a declarar la compuerta y la dejó a medias.
+
+  ```
+  SE DETIENE: <ruta> tiene el encabezado de firma incompleto. Le faltan: <campos>.
+  Completalos según el contrato de docs/product/README.md.
+  ```
 
 Normalizá los valores: quitá espacios al borde. Un campo se considera **vacío** si su
 valor es `—`, `-`, `TBD`, `<nombre>`, `YYYY-MM-DD` o la cadena vacía.

@@ -1,0 +1,30 @@
+# Extensiones de spec-kit para knowledge
+#
+# Engancha la capa de producto (docs/product/) a los comandos de spec-kit sin tocar
+# .claude/skills/speckit-*/, que specify-cli regenera y sobrescribiría cualquier edición.
+# Ver ADR-008 y docs/product/README.md.
+#
+# `optional: false` es obligatorio y va explícito. Los skills speckit-* ramifican sobre ese
+# flag: solo la rama "Mandatory hook" emite EXECUTE_COMMAND y espera el resultado antes de
+# seguir. Sin el campo, el hook no cae en esa rama y la compuerta no bloquea — verificado
+# contra .claude/skills/speckit-plan/SKILL.md.
+#
+# El nombre del comando se traduce a slash command reemplazando "." por "-", así que
+# `product-gate` se invoca como `/product-gate`.
+
+hooks:
+  before_specify:
+    - extension: product-layer
+      command: product-gate
+      optional: false
+      description: >-
+        Exige un PRD aprobado, que la épica figure en él y que tenga stories, antes de
+        escribir un spec. Un spec sin épica acordada es trabajo que nadie pidió.
+
+  before_plan:
+    - extension: product-layer
+      command: product-gate
+      optional: false
+      description: >-
+        Exige que el spec.md esté Aprobado antes de planificar. Planificar sobre un spec
+        en borrador es construir sobre algo que todavía puede cambiar.

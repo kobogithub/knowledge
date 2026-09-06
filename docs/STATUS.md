@@ -10,16 +10,18 @@
 | Story | Estado artefacto | Estado trabajo | Rol |
 |---|---|---|---|
 | US-01 Referencias rotas saneadas | **Aprobado** | **Implementada, V1–V4 en verde** | Docs Writer, Rust |
-| US-02 Discovery con rol Analyst | **Aprobado** | No arrancada | Planner, Docs Writer |
-| US-03 PRD derivado de PROJECT aprobado | **Aprobado** | No arrancada | Planner |
-| US-04 Stories con Gherkin | **Aprobado** | No arrancada | Planner, QA |
-| US-05 Compuertas de firma | **Aprobado** | Parcial: encabezados y firmas listos | Planner, QA, mantenedor |
+| US-02 Discovery con rol Analyst | **Aprobado** | **Implementada**; falta corrida real de `/product-discovery` (V5) | Planner, Docs Writer |
+| US-03 PRD derivado de PROJECT aprobado | **Aprobado** | **Implementada, V6–V7 en verde** | Planner |
+| US-04 Stories con Gherkin | **Aprobado** | **Implementada**; escenario 4 (QA en PR real) para EPIC-02 | Planner, QA |
+| US-05 Compuertas de firma | **Aprobado** | **Implementada, V8–V9 en verde** | Planner, QA, mantenedor |
 
-Planificadas: 5 · Cerradas: 0 (US-01 implementada; se cierra al firmarse los artefactos)
+Planificadas: 5 · Implementadas: 5 · Pendientes de cierre formal: 2 (US-02 y US-04 esperan verificaciones que necesitan un PR o una corrida real)
 
-**Avance 2026-09-06**: Fase 2 (fundaciones: excepción de `.gitignore`, skill `product-gate`,
-plantillas PROJECT/PRD/US) y Fase 3 (US-01 completa) implementadas en la rama
-`claude/ultima-adicion-8yqkd3`. Las fases 4–7 siguen sin arrancar.
+**Avance 2026-09-06**: fases 2 a 7 implementadas en `claude/ultima-adicion-8yqkd3`. La
+cadena está completa y operativa: cuatro skills (`product-gate`, `product-discovery`,
+`product-prd`, `product-stories`), el rol Analyst, las tres plantillas, ADR-008, la regla
+de derivación, la validación de QA contra Gherkin y los hooks de `.specify/extensions.yml`.
+Falta la Fase 8 (quickstart completo, índices, CHANGELOG, cierre).
 
 ## Specs sin issue
 
