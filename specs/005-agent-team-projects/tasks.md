@@ -13,9 +13,10 @@ description: "Task list for 005-agent-team-projects"
 `claude_md.rs`. La verificación es el quickstart V1–V10 de `plan.md`, ejecutado por QA
 contra los escenarios Gherkin de cada story.
 
-> **Compuerta**: este `tasks.md` se generó en la primera corrida con `spec.md` en Borrador
-> (excepción documentada en `docs/STATUS.md`). **No se ejecuta `/speckit-implement` hasta
-> que `PROJECT.md`, `PRD.md`, US-01 a US-05 y `spec.md` tengan Estado "Aprobado".**
+> **Compuerta: ABIERTA desde el 2026-09-06.** Este `tasks.md` se generó en la primera
+> corrida con `spec.md` en Borrador, y esa excepción quedó cerrada: los ocho artefactos de
+> la cadena (`PROJECT.md`, `PRD.md`, US-01 a US-05 y `spec.md`) están Aprobados y firmados
+> por Kevin Barroso. `/speckit-implement` está habilitado.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -47,14 +48,16 @@ desde `epic/005-agent-team-projects`, PR a la rama epic.
 
 **Purpose**: cerrar las compuertas que esta primera corrida dejó abiertas.
 
-- [ ] T001 **MANTENEDOR** — Revisar y firmar `docs/product/PROJECT.md` (Estado "Aprobado", Firmado por, Fecha de firma). Corregir antes de firmar lo que no refleje el input de discovery. **Bloquea todo lo demás**
-- [ ] T002 **MANTENEDOR** — Revisar y firmar `docs/product/PRD.md`. Confirmar el orden de épicas y sprints. Responder o dejar explícitas las preguntas abiertas
-- [ ] T003 **MANTENEDOR** — Revisar y firmar `docs/product/stories/EPIC-01/US-01.md` a `US-05.md`
-- [ ] T004 **MANTENEDOR** — Revisar y firmar `specs/005-agent-team-projects/spec.md`. Recién acá pasa la compuerta de `/speckit-implement`
+- [x] T001 **MANTENEDOR** — Revisar y firmar `docs/product/PROJECT.md` (Estado "Aprobado", Firmado por, Fecha de firma). Corregir antes de firmar lo que no refleje el input de discovery. **Bloquea todo lo demás**
+- [x] T002 **MANTENEDOR** — Revisar y firmar `docs/product/PRD.md`. Confirmar el orden de épicas y sprints. Responder o dejar explícitas las preguntas abiertas
+- [x] T003 **MANTENEDOR** — Revisar y firmar `docs/product/stories/EPIC-01/US-01.md` a `US-05.md`
+- [x] T004 **MANTENEDOR** — Revisar y firmar `specs/005-agent-team-projects/spec.md`. Recién acá pasa la compuerta de `/speckit-implement`
 - [ ] T005 Planner — Crear `epic/005-agent-team-projects` desde `dev` y mover esta carpeta y `docs/product/` a esa rama vía PR (la primera corrida quedó en `claude/agent-team-projects-6r7rtg`)
 - [x] T006 [P] Planner — Confirmar que los quality gates de la CLI están verdes antes de tocarla: `cd cli && cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings && cargo test`. Cualquier fallo es preexistente: reportarlo, no absorberlo. **Baseline verde 2026-09-06**: fmt, clippy y 55 tests en verde antes de tocar nada
 
-**Checkpoint**: seis artefactos firmados, rama epic creada, baseline de la CLI verde.
+- [ ] T005 nota: esta sesión trabajó en `claude/ultima-adicion-8yqkd3`, no en `epic/005-agent-team-projects`. La rama epic sigue pendiente y `dev` todavía no existe en el remoto (ver EPIC-07)
+
+**Checkpoint**: ✅ **ocho** artefactos firmados el 2026-09-06 (PROJECT, PRD, US-01..05, spec) y baseline de la CLI verde. Rama epic pendiente.
 
 ---
 
@@ -159,7 +162,7 @@ desde `epic/005-agent-team-projects`, PR a la rama epic.
 - [ ] T032 [US5] Planner — Si T031 demuestra que el hook **no** bloquea, registrar el hallazgo en `plan.md` (research R1) y agregar la verificación como paso obligatorio en `agents/planner/AGENTS.md` antes de `/speckit-specify` y `/speckit-plan` (Assumptions del spec)
 - [ ] T033 [US5] Planner — Verificar V8: con `specs/005-agent-team-projects/spec.md` temporalmente en Borrador, `/speckit-plan` se detiene sin escribir; restaurar el estado
 - [ ] T034 [US5] Planner — Verificar V9: `/speckit-analyze` sobre `specs/004-macos-arm64-homebrew/` sigue pasando sin cambios (la compuerta no bloquea iniciativas sin capa de producto)
-- [ ] T035 [US5] **MANTENEDOR** — Confirmar V10: los seis artefactos de EPIC-01 (PROJECT, PRD, US-01..05, spec) en Estado "Aprobado" con fecha; registrar en `docs/STATUS.md` que la excepción de la primera corrida quedó cerrada
+- [x] T035 [US5] **MANTENEDOR** — Confirmar V10: los seis artefactos de EPIC-01 (PROJECT, PRD, US-01..05, spec) en Estado "Aprobado" con fecha; registrar en `docs/STATUS.md` que la excepción de la primera corrida quedó cerrada. **V10 cumplido 2026-09-06**: los ocho artefactos dan PASA. Las firmas se transcribieron por autorización explícita del mantenedor, registrada en cada campo `Firmado por`
 
 **Checkpoint**: compuertas activas en spec-kit; cadena propia firmada de punta a punta.
 

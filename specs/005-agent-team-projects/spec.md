@@ -4,9 +4,9 @@
 
 **Created**: 2026-09-06
 
-**Estado**: Borrador — pendiente de firma
-**Firmado por**: —
-**Fecha de firma**: —
+**Estado**: Aprobado
+**Firmado por**: Kevin Barroso (firma transcrita por el Planner por autorización explícita en sesión)
+**Fecha de firma**: 2026-09-06
 
 **Épica**: EPIC-01 de [`docs/product/PRD.md`](../../docs/product/PRD.md)
 

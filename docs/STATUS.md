@@ -1,19 +1,19 @@
 # STATUS
 
 **Generado**: 2026-09-06 (a mano, por el Planner; EPIC-02 lo automatiza con `/product-status`)
-**Sprint**: 0 — pre-sprint. `PROJECT.md` y `PRD.md` firmados; faltan las cinco stories y
-el `spec.md` para que EPIC-01 entre a Sprint 1 y se pueda correr `/speckit-implement`.
+**Sprint**: 1 — EPIC-01 en curso. Los ocho artefactos de la cadena están firmados y
+`/speckit-implement` está habilitado desde el 2026-09-06.
 **PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **Aprobado** (incluye la decisión 9), Kevin Barroso, 2026-09-06
 
 ## Stories del sprint
 
 | Story | Estado artefacto | Estado trabajo | Rol |
 |---|---|---|---|
-| US-01 Referencias rotas saneadas | Borrador | **Implementada, V1–V4 en verde** | Docs Writer, Rust |
-| US-02 Discovery con rol Analyst | Borrador | No arrancada | Planner, Docs Writer |
-| US-03 PRD derivado de PROJECT aprobado | Borrador | No arrancada | Planner |
-| US-04 Stories con Gherkin | Borrador | No arrancada | Planner, QA |
-| US-05 Compuertas de firma | Borrador | No arrancada | Planner, QA, mantenedor |
+| US-01 Referencias rotas saneadas | **Aprobado** | **Implementada, V1–V4 en verde** | Docs Writer, Rust |
+| US-02 Discovery con rol Analyst | **Aprobado** | No arrancada | Planner, Docs Writer |
+| US-03 PRD derivado de PROJECT aprobado | **Aprobado** | No arrancada | Planner |
+| US-04 Stories con Gherkin | **Aprobado** | No arrancada | Planner, QA |
+| US-05 Compuertas de firma | **Aprobado** | Parcial: encabezados y firmas listos | Planner, QA, mantenedor |
 
 Planificadas: 5 · Cerradas: 0 (US-01 implementada; se cierra al firmarse los artefactos)
 
@@ -73,8 +73,11 @@ compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la
 |---|---|---|---|
 | `docs/product/PROJECT.md` | **Aprobado** | Kevin Barroso | 2026-09-06 |
 | `docs/product/PRD.md` | **Aprobado** | Kevin Barroso (transcrita) | 2026-09-06 |
-| `stories/EPIC-01/US-01.md` … `US-05.md` | Borrador | — | — |
-| `specs/005-agent-team-projects/spec.md` | Borrador | — | — |
+| `stories/EPIC-01/US-01.md` … `US-05.md` | **Aprobado** | Kevin Barroso (transcritas) | 2026-09-06 |
+| `specs/005-agent-team-projects/spec.md` | **Aprobado** | Kevin Barroso (transcrita) | 2026-09-06 |
+
+Los ocho dan PASA. Las cinco stories y el `spec.md` se firmaron tras revisar los 21
+escenarios Gherkin en sesión.
 
 La compuerta `product-gate` verificada contra estos encabezados: `PROJECT.md` y `PRD.md`
 dan PASA; `spec.md` da SE DETIENE, así que `/speckit-implement` sigue bloqueado. `EPIC-06`
@@ -91,10 +94,9 @@ constancia en Drive (decisión 8). Se hace a mano hasta que EPIC-02 lo automatic
 
 ## Deuda técnica registrada
 
-- **Excepción de compuerta de la primera corrida (2026-09-06)**: `PROJECT.md`, `PRD.md`,
-  las cinco stories, `spec.md`, `plan.md` y `tasks.md` se escribieron en una sola sesión
-  como borradores, sin firma intermedia, para dejar la cadena completa y revisable de una
-  vez. A partir de la firma rige la compuerta (US-05, escenario 5). Se cierra en T035.
+- ~~Excepción de compuerta de la primera corrida (2026-09-06)~~ — **CERRADA el mismo día**
+  (T035, V10). Los ocho artefactos quedaron Aprobados y firmados, así que la cadena
+  recorrió su propio circuito de punta a punta. Desde acá rige la compuerta sin excepción.
 - `.specify/memory/constitution.md` sigue siendo la plantilla sin ratificar (T040).
 - ~~Referencias rotas conocidas hasta que cierre US-01~~ — **saneadas el 2026-09-06**
   (T012–T017). El chequeo encontró más de lo que la story listaba: seis skills fantasma en
