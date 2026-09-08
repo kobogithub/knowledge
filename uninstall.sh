@@ -92,7 +92,7 @@ This script will:
 3. Optionally remove project configurations (if --remove-config is specified)
 4. Clean up shell configuration files (.bashrc, .zshrc, etc.)
 
-Note: This does NOT uninstall dependencies like Git, Node.js, or bd.
+Note: This does NOT uninstall dependencies like Git or Node.js.
 
 EOF
                 exit 0
@@ -354,7 +354,7 @@ main() {
         fi
         
         echo ""
-        echo "Dependencies (Git, Node.js, bd) will NOT be removed."
+        echo "Dependencies (Git, Node.js) will NOT be removed."
         echo ""
         
         read -p "Continue with uninstallation? (y/N) " -n 1 -r

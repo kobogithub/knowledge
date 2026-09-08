@@ -198,14 +198,21 @@ ADR-006 eligió spec-kit pero dejó el comando, el chequeo y el instalador en pi
 Entra en el release **v0.12.0** junto con el resto de EPIC-01 (ver Plan de releases del
 PRD). T044 es un `feat!`: quita un subcomando público de la CLI.
 
-- [ ] T041 Rust — Quitar `bd` y `Dolt` de la verificación de dependencias de `kn doctor` (`cli/src/commands/doctor.rs:66-74` y el caso `"bd"` de la línea 292), y ajustar el conteo "N/N dependencies met" que el README ya documenta como 5/5
-- [ ] T042 DevOps — Quitar la instalación de `bd` de `install.sh` (bloque de las líneas 542-565, la nota de `--skip-deps` y el chequeo obligatorio de la línea 901) y la mención de `uninstall.sh`. Hoy el instalador aborta si no puede instalar `bd`, una dependencia que ya no se usa. Verificar contra los tests de CI de `install.sh`
-- [ ] T043 Rust — Quitar el subcomando `kn beads` completo: `cli/src/commands/beads.rs`, su `mod` en `commands/mod.rs`, el `use` y la variante `Commands::Beads` de `main.rs`. Actualizar los tests que lo cubran. Es un **breaking change** de la CLI: el commit va como `feat(cli)!: remove the kn beads subcommand`
-- [ ] T044 Docs Writer — Escribir `docs/adr/009-remove-beads-from-the-product.md` (plantilla `000-template.md`): contexto (ADR-006 eligió spec-kit y sacó Beads del workflow, pero el producto siguió instalándolo, verificándolo y exponiéndolo; la doc se retiró primero en T015 y dejó la brecha), decisión (retiro completo: comando, `kn doctor`, instalador), consecuencias (breaking change de CLI en v0.12.0, `bd` deja de ser dependencia de instalación, quien use Beads de forma independiente lo instala por su cuenta), alternativas descartadas (conservar el comando y volver a documentarlo). Agregar la fila en `docs/adr/README.md`
-- [ ] T045 Docs Writer — Anotar en `CHANGELOG.md` `[Unreleased]` el retiro de Beads bajo un encabezado `⚠️ BREAKING`, con la nota de que `bd` deja de instalarse
+- [x] T041 Rust — Quitar `bd` y `Dolt` de la verificación de dependencias de `kn doctor` (`cli/src/commands/doctor.rs:66-74` y el caso `"bd"` de la línea 292), y ajustar el conteo "N/N dependencies met" que el README ya documenta como 5/5
+- [x] T042 DevOps — Quitar la instalación de `bd` de `install.sh` (bloque de las líneas 542-565, la nota de `--skip-deps` y el chequeo obligatorio de la línea 901) y la mención de `uninstall.sh`. Hoy el instalador aborta si no puede instalar `bd`, una dependencia que ya no se usa. Verificar contra los tests de CI de `install.sh`
+- [x] T043 Rust — Quitar el subcomando `kn beads` completo: `cli/src/commands/beads.rs`, su `mod` en `commands/mod.rs`, el `use` y la variante `Commands::Beads` de `main.rs`. Actualizar los tests que lo cubran. Es un **breaking change** de la CLI: el commit va como `feat(cli)!: remove the kn beads subcommand`
+- [x] T044 Docs Writer — Escribir `docs/adr/009-remove-beads-from-the-product.md` (plantilla `000-template.md`): contexto (ADR-006 eligió spec-kit y sacó Beads del workflow, pero el producto siguió instalándolo, verificándolo y exponiéndolo; la doc se retiró primero en T015 y dejó la brecha), decisión (retiro completo: comando, `kn doctor`, instalador), consecuencias (breaking change de CLI en v0.12.0, `bd` deja de ser dependencia de instalación, quien use Beads de forma independiente lo instala por su cuenta), alternativas descartadas (conservar el comando y volver a documentarlo). Agregar la fila en `docs/adr/README.md`
+- [x] T045 Docs Writer — Anotar en `CHANGELOG.md` `[Unreleased]` el retiro de Beads bajo un encabezado `⚠️ BREAKING`, con la nota de que `bd` deja de instalarse
 
 **Orden**: T044 (el ADR) antes que T041–T043, para que la decisión esté registrada antes
-de ejecutarla. T045 al cierre.
+de ejecutarla. T045 al cierre. **Ejecutado en ese orden el 2026-09-06.**
+
+**Alcance real**: además de lo previsto, `install.sh` copiaba formulas desde `.beads/`,
+borrado por ADR-006 — código muerto que imprimía un warning en cada instalación. Y las
+funciones `install_rust()` e `install_bd()` quedaban sin llamador al sacar `bd`, así que se
+removieron las dos. Verificado: `cargo fmt`, `clippy -D warnings` y 55 tests en verde;
+`kn --help` ya no lista `beads`; `kn doctor` reporta 5/5; `bash -n` limpio en los dos
+scripts.
 
 ---
 
