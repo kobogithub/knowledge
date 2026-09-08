@@ -1,25 +1,39 @@
 # STATUS
 
 **Generado**: 2026-09-06 (a mano, por el Planner; EPIC-02 lo automatiza con `/product-status`)
-**Sprint**: 0 — pre-sprint. EPIC-01 entra a Sprint 1 cuando se firmen los artefactos.
-**PRD**: [`docs/product/PRD.md`](./product/PRD.md) (Borrador)
+**Sprint**: 1 — EPIC-01 en curso. Los ocho artefactos de la cadena están firmados y
+`/speckit-implement` está habilitado desde el 2026-09-06.
+**PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **Aprobado** (incluye la decisión 9), Kevin Barroso, 2026-09-06
 
 ## Stories del sprint
 
 | Story | Estado artefacto | Estado trabajo | Rol |
 |---|---|---|---|
-| US-01 Referencias rotas saneadas | Borrador | No arrancada | Docs Writer, Rust |
-| US-02 Discovery con rol Analyst | Borrador | No arrancada | Planner, Docs Writer |
-| US-03 PRD derivado de PROJECT aprobado | Borrador | No arrancada | Planner |
-| US-04 Stories con Gherkin | Borrador | No arrancada | Planner, QA |
-| US-05 Compuertas de firma | Borrador | No arrancada | Planner, QA, mantenedor |
+| US-01 Referencias rotas saneadas | **Aprobado** | **Implementada, V1–V4 en verde** | Docs Writer, Rust |
+| US-02 Discovery con rol Analyst | **Aprobado** | **Implementada**; 2 escenarios sin verificar (corrida real) | Planner, Docs Writer |
+| US-03 PRD derivado de PROJECT aprobado | **Aprobado** | **Implementada, V6–V7 en verde** | Planner |
+| US-04 Stories con Gherkin | **Aprobado** | **Implementada**; escenario 4 (QA en PR real) para EPIC-02 | Planner, QA |
 
-Planificadas: 5 · Cerradas: 0
+**QA 10/10 en el quickstart V1–V10** desde un árbol exportado con `git archive` (sin
+`kn sync`). Contra el Gherkin: **18 de 21 escenarios verificados, 0 fallas, 3 no
+verificables** en este entorno. Reporte completo en
+[`docs/reports/2026-09-06-qa-005.md`](./reports/2026-09-06-qa-005.md).
+| US-05 Compuertas de firma | **Aprobado** | **Implementada, V8–V9 en verde** | Planner, QA, mantenedor |
+
+Planificadas: 5 · Implementadas: 5 · Pendientes de cierre formal: 2 (US-02 y US-04 esperan verificaciones que necesitan un PR o una corrida real)
+
+**Avance 2026-09-06**: EPIC-01 implementada de punta a punta en
+`claude/ultima-adicion-8yqkd3` — fases 2 a 8, más el retiro de Beads. La cadena está
+operativa: cuatro skills (`product-gate`, `product-discovery`, `product-prd`,
+`product-stories`), el rol Analyst, tres plantillas, ADR-008 y ADR-009, la regla de
+derivación, la validación de QA contra Gherkin y los hooks de `.specify/extensions.yml`.
+Sale en **v0.12.0**.
 
 ## Specs sin issue
 
-- `specs/005-agent-team-projects/` — 40 tareas, ninguna publicada como issue. Se publican
-  con `/speckit-taskstoissues` después de la firma del spec (T004).
+- `specs/005-agent-team-projects/` — 46 tareas, 45 cerradas. Ninguna se publicó como issue:
+  la iniciativa se ejecutó completa en una sesión, así que `/speckit-taskstoissues` no llegó
+  a tener utilidad. Para EPIC-02 sí conviene publicarlas antes de empezar.
 
 ## Issues sin PR
 
@@ -27,27 +41,98 @@ Ninguno (no hay issues todavía).
 
 ## PRs sin review > 24 h
 
-Ninguno.
+Ninguno. El PR de `claude/ultima-adicion-8yqkd3` → `dev` está pendiente de abrir.
+
+## Ramas vivas
+
+| Rama | Estado |
+|---|---|
+| `prod` | `d47ac31` |
+| `dev` | `d47ac31` — sincronizada con `prod` el 2026-09-06 |
+| `claude/ultima-adicion-8yqkd3` | EPIC-01 completa, pendiente de PR a `dev` |
+| `epic/003-absorb-framework-ia` | Revisar: ¿su trabajo ya está en `prod`? |
+| `epic/004-macos-arm64-homebrew` | Revisar: el PR #13 ya se mergeó |
+| `task/restore-short-url` | Revisar: el PR #16 ya se mergeó |
+
+Auditar y borrar las tres últimas es parte de EPIC-07.
 
 ## Riesgos abiertos
 
 Ver tabla de riesgos en [`PRD.md`](./product/PRD.md). El más relevante hoy: que las
 compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la memoria.
 
+## Decisiones del mantenedor (2026-09-06)
+
+1. **Rol Architect separado del Planner**: sí, con arc42 recortado, ADR y LikeC4 como
+   entregables. Nueva EPIC-06, Sprint 2.
+2. **Flujo de ramas fijo**: `epic → dev → prod`, rc en `dev`, `vX.Y.Z` en `prod`, y el
+   plan de releases como parte del contrato. Una rama `test` intermedia quedó **fuera por
+   ahora**; vuelve si el piloto muestra que hace falta. Nueva EPIC-07, Sprint 2: la
+   jerarquía ya está documentada y `dev` se sincronizó con `prod` el 2026-09-06. Primer release
+   **v0.12.0** (EPIC-01); `v1.0.0` al cerrar el piloto.
+3. **Beads se retira del producto**, no solo de la doc, con ADR propio (ADR-009).
+   T041–T045, dentro de v0.12.0.
+4. **Los artefactos viven en git; el cliente ve una copia derivada** (decisión 8 del PRD).
+   Notion para el dashboard de avance (Biz Agent, EPIC-02) y Drive para el PDF de
+   constancia al firmar. La copia derivada nunca se edita.
+5. **El cliente aprueba el brief y el PRD, aparte de la firma** (decisión 9). Bloque
+   propio en el encabezado, mecanismo mail + PDF, evidencia transcrita al `.md`. Notion
+   queda descartado para firmar: no tiene firma electrónica.
+
+> **La compuerta se aplicó a sí misma**: sumar la decisión 9 al PRD ya firmado lo devolvió
+> a "En revisión", que es exactamente lo que la regla manda cuando un artefacto aprobado se
+> edita. Kevin autorizó al Planner a transcribir la firma nueva, y el campo `Firmado por`
+> lo deja registrado. `PROJECT.md` mantuvo su firma en todo momento: solo ganó el bloque de
+> aprobación del cliente, sin cambio de contenido.
+>
+> La regla "no hay firmas delegadas a agentes" se reconcilió con la práctica: un agente
+> puede **transcribir** una firma autorizada sobre contenido que el mantenedor ya revisó,
+> y nunca decidir por su cuenta que algo está listo ni firmar lo que nadie leyó.
+
+## Firmas
+
+| Artefacto | Estado | Firmado por | Fecha |
+|---|---|---|---|
+| `docs/product/PROJECT.md` | **Aprobado** | Kevin Barroso | 2026-09-06 |
+| `docs/product/PRD.md` | **Aprobado** | Kevin Barroso (transcrita) | 2026-09-06 |
+| `stories/EPIC-01/US-01.md` … `US-05.md` | **Aprobado** | Kevin Barroso (transcritas) | 2026-09-06 |
+| `specs/005-agent-team-projects/spec.md` | **Aprobado** | Kevin Barroso (transcrita) | 2026-09-06 |
+
+Los ocho dan PASA. Las cinco stories y el `spec.md` se firmaron tras revisar los 21
+escenarios Gherkin en sesión.
+
+La compuerta `product-gate` verificada contra estos encabezados: `PROJECT.md` y `PRD.md`
+dan PASA; `spec.md` da SE DETIENE, así que `/speckit-implement` sigue bloqueado. `EPIC-06`
+da SE DETIENE por falta de stories, que es lo correcto: se generan al entrar a Sprint 2.
+
+**Pendiente de export**: los dos artefactos firmados todavía no tienen su PDF de
+constancia en Drive (decisión 8). Se hace a mano hasta que EPIC-02 lo automatice.
+
 ## Preguntas al cliente pendientes
 
 1. Idioma de los artefactos de producto (español fijo o por cliente).
-2. Rol Architect separado del Planner, o no.
-3. Proyecto piloto y fecha.
-4. Dónde vive la guía comercial (sección 7 del input de discovery).
+2. Proyecto piloto y fecha.
+3. Dónde vive la guía comercial (sección 7 del input de discovery).
 
 ## Deuda técnica registrada
 
-- **Excepción de compuerta de la primera corrida (2026-09-06)**: `PROJECT.md`, `PRD.md`,
-  las cinco stories, `spec.md`, `plan.md` y `tasks.md` se escribieron en una sola sesión
-  como borradores, sin firma intermedia, para dejar la cadena completa y revisable de una
-  vez. A partir de la firma rige la compuerta (US-05, escenario 5). Se cierra en T035.
+- ~~Excepción de compuerta de la primera corrida (2026-09-06)~~ — **CERRADA el mismo día**
+  (T035, V10). Los ocho artefactos quedaron Aprobados y firmados, así que la cadena
+  recorrió su propio circuito de punta a punta. Desde acá rige la compuerta sin excepción.
 - `.specify/memory/constitution.md` sigue siendo la plantilla sin ratificar (T040).
-- Referencias rotas conocidas hasta que cierre US-01: import de `CLAUDE.md` sin
-  `kn sync`, skill `notion-reporting-standard` en el Biz Agent, `kn beads template` en
-  los README, skills removidos en `.agent/README.md`.
+- ~~Referencias rotas conocidas hasta que cierre US-01~~ — **saneadas el 2026-09-06**
+  (T012–T017). El chequeo encontró más de lo que la story listaba: seis skills fantasma en
+  tres agentes (biz, devops, backend), no uno solo, y `docs/reports/README.md` también
+  apuntaba al skill removido.
+- ~~Beads en el binario, no en la doc (2026-09-06)~~ — **CERRADA el mismo día**. T041–T045
+  retiraron el subcomando, el chequeo de `kn doctor` y la instalación de `install.sh`, con
+  la decisión en [ADR-009](./adr/009-remove-beads-from-the-product.md). Doc y binario
+  vuelven a coincidir. Sale como breaking change en v0.12.0.
+- ~~`analyst` en el `CLAUDE.md` generado~~ — **cerrada**: entró en T019 junto con el rol.
+- **Tres escenarios sin verificar (2026-09-06)**: US-02 escenarios 2 y 3 necesitan una
+  corrida real de `/product-discovery` sobre un input de prueba; US-04 escenario 4 necesita
+  un PR abierto para que QA comente. Ninguno está marcado como pasado. Se cierran en
+  EPIC-02, que es cuando habrá PRs y un proyecto sobre el cual correr el discovery.
+- **`.specify/memory/constitution.md` sin ratificar** (T040): la convención de firma y "la
+  story manda" son los dos principios candidatos. Correr `/speckit-constitution` al abrir
+  EPIC-02.

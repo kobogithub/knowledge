@@ -10,8 +10,7 @@ required_skills:
   - docker-best-practices
 recommended_skills:
   - bash-best-practices
-  - kubernetes-best-practices
-  - terraform-best-practices
+  - railway-best-practices
 mcp_servers:
   - name: github
     package: "@modelcontextprotocol/server-github"

@@ -63,20 +63,6 @@ impl DoctorCommand {
                 min_version: None,
             },
             Dependency {
-                name: "bd",
-                command: "bd",
-                version_flag: "--version",
-                required: true,
-                min_version: None,
-            },
-            Dependency {
-                name: "Dolt",
-                command: "dolt",
-                version_flag: "version",
-                required: false,
-                min_version: None,
-            },
-            Dependency {
                 name: "Node.js",
                 command: "node",
                 version_flag: "--version",
@@ -288,13 +274,6 @@ impl DoctorCommand {
                         );
                         println!("    {}", "macOS: brew install git".bright_cyan());
                         println!("    {}", "https://git-scm.com/downloads".bright_black());
-                    }
-                    "bd" => {
-                        println!("    {}", "cargo install bd".bright_cyan());
-                        println!(
-                            "    {}",
-                            "or visit: https://github.com/your-org/bd".bright_black()
-                        );
                     }
                     "Node.js" => {
                         println!(

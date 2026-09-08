@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### ⚠️ BREAKING — `kn beads` is gone, and `bd` is no longer installed
+
+[ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md) replaced Beads with spec-kit as
+the workflow nine weeks ago but left it in the product. `kn` kept shipping the subcommand,
+`kn doctor` kept requiring `bd`, and `install.sh` installed it via cargo — **aborting the
+installation if it could not**. So installing `kn` obliged you to install a tool this
+project had stopped using. [ADR-009](./docs/adr/009-remove-beads-from-the-product.md)
+closes that.
+
+- **Removed `kn beads template`.** If you script it, it disappears in this release;
+  v0.11.0 stays downloadable. The templates remain in git history.
+- **`kn doctor` no longer checks `bd` or Dolt.** The count goes from 7 dependencies to 5,
+  and a clean machine no longer reports a missing required dependency.
+- **`install.sh` no longer installs `bd`**, and no longer installs Rust on your behalf to
+  do it. Installing `kn` needs Git and Node.js; the binary is pre-compiled.
+
+Using Beads independently? Install `bd` yourself — `kn` never made it work, it only
+insisted on its presence.
+
+### Added
+
+- **Product layer above spec-kit** ([ADR-008](./docs/adr/008-product-layer-over-speckit.md)):
+  `docs/product/` holds the brief (`PROJECT.md`), the scope contract (`PRD.md`) and user
+  stories with Gherkin, each with a signature header the agents verify before deriving the
+  next artifact.
+- **`analyst` role** (`knowledge-an1`): owns discovery, and only discovery. Its rule is
+  that whatever the input does not say goes to open questions rather than into the brief.
+- **Four commands**, shipped as skills: `/product-discovery`, `/product-prd`,
+  `/product-stories` and `/product-gate`.
+- **Signature gates on spec-kit**: `.specify/extensions.yml` hooks `before_specify` and
+  `before_plan` through `/product-gate`, without touching the generated `speckit-*` skills.
+- **Client approval, separate from the maintainer's signature**, on the brief and the PRD.
+- **QA validates PRs against the story's Gherkin**, one line per scenario; a failing
+  scenario blocks the merge.
+
+### Fixed
+
+- **`CLAUDE.md` imported a file that only exists after `kn sync`.** Both the repo's own and
+  the one the CLI generates now import `@agents/planner/AGENTS.md`, which is tracked, so a
+  fresh clone resolves it. A test asserts no import targets `.claude/agents/` again.
+- **Six agent definitions required skills removed from the catalog** by ADR-007 —
+  `notion-reporting-standard` in biz, plus terraform, aws and kubernetes across devops and
+  backend. `docs/reports/README.md` pointed at the removed reporting skill too; the
+  three-section standard is now written out there.
+- **`.agent/README.md` listed 10 skills and three that no longer exist.** Regenerated from
+  `skills/`: 21.
+- **The ADR index was missing ADR-007**, which has existed since August.
+- **`install.sh` tried to copy formulas from `.beads/`**, deleted by ADR-006, warning on
+  every install.
+
+
 ## [0.11.0] - 2026-08-17
 
 ### ⚠️ BREAKING — `kn` now supports Apple Silicon macOS only

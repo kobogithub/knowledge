@@ -2,7 +2,6 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 use kn::commands::agents::AgentsCommand;
-use kn::commands::beads::BeadsCommand;
 use kn::commands::doctor::DoctorCommand;
 use kn::commands::init::InitCommand;
 use kn::commands::mcp::{McpCommands, McpHandler};
@@ -33,8 +32,6 @@ enum Commands {
     Sync(SyncCommand),
     /// Update kn CLI to latest version
     Update(UpdateCommand),
-    /// Beads issue tracking utilities
-    Beads(BeadsCommand),
     /// Manage MCP (Model Context Protocol) servers
     #[command(subcommand)]
     Mcp(McpCommands),
@@ -52,7 +49,6 @@ fn main() -> Result<()> {
         Commands::Agents(cmd) => cmd.execute()?,
         Commands::Sync(cmd) => cmd.execute()?,
         Commands::Update(cmd) => cmd.execute()?,
-        Commands::Beads(cmd) => cmd.execute()?,
         Commands::Mcp(cmd) => {
             let handler = McpHandler::new();
             handler.handle(cmd)?;
