@@ -94,7 +94,7 @@ Encabezado:
 **Fecha de aprobación**: —
 **Evidencia de aprobación**: —
 **Agente autor**: Analyst (`<prefijo>-an1`)
-**Input**: link relativo al input, p. ej. `[discovery/2026-09-06-tema.md](./discovery/2026-09-06-tema.md)`
+**Input**: link markdown relativo al archivo de input, con el nombre del archivo como texto y `./discovery/<archivo>` como destino
 ```
 
 Si el proyecto no tiene cliente externo, borrá el bloque de aprobación.
