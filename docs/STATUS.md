@@ -48,7 +48,7 @@ compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la
 2. **Flujo de ramas fijo**: `epic → dev → prod`, rc en `dev`, `vX.Y.Z` en `prod`, y el
    plan de releases como parte del contrato. Una rama `test` intermedia quedó **fuera por
    ahora**; vuelve si el piloto muestra que hace falta. Nueva EPIC-07, Sprint 2: la
-   jerarquía ya está documentada pero `dev` no existe en el remoto. Primer release
+   jerarquía ya está documentada y `dev` se sincronizó con `prod` el 2026-09-06. Primer release
    **v0.12.0** (EPIC-01); `v1.0.0` al cerrar el piloto.
 3. **Beads se retira del producto**, no solo de la doc, con ADR propio (ADR-009).
    T041–T045, dentro de v0.12.0.

@@ -183,9 +183,13 @@ entre lo documentado y lo real.
 
 **Alcance previsto**:
 
-- **Crear `dev`** desde `prod` y pasarla a ser la base por defecto del repo: hoy el remoto
-  solo tiene `prod`, así que toda la jerarquía documentada (`<feature-id>/<rol>` →
-  `epic/<id>` → `dev` → `prod`) apunta a una rama que no existe.
+- **~~Crear `dev`~~ — hecho el 2026-09-06.** `dev` ya existía y estaba atrasada en
+  `b699384` (PR #17); se adelantó por fast-forward a `d47ac31`, el mismo commit que `prod`.
+  Lo que queda es hacerla la base por defecto del repo en GitHub.
+- **Auditar las ramas vivas**: además de `dev` y `prod`, el remoto tiene
+  `epic/003-absorb-framework-ia`, `epic/004-macos-arm64-homebrew` y
+  `task/restore-short-url`. Decidir cuáles se mergean y cuáles se borran; una rama epic
+  abierta cuyo trabajo ya está en `prod` es ruido que confunde el estado del proyecto.
 - Protecciones: `prod` solo acepta PR desde `dev` o `hotfix/*`; `dev` solo desde
   `epic/*` o `task/*`.
 - Verificar que la doc existente ya diga esto y corregir lo que no: `AGENTS.md`,
@@ -240,6 +244,16 @@ herramientas, ClickUp, cambios al modelo comercial, plataformas fuera de Apple S
 | Sin escalón entre `dev` y `prod`, un rc mal validado llega a producción | Media | Medio | `test` quedó fuera a propósito; la mitigación es que el rc en `dev` tenga CI verde y QA contra el Gherkin antes del PR a `prod`. Si el piloto muestra que no alcanza, `test` vuelve como épica |
 | EPIC-03 toca Rust y la CI de `kn` | Baja | Medio | Se aísla en su propia spec y rama; no bloquea EPIC-01/02 |
 | El piloto no aparece a tiempo | Media | Bajo | EPIC-01 a 04 tienen valor en `knowledge` aunque no haya cliente |
+
+## Erratas
+
+| Fecha | Qué decía | Qué dice | Firmada de nuevo |
+|---|---|---|---|
+| 2026-09-06 | EPIC-07: "hoy el remoto solo tiene `prod`, la jerarquía apunta a una rama que no existe" | `dev` ya existía, atrasada en `b699384`; se sincronizó con `prod` por fast-forward | Sí, bajo la autorización de firma del mantenedor |
+
+El error salió de mirar `git branch -r` sobre un clon que no había traído todas las refs
+remotas. Corregir el alcance de una épica del contrato exige volver a firmar, y por eso la
+errata queda acá y no en un comentario.
 
 ## Preguntas abiertas (heredadas de PROJECT.md)
 

@@ -55,7 +55,7 @@ desde `epic/005-agent-team-projects`, PR a la rama epic.
 - [ ] T005 Planner — Crear `epic/005-agent-team-projects` desde `dev` y mover esta carpeta y `docs/product/` a esa rama vía PR (la primera corrida quedó en `claude/agent-team-projects-6r7rtg`)
 - [x] T006 [P] Planner — Confirmar que los quality gates de la CLI están verdes antes de tocarla: `cd cli && cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings && cargo test`. Cualquier fallo es preexistente: reportarlo, no absorberlo. **Baseline verde 2026-09-06**: fmt, clippy y 55 tests en verde antes de tocar nada
 
-- [ ] T005 nota: esta sesión trabajó en `claude/ultima-adicion-8yqkd3`, no en `epic/005-agent-team-projects`. La rama epic sigue pendiente y `dev` todavía no existe en el remoto (ver EPIC-07)
+- [ ] T005 nota: esta sesión trabajó en `claude/ultima-adicion-8yqkd3`, no en `epic/005-agent-team-projects`. La rama epic sigue pendiente. **`dev` sí existía** (afirmé lo contrario por mirar `git branch -r` sobre un clon sin todas las refs): estaba atrasada en `b699384` y el 2026-09-06 se sincronizó con `prod` por fast-forward
 
 **Checkpoint**: ✅ **ocho** artefactos firmados el 2026-09-06 (PROJECT, PRD, US-01..05, spec) y baseline de la CLI verde. Rama epic pendiente.
 
