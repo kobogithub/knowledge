@@ -94,7 +94,7 @@ Encabezado:
 **Fecha de aprobación**: —
 **Evidencia de aprobación**: —
 **Agente autor**: Analyst (`<prefijo>-an1`)
-**Input**: [`discovery/<archivo>`](./discovery/<archivo>)
+**Input**: link relativo al input, p. ej. `[discovery/2026-09-06-tema.md](./discovery/2026-09-06-tema.md)`
 ```
 
 Si el proyecto no tiene cliente externo, borrá el bloque de aprobación.

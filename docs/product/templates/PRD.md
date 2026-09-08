@@ -43,11 +43,11 @@ tengan consecuencias arquitectónicas se formalizan además en un ADR.]
 
 **Alcance previsto**: [qué entra, en bullets o prosa corta.]
 
-**Stories** (detalle en [`stories/EPIC-01/`](./stories/EPIC-01/)):
+**Stories** (detalle en `stories/EPIC-01/`, que va como link en el archivo real):
 
 | ID | Story | Rol ejecutor |
 |---|---|---|
-| [US-01](./stories/EPIC-01/US-01.md) | [Título] | [Rol] |
+| `US-01` | [Título] | [Rol] |
 
 **Entregables visibles**: [qué puede ver o usar el cliente al cerrar la épica.]
 

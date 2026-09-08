@@ -7,7 +7,7 @@
 **Fecha de aprobación**: —
 **Evidencia de aprobación**: —
 **Agente autor**: Analyst (`<prefijo>-an1`)
-**Input**: [`discovery/[fecha]-[tema].md`](./discovery/[fecha]-[tema].md)
+**Input**: `discovery/[fecha]-[tema].md` — al generar el archivo real va como link relativo
 
 > Etapa 1 de la cadena. Es el **brief**: lo que el cliente aprueba antes de que arranque
 > nada. Se deriva del input de discovery y **no** agrega
