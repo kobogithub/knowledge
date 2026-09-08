@@ -10,23 +10,30 @@
 | Story | Estado artefacto | Estado trabajo | Rol |
 |---|---|---|---|
 | US-01 Referencias rotas saneadas | **Aprobado** | **Implementada, V1–V4 en verde** | Docs Writer, Rust |
-| US-02 Discovery con rol Analyst | **Aprobado** | **Implementada**; falta corrida real de `/product-discovery` (V5) | Planner, Docs Writer |
+| US-02 Discovery con rol Analyst | **Aprobado** | **Implementada**; 2 escenarios sin verificar (corrida real) | Planner, Docs Writer |
 | US-03 PRD derivado de PROJECT aprobado | **Aprobado** | **Implementada, V6–V7 en verde** | Planner |
 | US-04 Stories con Gherkin | **Aprobado** | **Implementada**; escenario 4 (QA en PR real) para EPIC-02 | Planner, QA |
+
+**QA 10/10 en el quickstart V1–V10** desde un árbol exportado con `git archive` (sin
+`kn sync`). Contra el Gherkin: **18 de 21 escenarios verificados, 0 fallas, 3 no
+verificables** en este entorno. Reporte completo en
+[`docs/reports/2026-09-06-qa-005.md`](./reports/2026-09-06-qa-005.md).
 | US-05 Compuertas de firma | **Aprobado** | **Implementada, V8–V9 en verde** | Planner, QA, mantenedor |
 
 Planificadas: 5 · Implementadas: 5 · Pendientes de cierre formal: 2 (US-02 y US-04 esperan verificaciones que necesitan un PR o una corrida real)
 
-**Avance 2026-09-06**: fases 2 a 7 implementadas en `claude/ultima-adicion-8yqkd3`. La
-cadena está completa y operativa: cuatro skills (`product-gate`, `product-discovery`,
-`product-prd`, `product-stories`), el rol Analyst, las tres plantillas, ADR-008, la regla
-de derivación, la validación de QA contra Gherkin y los hooks de `.specify/extensions.yml`.
-Falta la Fase 8 (quickstart completo, índices, CHANGELOG, cierre).
+**Avance 2026-09-06**: EPIC-01 implementada de punta a punta en
+`claude/ultima-adicion-8yqkd3` — fases 2 a 8, más el retiro de Beads. La cadena está
+operativa: cuatro skills (`product-gate`, `product-discovery`, `product-prd`,
+`product-stories`), el rol Analyst, tres plantillas, ADR-008 y ADR-009, la regla de
+derivación, la validación de QA contra Gherkin y los hooks de `.specify/extensions.yml`.
+Sale en **v0.12.0**.
 
 ## Specs sin issue
 
-- `specs/005-agent-team-projects/` — 45 tareas (40 del plan + T041–T045 del retiro de Beads), ninguna publicada como issue. Se publican
-  con `/speckit-taskstoissues` después de la firma del spec (T004).
+- `specs/005-agent-team-projects/` — 46 tareas, 45 cerradas. Ninguna se publicó como issue:
+  la iniciativa se ejecutó completa en una sesión, así que `/speckit-taskstoissues` no llegó
+  a tener utilidad. Para EPIC-02 sí conviene publicarlas antes de empezar.
 
 ## Issues sin PR
 
@@ -34,7 +41,20 @@ Ninguno (no hay issues todavía).
 
 ## PRs sin review > 24 h
 
-Ninguno.
+Ninguno. El PR de `claude/ultima-adicion-8yqkd3` → `dev` está pendiente de abrir.
+
+## Ramas vivas
+
+| Rama | Estado |
+|---|---|
+| `prod` | `d47ac31` |
+| `dev` | `d47ac31` — sincronizada con `prod` el 2026-09-06 |
+| `claude/ultima-adicion-8yqkd3` | EPIC-01 completa, pendiente de PR a `dev` |
+| `epic/003-absorb-framework-ia` | Revisar: ¿su trabajo ya está en `prod`? |
+| `epic/004-macos-arm64-homebrew` | Revisar: el PR #13 ya se mergeó |
+| `task/restore-short-url` | Revisar: el PR #16 ya se mergeó |
+
+Auditar y borrar las tres últimas es parte de EPIC-07.
 
 ## Riesgos abiertos
 
@@ -104,10 +124,15 @@ constancia en Drive (decisión 8). Se hace a mano hasta que EPIC-02 lo automatic
   (T012–T017). El chequeo encontró más de lo que la story listaba: seis skills fantasma en
   tres agentes (biz, devops, backend), no uno solo, y `docs/reports/README.md` también
   apuntaba al skill removido.
-- **Beads en el binario, no en la doc (2026-09-06)**: T015 borró toda mención a beads de
-  los README aunque el binario siga instalando `bd` desde `install.sh` (como dependencia
-  obligatoria), verificándolo en `kn doctor` y exponiendo `kn beads`. El mantenedor
-  decidió el retiro completo con ADR propio: T041–T045. Doc y binario están desalineados
-  a propósito hasta que esas tareas cierren, dentro de v0.12.0.
-- **`analyst` en el `CLAUDE.md` generado**: T013 no agregó el rol a la lista del generador
-  porque el rol se crea en T018/T019. Va en el mismo commit que lo cree.
+- ~~Beads en el binario, no en la doc (2026-09-06)~~ — **CERRADA el mismo día**. T041–T045
+  retiraron el subcomando, el chequeo de `kn doctor` y la instalación de `install.sh`, con
+  la decisión en [ADR-009](./adr/009-remove-beads-from-the-product.md). Doc y binario
+  vuelven a coincidir. Sale como breaking change en v0.12.0.
+- ~~`analyst` en el `CLAUDE.md` generado~~ — **cerrada**: entró en T019 junto con el rol.
+- **Tres escenarios sin verificar (2026-09-06)**: US-02 escenarios 2 y 3 necesitan una
+  corrida real de `/product-discovery` sobre un input de prueba; US-04 escenario 4 necesita
+  un PR abierto para que QA comente. Ninguno está marcado como pasado. Se cierran en
+  EPIC-02, que es cuando habrá PRs y un proyecto sobre el cual correr el discovery.
+- **`.specify/memory/constitution.md` sin ratificar** (T040): la convención de firma y "la
+  story manda" son los dos principios candidatos. Correr `/speckit-constitution` al abrir
+  EPIC-02.
