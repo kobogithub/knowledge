@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   compare:
-    name: Compare the tap against the newest release
+    name: Compare the tap against the newest stable release
     runs-on: ubuntu-latest
     env:
       TAP: kobogithub/homebrew-knowledge
@@ -42,15 +42,20 @@ jobs:
           fi
           echo "TAP_VERSION=${published}" >> "$GITHUB_ENV"
 
-      - name: Read the newest published release
+      - name: Read the newest published stable release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          latest=$(gh release list --repo "${GITHUB_REPOSITORY}" --limit 1 \
+          # --exclude-pre-releases is load-bearing. The tap deliberately never carries
+          # a release candidate (release.yml skips publish-formula for prereleases), so
+          # comparing it against an rc would report drift every Monday for a tap that is
+          # exactly where it belongs — and a check that cries wolf stops being read.
+          latest=$(gh release list --repo "${GITHUB_REPOSITORY}" \
+            --exclude-pre-releases --limit 1 \
             --json tagName -q '.[0].tagName')
           if [ -z "${latest}" ]; then
-            echo "::error::no releases found"
+            echo "::error::no stable releases found"
             exit 1
           fi
           echo "RELEASE_VERSION=${latest}" >> "$GITHUB_ENV"
@@ -59,7 +64,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "tap publishes:  ${TAP_VERSION}"
-          echo "newest release: ${RELEASE_VERSION}"
+          echo "newest stable:  ${RELEASE_VERSION}"
 
           if [ "${TAP_VERSION}" != "${RELEASE_VERSION}" ]; then
             {
@@ -68,7 +73,7 @@ jobs:
               echo "| | Version |"
               echo "|---|---|"
               echo "| Tap publishes | \`${TAP_VERSION}\` |"
-              echo "| Newest release | \`${RELEASE_VERSION}\` |"
+              echo "| Newest stable release | \`${RELEASE_VERSION}\` |"
               echo ""
               echo "\`brew install kobogithub/knowledge/kn\` is handing users"
               echo "\`${TAP_VERSION}\`. The \`publish-formula\` job in \`release.yml\`"
@@ -104,7 +109,7 @@ jobs:
             "| | Version |" \
             "|---|---|" \
             "| Tap publishes | \`${TAP_VERSION}\` |" \
-            "| Newest release | \`${RELEASE_VERSION}\` |" \
+            "| Newest stable release | \`${RELEASE_VERSION}\` |" \
             "" \
             "\`brew install kobogithub/knowledge/kn\` is handing users \`${TAP_VERSION}\`." \
             "" \

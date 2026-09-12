@@ -82,23 +82,53 @@ git push origin vX.Y.Z
 
 Pushing the tag is what starts the release.
 
+#### The release candidate comes first
+
+`dev` carries the release candidates, `prod` only the stable releases. Nothing reaches
+`prod` without having gone through an rc on `dev` — the one exception is `hotfix/*`.
+
+```bash
+# on dev, once the bump is merged there
+git tag -a vX.Y.Z-rc.1 -m "Release candidate vX.Y.Z-rc.1"
+git push origin vX.Y.Z-rc.1
+```
+
+The tag itself decides how it is published: semver reserves everything after the first
+hyphen for the prerelease identifier, so `release.yml` marks the GitHub Release as a
+prerelease and **skips `publish-formula` entirely**. The Homebrew tap keeps serving the
+last stable version, which is what `brew install kn` is supposed to mean.
+
+So an rc is installed from its tarball, not from Homebrew:
+
+```bash
+gh release download vX.Y.Z-rc.1 -p 'kn-macos-arm64.tar.gz'
+tar xzf kn-macos-arm64.tar.gz && ./kn --version
+```
+
+Once the candidate holds up, merge `dev` into `prod` and tag `vX.Y.Z` there. Only then
+does the tap move.
+
+Tags that are not `vX.Y.Z` or `vX.Y.Z-<prerelease>` are rejected by the `meta` job before
+anything is built — the `v*` trigger matches `vibe-check` just as happily as `v1.0.0`.
+
 ### 4. Watch it
 
 ```bash
 gh run watch
 ```
 
-Three jobs run in order:
+Four jobs run in order:
 
 | Job | Does |
 |---|---|
+| `meta` | Validates the tag is semver and derives `prerelease` from it |
 | `build-binaries` | Native `aarch64-apple-darwin` build |
-| `create-release` | Checksums, release notes, GitHub Release |
-| `publish-formula` | Renders `Formula/kn.rb` from the published artifacts and pushes it to the tap |
+| `create-release` | Checksums, release notes, GitHub Release (marked prerelease if the tag says so) |
+| `publish-formula` | Renders `Formula/kn.rb` from the published artifacts and pushes it to the tap — **stable tags only** |
 
-`publish-formula` declares `needs: [create-release]`, so a failed build leaves the tap
-untouched. A formula pointing at a release that does not exist is worse than a stale
-one.
+`publish-formula` declares `needs: [meta, create-release]`, so a failed build leaves the
+tap untouched. A formula pointing at a release that does not exist is worse than a stale
+one. Its `if:` skips it for prereleases, so an rc can never reach the tap.
 
 ### 5. Verify
 
@@ -108,8 +138,11 @@ kn --version        # must match the tag
 ```
 
 The release job checks this itself and fails if the tap did not update. Independently,
-`.github/workflows/tap-drift-check.yml` compares the tap against the newest release
-every Monday and fails loudly if they diverge.
+`.github/workflows/tap-drift-check.yml` compares the tap against the newest **stable**
+release every Monday and fails loudly if they diverge. It ignores prereleases on purpose:
+the tap is supposed to lag an rc, and a check that reports that as drift stops being read.
+
+For a prerelease there is nothing to verify here — step 5 applies to stable tags only.
 
 ---
 
