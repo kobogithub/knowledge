@@ -1,8 +1,8 @@
 # PRD: Metodología de proyectos con equipo de agentes
 
-**Estado**: Borrador — enmienda 1 pendiente de firma
-**Firmado por**: — (la versión firmada el 2026-09-06 es la vigente hasta que esta enmienda se firme)
-**Fecha de firma**: —
+**Estado**: Aprobado
+**Firmado por**: Kevin Barroso (firma transcrita por el Planner por autorización explícita en sesión)
+**Fecha de firma**: 2026-09-12 (enmienda 1; versión original firmada el 2026-09-06)
 **Aprobado por cliente**: Kevin Barroso — en esta iniciativa el cliente es el propio mantenedor
 **Fecha de aprobación**: 2026-09-06
 **Evidencia de aprobación**: no aplica; no hay cliente externo
@@ -305,7 +305,7 @@ herramientas, ClickUp, cambios al modelo comercial, plataformas fuera de Apple S
 
 ## Enmiendas
 
-### Enmienda 1 — 2026-09-12 — **pendiente de firma**
+### Enmienda 1 — 2026-09-12 — **firmada**
 
 Un PRD firmado es un contrato: sumarle alcance exige volver a firmarlo, no colarlo en el
 sprint en curso. Esta enmienda agrupa los dos cambios de alcance que estaban esperando,
@@ -317,15 +317,17 @@ para que haya **una sola pasada de firma** en vez de reabrir el contrato dos vec
 | 2 | **EPIC-08 nueva**: capa de diseño entre stories y spec | issue [#25](https://github.com/kobogithub/knowledge/issues/25) | Cierra las tres preguntas abiertas de la issue; entra en Sprint 3, antes del piloto |
 | 3 | **Errata de sprint en EPIC-02 y EPIC-03** | encontrada al redactar esta enmienda | Ver abajo |
 
-**Qué queda sin firmar hasta que esto se firme**: nada en curso. EPIC-01 está cerrado y
-v0.12.0 ya salió. Los dos cambios son para Sprint 3.
+**Firmada por** Kevin Barroso el 2026-09-12, transcrita por el Planner por autorización
+explícita en sesión — el mismo mecanismo que las firmas del 2026-09-06. Desde acá EPIC-08
+es alcance contratado y `stories/EPIC-02/US-01.md` deja de estar bloqueada por el
+contrato.
 
 ## Erratas
 
 | Fecha | Qué decía | Qué dice | Firmada de nuevo |
 |---|---|---|---|
 | 2026-09-06 | EPIC-07: "hoy el remoto solo tiene `prod`, la jerarquía apunta a una rama que no existe" | `dev` ya existía, atrasada en `b699384`; se sincronizó con `prod` por fast-forward | Sí, bajo la autorización de firma del mantenedor |
-| 2026-09-12 | EPIC-02 y EPIC-03 figuraban en **Sprint 2** en la tabla de épicas y en sus encabezados, y en **Sprint 3** en el plan de releases y en el roadmap | **Sprint 3**, en los cuatro lugares | Pendiente — va con la enmienda 1 |
+| 2026-09-12 | EPIC-02 y EPIC-03 figuraban en **Sprint 2** en la tabla de épicas y en sus encabezados, y en **Sprint 3** en el plan de releases y en el roadmap | **Sprint 3**, en los cuatro lugares | Sí, con la enmienda 1 |
 
 La errata de sprint estaba en el documento desde la firma del 2026-09-06 y nadie la vio:
 la tabla de épicas y el roadmap son dos vistas de lo mismo y se editaron por separado. Se
