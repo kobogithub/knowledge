@@ -1,7 +1,7 @@
 # STATUS
 
 **Generado**: 2026-09-06 (a mano, por el Planner; EPIC-02 lo automatiza con `/product-status`)
-**Última edición**: 2026-09-12 — `release.yml` ya distingue prereleases, la regla del rc queda ejecutable (#34 cerrada); release v0.12.0 a `prod` sin rc (excepción registrada y no repetible); constitución ratificada (v1.0.0, T040 cerrada); story US-01 de EPIC-02 en Borrador
+**Última edición**: 2026-09-12 — enmienda 1 del PRD firmada (EPIC-08 de diseño, glosario en EPIC-02, errata de sprint); cadena de suministro de releases endurecida (#4); `release.yml` ya distingue prereleases, la regla del rc queda ejecutable (#34); constitución ratificada (v1.0.0, T040 cerrada)
 **Sprint**: 1 — EPIC-01 en curso. Los ocho artefactos de la cadena están firmados y
 `/speckit-implement` está habilitado desde el 2026-09-06.
 **PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **Aprobado** (incluye la decisión 9), Kevin Barroso, 2026-09-06
@@ -121,6 +121,7 @@ compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la
 |---|---|---|---|
 | `docs/product/PROJECT.md` | **Aprobado** | Kevin Barroso | 2026-09-06 |
 | `docs/product/PRD.md` | **Aprobado** | Kevin Barroso (transcrita) | 2026-09-06 |
+| `docs/product/PRD.md` — **enmienda 1** (glosario en EPIC-02, EPIC-08, errata de sprint) | **Aprobado** | Kevin Barroso (transcrita) | 2026-09-12 |
 | `stories/EPIC-01/US-01.md` … `US-05.md` | **Aprobado** | Kevin Barroso (transcritas) | 2026-09-06 |
 | `specs/005-agent-team-projects/spec.md` | **Aprobado** | Kevin Barroso (transcrita) | 2026-09-06 |
 
@@ -144,8 +145,8 @@ constancia en Drive (decisión 8). Se hace a mano hasta que EPIC-02 lo automatic
 
 | Artefacto | Estado | Qué destraba |
 |---|---|---|
-| [`docs/product/PRD.md`](./product/PRD.md) — **enmienda 1** | Borrador | **Tu firma.** Agrupa los tres cambios de alcance pendientes en una sola pasada: el glosario en EPIC-02 (#24), la capa de diseño como EPIC-08 (#25) y la errata de sprint de EPIC-02/03. Redactada, sin firmar |
-| [`stories/EPIC-02/US-01.md`](./product/stories/EPIC-02/US-01.md) — glosario de dominio | Borrador | La firma de la **enmienda 1** del PRD, que es lo que mete el glosario en el alcance de EPIC-02. Origen: issue #24 |
+| [`stories/EPIC-02/US-01.md`](./product/stories/EPIC-02/US-01.md) — glosario de dominio | Borrador | **Tu firma.** El bloqueo de contrato se levantó: la enmienda 1 metió el glosario en el alcance de EPIC-02. Lo que falta ahora es revisar los escenarios Gherkin de la story y firmarla, como las cinco de EPIC-01. Origen: issue #24 |
+| Stories de **EPIC-08** — capa de diseño | No existen | `/product-stories EPIC-08`. La épica quedó contratada con la enmienda 1; las stories se generan al entrar a Sprint 3. Origen: issue #25 |
 
 ## Deuda técnica registrada
 
