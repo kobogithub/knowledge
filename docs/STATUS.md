@@ -143,7 +143,8 @@ constancia en Drive (decisión 8). Se hace a mano hasta que EPIC-02 lo automatic
 
 | Artefacto | Estado | Qué destraba |
 |---|---|---|
-| [`stories/EPIC-02/US-01.md`](./product/stories/EPIC-02/US-01.md) — glosario de dominio | Borrador | Requiere **enmendar el PRD**: el glosario no está en el alcance de EPIC-02. El PRD es el contrato y está firmado; sumarle alcance exige volver a firmarlo. Texto propuesto en las Notas de la story. Origen: issue #24 |
+| [`docs/product/PRD.md`](./product/PRD.md) — **enmienda 1** | Borrador | **Tu firma.** Agrupa los tres cambios de alcance pendientes en una sola pasada: el glosario en EPIC-02 (#24), la capa de diseño como EPIC-08 (#25) y la errata de sprint de EPIC-02/03. Redactada, sin firmar |
+| [`stories/EPIC-02/US-01.md`](./product/stories/EPIC-02/US-01.md) — glosario de dominio | Borrador | La firma de la **enmienda 1** del PRD, que es lo que mete el glosario en el alcance de EPIC-02. Origen: issue #24 |
 
 ## Deuda técnica registrada
 
