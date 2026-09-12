@@ -1,7 +1,7 @@
 # STATUS
 
 **Generado**: 2026-09-06 (a mano, por el Planner; EPIC-02 lo automatiza con `/product-status`)
-**Última edición**: 2026-09-12 — constitución ratificada (v1.0.0, T040 cerrada); story US-01 de EPIC-02 en Borrador, esperando enmienda del PRD
+**Última edición**: 2026-09-12 — release v0.12.0 a `prod` sin rc (excepción registrada); constitución ratificada (v1.0.0, T040 cerrada); story US-01 de EPIC-02 en Borrador
 **Sprint**: 1 — EPIC-01 en curso. Los ocho artefactos de la cadena están firmados y
 `/speckit-implement` está habilitado desde el 2026-09-06.
 **PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **Aprobado** (incluye la decisión 9), Kevin Barroso, 2026-09-06
@@ -90,6 +90,30 @@ compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la
 > puede **transcribir** una firma autorizada sobre contenido que el mantenedor ya revisó,
 > y nunca decidir por su cuenta que algo está listo ni firmar lo que nadie leyó.
 
+## Decisiones del mantenedor (2026-09-12)
+
+1. **v0.12.0 sale a `prod` sin release candidate previo en `dev`.** Excepción consciente y
+   acotada a este release, decidida por Kevin Barroso el 2026-09-12.
+
+   La decisión 2 de arriba, la decisión 7 del PRD y la sección "Restricciones adicionales"
+   de la constitución dicen lo mismo: *ningún cambio llega a `prod` sin haber pasado por un
+   rc en `dev`*. Esta vez no pasó.
+
+   **Por qué**: hoy la regla no es ejecutable. `release.yml` dispara con cualquier tag `v*`,
+   tiene `prerelease: false` escrito a mano y su job `publish-formula` corre sin condición.
+   Un tag `v0.12.0-rc.1` se publicaría como release estable **y se empujaría al tap de
+   Homebrew** — el mismo modo de falla que `tap-drift-check.yml` existe para detectar. Con
+   esa herramienta, cumplir la regla hacía más daño que saltearla.
+
+   **Alcance**: solo v0.12.0. La regla sigue vigente y no se enmendó.
+
+   **Qué la destraba**: hacer que `release.yml` distinga prereleases — `prerelease: true`
+   para tags con guión y saltear `publish-formula` en esos casos. Registrado como deuda
+   abajo. Hasta que eso exista, cada release va a enfrentar esta misma excepción, y la
+   regla es letra muerta en tres documentos.
+
+   Precedente: la excepción de compuerta del 2026-09-06, registrada y cerrada el mismo día.
+
 ## Firmas
 
 | Artefacto | Estado | Firmado por | Fecha |
@@ -122,6 +146,12 @@ constancia en Drive (decisión 8). Se hace a mano hasta que EPIC-02 lo automatic
 | [`stories/EPIC-02/US-01.md`](./product/stories/EPIC-02/US-01.md) — glosario de dominio | Borrador | Requiere **enmendar el PRD**: el glosario no está en el alcance de EPIC-02. El PRD es el contrato y está firmado; sumarle alcance exige volver a firmarlo. Texto propuesto en las Notas de la story. Origen: issue #24 |
 
 ## Deuda técnica registrada
+
+- **`release.yml` no distingue prereleases (2026-09-12)**: dispara con cualquier tag `v*`,
+  fija `prerelease: false` y publica al tap de Homebrew sin condición. Por eso la regla del
+  rc (decisión 7 del PRD, restricción de la constitución) **no se puede cumplir**: taggear
+  `vX.Y.Z-rc.N` publicaría un candidato como release estable. Mientras no se arregle, cada
+  release necesita una excepción registrada como la de v0.12.0. Issue #34.
 
 - ~~Excepción de compuerta de la primera corrida (2026-09-06)~~ — **CERRADA el mismo día**
   (T035, V10). Los ocho artefactos quedaron Aprobados y firmados, así que la cadena
