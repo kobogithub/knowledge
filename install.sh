@@ -350,6 +350,78 @@ download_with_progress() {
     return $ret
 }
 
+# Verifies the downloaded tarball against the checksums.txt published alongside it.
+#
+# This script is run as `curl ... | bash`, which means whatever it downloads executes
+# with the user's permissions. Without this check, a tampered release asset or a MITM
+# on the download is indistinguishable from a good one. The release workflow publishes
+# checksums.txt generated from the bytes it actually uploaded, so it is the reference
+# to compare against.
+#
+# checksums.txt is served over the same TLS connection as the tarball, so this does not
+# defend against an attacker who controls github.com — nothing a shell script can do
+# would. What it does catch is a corrupted download, a mismatched or partially replaced
+# asset, and a release whose artifacts were altered after publication.
+verify_checksum() {
+    local file="$1"
+    local version="$2"
+    local asset_name="$3"
+
+    local sha_cmd
+    if command -v shasum >/dev/null 2>&1; then
+        sha_cmd="shasum -a 256"
+    elif command -v sha256sum >/dev/null 2>&1; then
+        sha_cmd="sha256sum"
+    else
+        # Refusing here would block an install over something the user cannot fix in
+        # the moment; both tools ship with macOS, so this branch is close to dead.
+        warn "No sha256 tool found (shasum/sha256sum) — skipping checksum verification"
+        return 0
+    fi
+
+    info "Verifying checksum..."
+
+    local checksums_url="https://github.com/${GITHUB_REPO}/releases/download/${version}/checksums.txt"
+    local checksums="$TMP_DIR/checksums.txt"
+
+    if ! curl -fsSL -o "$checksums" "$checksums_url" 2>/dev/null; then
+        # Every release since v0.6.0 publishes checksums.txt, so this is unexpected —
+        # but a file that failed to download must not be reported as a pass.
+        warn "Could not download checksums.txt from $checksums_url"
+        warn "Skipping verification — the binary could not be checked"
+        return 0
+    fi
+
+    # checksums.txt is produced by `find . -name '*.tar.gz' -exec sha256sum` in the
+    # release job, so the paths in it carry a ./<artifact-dir>/ prefix. Match on the
+    # basename instead of the full path.
+    local expected
+    expected=$(awk -v want="$asset_name" '
+        { n = split($2, parts, "/"); if (parts[n] == want) { print $1; exit } }
+    ' "$checksums")
+
+    if [[ -z "$expected" ]]; then
+        warn "checksums.txt has no entry for $asset_name — skipping verification"
+        return 0
+    fi
+
+    local actual
+    actual=$($sha_cmd "$file" | cut -d' ' -f1)
+
+    if [[ "$actual" != "$expected" ]]; then
+        error "Checksum mismatch — refusing to install"
+        error "  expected: $expected"
+        error "  actual:   $actual"
+        error ""
+        error "The downloaded file is not the one this release published."
+        error "Do not install it. Report this at https://github.com/${GITHUB_REPO}/issues"
+        return 1
+    fi
+
+    success "Checksum verified (sha256: ${expected:0:16}...)"
+    return 0
+}
+
 # Download kn binary from GitHub releases
 download_kn() {
     header "Downloading kn binary"
@@ -381,6 +453,10 @@ download_kn() {
     if ! download_with_progress "$download_url" "$tarball"; then
         error "Failed to download kn binary"
         error "URL: $download_url"
+        return 1
+    fi
+    
+    if ! verify_checksum "$tarball" "$version" "$asset_name"; then
         return 1
     fi
     
