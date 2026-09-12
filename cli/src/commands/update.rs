@@ -3,7 +3,7 @@ use clap::Args;
 use colored::*;
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 #[derive(Args)]
@@ -106,14 +106,23 @@ impl UpdateCommand {
     fn update_cli(&self, version: &str) -> Result<()> {
         // Get current executable path
         let current_exe = env::current_exe().context("Failed to get current executable path")?;
+
+        // Homebrew owns its copy. Refuse before touching anything on disk.
+        if let Some(keg) = Self::homebrew_keg(&current_exe) {
+            anyhow::bail!(
+                "This copy of kn is managed by Homebrew ({}).\n  \
+                 Run `brew upgrade kn` instead — replacing the binary here would leave \
+                 Homebrew's record of the installed version permanently wrong.",
+                keg.display()
+            );
+        }
+
         println!(
             "  Installing to: {}",
             current_exe.display().to_string().bright_white()
         );
 
-        // Determine platform
-        let (os, arch) = self.get_platform()?;
-        let asset_name = format!("kn-{}-{}", os, arch);
+        let asset_name = self.asset_name()?;
         println!("  Platform: {}", asset_name.bright_white());
 
         // Download tarball from GitHub release
@@ -181,26 +190,34 @@ impl UpdateCommand {
         Ok(())
     }
 
-    fn get_platform(&self) -> Result<(&'static str, &'static str)> {
-        let os = if cfg!(target_os = "linux") {
-            "linux"
-        } else if cfg!(target_os = "macos") {
-            "macos"
-        } else if cfg!(target_os = "windows") {
-            "windows"
+    /// Name of the single artifact the release workflow publishes.
+    ///
+    /// It is `kn-macos-arm64`, not `kn-macos-aarch64`. The name is fixed by
+    /// `install.sh` and by `Formula/kn.rb`, which both predate this command;
+    /// deriving it from `target_arch` — which spells Apple Silicon `aarch64` —
+    /// asked GitHub for an asset that is never built, so every update 404'd.
+    fn asset_name(&self) -> Result<&'static str> {
+        if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
+            Ok("kn-macos-arm64")
         } else {
-            anyhow::bail!("Unsupported operating system");
-        };
+            anyhow::bail!(
+                "kn ships a pre-built binary for Apple Silicon macOS only. \
+                 Build from source to update on this platform."
+            );
+        }
+    }
 
-        let arch = if cfg!(target_arch = "x86_64") {
-            "x86_64"
-        } else if cfg!(target_arch = "aarch64") {
-            "aarch64"
-        } else {
-            anyhow::bail!("Unsupported architecture");
-        };
-
-        Ok((os, arch))
+    /// Returns the keg path when `current_exe` is a Homebrew-installed copy.
+    ///
+    /// `/opt/homebrew/bin/kn` is a symlink into `.../Cellar/kn/<version>/bin/kn`
+    /// and `current_exe()` hands back the symlink, so the check has to resolve it
+    /// before looking for the `Cellar` component.
+    fn homebrew_keg(current_exe: &Path) -> Option<PathBuf> {
+        let resolved = fs::canonicalize(current_exe).ok()?;
+        resolved
+            .components()
+            .any(|c| c.as_os_str() == "Cellar")
+            .then_some(resolved)
     }
 
     fn download_binary(&self, url: &str) -> Result<PathBuf> {
@@ -220,5 +237,54 @@ impl UpdateCommand {
         }
 
         Ok(temp_file)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use clap::Parser;
+
+    #[derive(Parser)]
+    struct TestCli {
+        #[command(flatten)]
+        update: UpdateCommand,
+    }
+
+    fn command() -> UpdateCommand {
+        TestCli::parse_from(["kn"]).update
+    }
+
+    /// The release workflow publishes exactly one asset and `install.sh` plus
+    /// `Formula/kn.rb` both hardcode its name. If this ever drifts, self-update
+    /// 404s silently for every installed copy — which is what it did until v0.12.0.
+    #[test]
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    fn asset_name_matches_the_published_artifact() {
+        assert_eq!(command().asset_name().unwrap(), "kn-macos-arm64");
+    }
+
+    #[test]
+    fn homebrew_keg_detects_a_cellar_path() {
+        let tmp = std::env::temp_dir().join("kn-update-test/Cellar/kn/0.0.0/bin");
+        fs::create_dir_all(&tmp).unwrap();
+        let exe = tmp.join("kn");
+        fs::write(&exe, b"").unwrap();
+
+        assert!(UpdateCommand::homebrew_keg(&exe).is_some());
+
+        fs::remove_dir_all(std::env::temp_dir().join("kn-update-test")).unwrap();
+    }
+
+    #[test]
+    fn homebrew_keg_ignores_a_plain_path() {
+        let tmp = std::env::temp_dir().join("kn-update-test-plain/bin");
+        fs::create_dir_all(&tmp).unwrap();
+        let exe = tmp.join("kn");
+        fs::write(&exe, b"").unwrap();
+
+        assert!(UpdateCommand::homebrew_keg(&exe).is_none());
+
+        fs::remove_dir_all(std::env::temp_dir().join("kn-update-test-plain")).unwrap();
     }
 }
