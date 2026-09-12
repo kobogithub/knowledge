@@ -47,6 +47,24 @@ directory named after a removed tool. Flagged for cleanup back in v0.10.0 and no
   Dolt among the dependencies `kn doctor` checks. **`Formula/kn.rb`** drops the caveat that
   `kn doctor` "still treats `bd` as a required dependency" — as of this release it does not.
 
+### Security
+
+- **Bumped `reqwest` 0.11 → 0.12**, closing three Dependabot advisories against
+  `rustls-webpki` 0.101.7 (`cli/Cargo.lock`): a high-severity denial of service via panic
+  on a malformed CRL BIT STRING ([GHSA-82j2-j2ch-gfr8](https://github.com/advisories/GHSA-82j2-j2ch-gfr8)),
+  plus two low-severity name-constraint bypasses
+  ([GHSA-xgp8-3hg3-c2mh](https://github.com/advisories/GHSA-xgp8-3hg3-c2mh),
+  [GHSA-965h-392x-2mh5](https://github.com/advisories/GHSA-965h-392x-2mh5)).
+
+  All three needed `rustls-webpki` >= 0.103.13, and no lockfile bump could reach it:
+  `reqwest` 0.11 pins `rustls` 0.21, which pins `rustls-webpki` 0.101.x. Getting the patch
+  meant the major bump to `reqwest` 0.12 → `rustls` 0.23.44 → `rustls-webpki` **0.103.15**.
+
+  `kn` calls `reqwest` in two places — downloading a skill from a URL and querying the MCP
+  registry — both on the `blocking` API, unchanged across the bump. Since the dependency is
+  declared `default-features = false` with only `rustls-tls`, there is no native-tls
+  fallback to mask a broken rustls: `kn mcp search` was run against the live registry and
+  completed the handshake, which is the part a compile cannot prove.
 ### Added
 
 - **Product layer above spec-kit** ([ADR-008](./docs/adr/008-product-layer-over-speckit.md)):
