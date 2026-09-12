@@ -1,7 +1,7 @@
 # STATUS
 
 **Generado**: 2026-09-06 (a mano, por el Planner; EPIC-02 lo automatiza con `/product-status`)
-**Última edición**: 2026-09-12 — deuda T040 cerrada: constitución ratificada en v1.0.0
+**Última edición**: 2026-09-12 — constitución ratificada (v1.0.0, T040 cerrada); story US-01 de EPIC-02 en Borrador, esperando enmienda del PRD
 **Sprint**: 1 — EPIC-01 en curso. Los ocho artefactos de la cadena están firmados y
 `/speckit-implement` está habilitado desde el 2026-09-06.
 **PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **Aprobado** (incluye la decisión 9), Kevin Barroso, 2026-09-06
@@ -114,6 +114,12 @@ constancia en Drive (decisión 8). Se hace a mano hasta que EPIC-02 lo automatic
 1. Idioma de los artefactos de producto (español fijo o por cliente).
 2. Proyecto piloto y fecha.
 3. Dónde vive la guía comercial (sección 7 del input de discovery).
+
+## Firmas pendientes del mantenedor
+
+| Artefacto | Estado | Qué destraba |
+|---|---|---|
+| [`stories/EPIC-02/US-01.md`](./product/stories/EPIC-02/US-01.md) — glosario de dominio | Borrador | Requiere **enmendar el PRD**: el glosario no está en el alcance de EPIC-02. El PRD es el contrato y está firmado; sumarle alcance exige volver a firmarlo. Texto propuesto en las Notas de la story. Origen: issue #24 |
 
 ## Deuda técnica registrada
 
