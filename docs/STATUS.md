@@ -1,6 +1,7 @@
 # STATUS
 
 **Generado**: 2026-09-06 (a mano, por el Planner; EPIC-02 lo automatiza con `/product-status`)
+**Última edición**: 2026-09-12 — deuda T040 cerrada: constitución ratificada en v1.0.0
 **Sprint**: 1 — EPIC-01 en curso. Los ocho artefactos de la cadena están firmados y
 `/speckit-implement` está habilitado desde el 2026-09-06.
 **PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **Aprobado** (incluye la decisión 9), Kevin Barroso, 2026-09-06
@@ -119,7 +120,10 @@ constancia en Drive (decisión 8). Se hace a mano hasta que EPIC-02 lo automatic
 - ~~Excepción de compuerta de la primera corrida (2026-09-06)~~ — **CERRADA el mismo día**
   (T035, V10). Los ocho artefactos quedaron Aprobados y firmados, así que la cadena
   recorrió su propio circuito de punta a punta. Desde acá rige la compuerta sin excepción.
-- `.specify/memory/constitution.md` sigue siendo la plantilla sin ratificar (T040).
+- ~~`.specify/memory/constitution.md` sin ratificar (T040)~~ — **CERRADA el 2026-09-12**.
+  Ratificada en v1.0.0 con cinco principios movidos desde artefactos ya firmados, sin
+  inventar ninguno: la story manda, una épica una carpeta de spec, todo artefacto vive
+  en git, el agente propone y el humano firma, spec-kit es la única capa de specs.
 - ~~Referencias rotas conocidas hasta que cierre US-01~~ — **saneadas el 2026-09-06**
   (T012–T017). El chequeo encontró más de lo que la story listaba: seis skills fantasma en
   tres agentes (biz, devops, backend), no uno solo, y `docs/reports/README.md` también
@@ -133,6 +137,10 @@ constancia en Drive (decisión 8). Se hace a mano hasta que EPIC-02 lo automatic
   corrida real de `/product-discovery` sobre un input de prueba; US-04 escenario 4 necesita
   un PR abierto para que QA comente. Ninguno está marcado como pasado. Se cierran en
   EPIC-02, que es cuando habrá PRs y un proyecto sobre el cual correr el discovery.
-- **`.specify/memory/constitution.md` sin ratificar** (T040): la convención de firma y "la
-  story manda" son los dos principios candidatos. Correr `/speckit-constitution` al abrir
-  EPIC-02.
+- ~~**`.specify/memory/constitution.md` sin ratificar** (T040)~~ — **CERRADA el
+  2026-09-12**, antes de abrir EPIC-02. Los dos principios candidatos que anotaba esta
+  deuda (la convención de firma y "la story manda") quedaron como los principios IV y I.
+  Se sumaron tres más que ya estaban decididos y sin lugar donde vivir. El
+  `Constitution Check` de `.specify/templates/plan-template.md` dejó de ser un placeholder
+  y ahora enumera las cinco compuertas, así que el próximo `plan.md` no puede pasar por
+  vacuidad.
