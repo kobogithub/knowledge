@@ -1,0 +1,39 @@
+# Dependabot alerts were already enabled on this repository, which is what reports a
+# known vulnerability. This file is the other half: it opens the pull request that
+# actually fixes one. Without it, an alert sits in the Security tab until someone reads
+# it — which is how the three rustls-webpki advisories from April went unaddressed
+# until September.
+version: 2
+
+updates:
+  # The CLI is the part that ships to other people's machines, so its dependency tree
+  # is the one that matters. Cargo.lock is committed, so Dependabot updates it too.
+  - package-ecosystem: cargo
+    directory: /cli
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+      include: scope
+    labels:
+      - dependencies
+    # Independent work goes to dev, never straight to prod — see AGENTS.md.
+    target-branch: dev
+
+  # The release workflow holds a token that can publish to the Homebrew tap, so a
+  # compromised action in it reaches users directly. Every action is pinned by commit
+  # SHA; this is what keeps those pins from going stale and silently unmaintained.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+      include: scope
+    labels:
+      - dependencies
+    target-branch: dev

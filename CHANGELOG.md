@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+`kn` is distributed as a Homebrew tap and an `install.sh` invoked with `curl | bash`, so
+a compromised release runs on someone else's machine with their permissions. This is the
+supply-chain side of that (issue #4).
+
+- **`install.sh` verifies what it downloaded.** It fetches the `checksums.txt` published
+  with the release and compares the tarball's SHA-256 against it *before* extracting.
+  A mismatch aborts the install instead of running the binary. Previously the tarball was
+  extracted and executed with no check at all.
+- **Every GitHub Action is pinned by commit SHA** instead of a mutable tag. `@v4` can be
+  moved to point at new code; a SHA cannot. This includes `dtolnay/rust-toolchain@master`,
+  which was tracking a branch.
+- **Build provenance attestation.** Release tarballs are signed in the job that built
+  them, so anyone can verify where a binary came from without trusting this repository:
+  `gh attestation verify kn-macos-arm64.tar.gz --repo kobogithub/knowledge`.
+- **Minimal workflow permissions.** `ci.yml` had no `permissions:` block and inherited
+  the repository default; it now declares `contents: read`. `release.yml` dropped
+  `discussions: write`, which no step ever used.
+- **`cargo audit` runs in CI** against the RustSec database, and `.github/dependabot.yml`
+  opens weekly update PRs for both `cargo` and `github-actions`.
+- **`SECURITY.md`** documents how to report a vulnerability privately, what is in scope,
+  and how to verify an installed binary.
+
+### Fixed
+
+- **`anyhow` 1.0.102 → 1.0.104**, closing RUSTSEC-2026-0190 (unsoundness in
+  `Error::downcast_mut`). It was the only finding in the `cargo audit` baseline.
+
 ## [0.12.0] - 2026-09-12
 
 ### ⚠️ BREAKING — `kn beads` is gone, and `bd` is no longer installed
