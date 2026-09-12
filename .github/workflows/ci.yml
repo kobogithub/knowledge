@@ -98,6 +98,9 @@ jobs:
       - name: Lint install.sh
         run: shellcheck install.sh
 
+      - name: Lint chain-check.sh
+        run: shellcheck .github/scripts/chain-check.sh
+
       # install/index.html is a byte-for-byte copy of install.sh, served at
       # /install by GitHub Pages so the short URL works with curl. Keeping two
       # copies in sync by hand is the same failure mode that left the Homebrew tap
@@ -116,6 +119,22 @@ jobs:
       
       - name: Test install.sh --help
         run: bash install.sh --help
+
+  chain-check:
+    name: Check Product Chain Gates
+    runs-on: ubuntu-latest
+
+    # El criterio de exito 2 de docs/product/PROJECT.md exige que ningun agente derive
+    # un artefacto sobre otro sin firmar, y la mitigacion del riesgo "las compuertas se
+    # saltean" es que la verifique el agente y no la memoria del humano. Un agente se
+    # deja convencer; la CI no. Mismo argumento que la asercion install.sh/index.html de
+    # arriba: afirmalo en vez de confiar en ello.
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Signatures and story-to-spec traceability
+        run: bash .github/scripts/chain-check.sh
 
   link-check:
     name: Check Documentation Links
