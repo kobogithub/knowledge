@@ -1,8 +1,8 @@
 # PRD: Metodología de proyectos con equipo de agentes
 
-**Estado**: Aprobado
-**Firmado por**: Kevin Barroso (firma transcrita por el Planner por autorización explícita en sesión)
-**Fecha de firma**: 2026-09-06
+**Estado**: Borrador — enmienda 1 pendiente de firma
+**Firmado por**: — (la versión firmada el 2026-09-06 es la vigente hasta que esta enmienda se firme)
+**Fecha de firma**: —
 **Aprobado por cliente**: Kevin Barroso — en esta iniciativa el cliente es el propio mantenedor
 **Fecha de aprobación**: 2026-09-06
 **Evidencia de aprobación**: no aplica; no hay cliente externo
@@ -95,12 +95,13 @@ se formalizan en un ADR dentro de EPIC-01.
 | ID | Épica | Prioridad | Sprint | Spec | Estado |
 |---|---|---|---|---|---|
 | EPIC-01 | Cadena de producto sobre spec-kit: saneamiento, rol Analyst, plantillas, comandos por compuerta, firmas, ADR | P1 | 1 | [`specs/005-agent-team-projects/`](../../specs/005-agent-team-projects/) | Spec en borrador |
-| EPIC-02 | Seguimiento PM: `/status` → `docs/STATUS.md`, issues desde tasks, QA contra Gherkin en cada PR, plantilla de PR | P1 | 2 | se crea al entrar al sprint | Sin spec |
-| EPIC-03 | Scaffolding en `kn init`: `docs/product/`, `docs/adr/`, `STATUS.md`, verificación de spec-kit en `kn doctor`, roles en `CLAUDE.md` generado | P2 | 2 | se crea al entrar al sprint | Sin spec |
+| EPIC-02 | Seguimiento PM: `/status` → `docs/STATUS.md`, issues desde tasks, QA contra Gherkin en cada PR, plantilla de PR, **glosario de dominio como artefacto de etapa 1** | P1 | 3 | se crea al entrar al sprint | Sin spec |
+| EPIC-03 | Scaffolding en `kn init`: `docs/product/`, `docs/adr/`, `STATUS.md`, verificación de spec-kit en `kn doctor`, roles en `CLAUDE.md` generado | P2 | 3 | se crea al entrar al sprint | Sin spec |
 | EPIC-04 | Automatización n8n: daily digest de issues/PRs y reporte semanal desde `STATUS.md` | P3 | 3 | se crea al entrar al sprint | Sin spec |
 | EPIC-05 | Proyecto piloto: primer cliente real recorriendo la cadena completa en su propio repo | P2 | 4–5 | fuera de este repo | Sin spec |
 | EPIC-06 | Rol Architect: `agents/architect/`, arquitectura sobre arc42 recortado, ADR y modelos LikeC4 | P1 | 2 | se crea al entrar al sprint | Sin spec |
 | EPIC-07 | Estrategia de ramas y releases: crear `dev`, protecciones, rc en `dev`, `vX.Y.Z` en `prod`, y la doc y CI alineadas | P1 | 2 | se crea al entrar al sprint | Sin spec |
+| EPIC-08 | Capa de diseño entre stories y spec: mapa de pantallas, inventario de componentes y `tokens.json` versionado | P2 | 3 | se crea al entrar al sprint | Sin spec |
 
 ### EPIC-01 — Cadena de producto sobre spec-kit (Sprint 1)
 
@@ -120,7 +121,7 @@ se formalizan en un ADR dentro de EPIC-01.
 skills `/product-discovery`, `/product-prd`, `/product-stories`, ADR-008, encabezados de
 firma en todos los artefactos, y esta iniciativa recorriendo su propia cadena.
 
-### EPIC-02 — Seguimiento PM (Sprint 2)
+### EPIC-02 — Seguimiento PM (Sprint 3)
 
 **Valor**: el PM entiende el proyecto sin leer código; es el reporte semanal del contrato.
 
@@ -131,7 +132,14 @@ del sprint (planificadas vs. cerradas), specs sin issue, issues sin PR, PRs sin 
 Gherkin de la story y lo deja como comentario. La plantilla de PR gana la sección
 "Story y escenarios validados".
 
-### EPIC-03 — Scaffolding en `kn init` (Sprint 2)
+**Sumado por la enmienda 1**: **glosario de dominio** como artefacto de etapa 1. El
+discovery cierra el vocabulario del proyecto en `docs/product/GLOSARIO.md`, firmado como
+el resto de la cadena, para que la misma entidad del negocio no termine con tres nombres
+distintos entre el PRD, el modelo de datos y la UI. Detalle en
+[`stories/EPIC-02/US-01.md`](./stories/EPIC-02/US-01.md); origen: issue
+[#24](https://github.com/kobogithub/knowledge/issues/24).
+
+### EPIC-03 — Scaffolding en `kn init` (Sprint 3)
 
 **Valor**: cada proyecto de cliente arranca con la cadena lista, en segundos.
 
@@ -201,6 +209,56 @@ entre lo documentado y lo real.
   verificar que un rc no publique un GitHub Release estable, o restringir el patrón.
 - Dejar registrado que `test` quedó fuera y bajo qué condición volvería.
 
+### EPIC-08 — Capa de diseño entre stories y spec (Sprint 3)
+
+> **Sumada por la enmienda 1.** Origen: issue
+> [#25](https://github.com/kobogithub/knowledge/issues/25).
+
+**Valor**: hoy la cadena va de `stories/EPIC-xx/US-xx.md` directo a `specs/NNN-*/`. Lo que
+existe es capacidad de **verificación**, no de diseño: las skills `uiux-playwright`,
+`uiux-pixelmatch`, `uiux-axe-core` y `uiux-viewport-testing` comparan lo construido contra
+Penpot. El ejemplo de reporte del propio `agents/uiux-tester/AGENTS.md` lo muestra:
+
+    Card border-radius 8px vs Penpot 12px → --radius-card: 12px
+
+Esa comparación asume que alguien ya decidió 12px. **Esa decisión no tiene artefacto, no
+tiene firma y no se traza a ninguna story.** Contradice la restricción técnica de
+`PROJECT.md` — *todo artefacto vive en git; nada en chats* — porque un Penpot sin export
+versionado es un chat con otro nombre.
+
+**Alcance previsto**, para proyectos con UI:
+
+- **Mapa de pantallas** derivado de las stories de la épica: qué pantallas y qué flujos.
+- **Inventario de componentes** derivado del mapa: componente, en qué pantallas aparece,
+  variantes y estados. Derivado de las stories, no propuesto por criterio del agente.
+- **`tokens.json` versionado** en el repo (color, tipografía, espaciado, radios, sombras,
+  breakpoints), que compile a config de Tailwind o a CSS vars. Penpot sigue siendo la
+  herramienta para producirlo; el artefacto es el JSON, no el archivo de Penpot.
+- El agente **Frontend importa** los tokens, no los reinterpreta por story.
+- `uiux-tester` valida contra el `tokens.json` del repo, no contra Penpot directo.
+
+**Tres decisiones que la enmienda cierra** (eran las preguntas abiertas de la issue):
+
+1. **Sin rol nuevo: la etapa la ejecuta el Architect** (EPIC-06). El rol ya existe para
+   producir decisiones estructurales versionadas con ADR, y esto es lo mismo sobre otra
+   dimensión. No puede ser Frontend, porque el punto 4 del alcance — Frontend *importa*
+   los tokens — pierde sentido si Frontend también los produce.
+2. **La etapa siempre corre.** Un proyecto sin UI lo declara y sigue. Una etapa opcional
+   se saltea, y una etapa que se saltea no es una compuerta: vuelve el 12px sin origen.
+3. **El export Penpot → `tokens.json` es manual.** Un comando `kn design tokens` depende
+   de la API de Penpot y es una épica aparte. Lo que resuelve el problema es que el JSON
+   esté versionado, no cómo llegó. Se automatiza después, si duele.
+
+**Fuera de alcance**: reemplazar Penpot; construir un sistema de componentes desde cero
+(se parte de una base y se tokeniza).
+
+**Depende de** EPIC-06 (Sprint 2): sin el rol Architect definido, esta etapa no tiene
+ejecutor.
+
+**Referencia**: BMAD v6 resuelve esta etapa con `DESIGN.md` y `EXPERIENCE.md`. Sirve como
+referencia de qué producir, no como herramienta a adoptar — eso está fuera de alcance por
+[ADR-006](../adr/006-adopt-speckit-remove-beads.md).
+
 ## Plan de releases
 
 Parte del contrato (decisión 10). La versión vigente es **0.11.0**; el proyecto sigue
@@ -210,7 +268,7 @@ pre-1.0 a propósito, con los breaking changes en la posición minor.
 |---|---|---|---|
 | **v0.12.0** ← **primero** | `dev` → `prod` al cerrar Sprint 1 | EPIC-01 | Cadena de producto: rol Analyst, plantillas, comandos `product-*`, compuertas de firma, ADR-008, saneamiento de referencias y retiro de Beads |
 | v0.13.0 | Sprint 2 | EPIC-06, EPIC-07 | Rol Architect (arc42 recortado, ADR, LikeC4) y la disciplina de ramas y releases hecha real en el remoto |
-| v0.14.0 | Sprint 3 | EPIC-02, EPIC-03 | `STATUS.md` regenerable y scaffolding de la cadena en `kn init` |
+| v0.14.0 | Sprint 3 | EPIC-02, EPIC-03, EPIC-08 | `STATUS.md` regenerable, glosario de dominio, scaffolding de la cadena en `kn init` y la capa de diseño con `tokens.json` |
 | v0.15.0 | Sprint 4 | EPIC-04 | Automatización n8n: daily digest y reporte semanal |
 | **v1.0.0** | Sprint 5 | EPIC-05 | El piloto recorrió la cadena completa con un cliente real. Recién ahí la metodología deja de ser una hipótesis |
 
@@ -223,7 +281,7 @@ lo crea el mantenedor a mano después del merge, como hoy.
 |---|---|---|---|---|
 | 1 | 1 | EPIC-01 | v0.12.0 | Cadena operable; esta iniciativa firmada de punta a punta |
 | 2 | 2 | EPIC-06, EPIC-07 | v0.13.0 | Architect con entregable propio; `dev` existe y protegida, plan de releases vigente |
-| 3 | 3 | EPIC-02, EPIC-03 | v0.14.0 | `STATUS.md` regenerable; `kn init` scaffoldea la cadena |
+| 3 | 3 | EPIC-02, EPIC-03, EPIC-08 | v0.14.0 | `STATUS.md` regenerable; `kn init` scaffoldea la cadena; la capa de diseño existe antes del piloto |
 | 4 | 4 | EPIC-04, arranque EPIC-05 | v0.15.0 | Daily automático; piloto inicializado |
 | 5 | 5 | EPIC-05 | v1.0.0 | Primer sprint de cliente cerrado con demo y changelog |
 
@@ -245,11 +303,36 @@ herramientas, ClickUp, cambios al modelo comercial, plataformas fuera de Apple S
 | EPIC-03 toca Rust y la CI de `kn` | Baja | Medio | Se aísla en su propia spec y rama; no bloquea EPIC-01/02 |
 | El piloto no aparece a tiempo | Media | Bajo | EPIC-01 a 04 tienen valor en `knowledge` aunque no haya cliente |
 
+## Enmiendas
+
+### Enmienda 1 — 2026-09-12 — **pendiente de firma**
+
+Un PRD firmado es un contrato: sumarle alcance exige volver a firmarlo, no colarlo en el
+sprint en curso. Esta enmienda agrupa los dos cambios de alcance que estaban esperando,
+para que haya **una sola pasada de firma** en vez de reabrir el contrato dos veces.
+
+| # | Cambio | Origen | Efecto |
+|---|---|---|---|
+| 1 | **EPIC-02 gana el glosario de dominio** como artefacto de etapa 1 | issue [#24](https://github.com/kobogithub/knowledge/issues/24) | Desbloquea `stories/EPIC-02/US-01.md`, hoy en Borrador por este mismo motivo |
+| 2 | **EPIC-08 nueva**: capa de diseño entre stories y spec | issue [#25](https://github.com/kobogithub/knowledge/issues/25) | Cierra las tres preguntas abiertas de la issue; entra en Sprint 3, antes del piloto |
+| 3 | **Errata de sprint en EPIC-02 y EPIC-03** | encontrada al redactar esta enmienda | Ver abajo |
+
+**Qué queda sin firmar hasta que esto se firme**: nada en curso. EPIC-01 está cerrado y
+v0.12.0 ya salió. Los dos cambios son para Sprint 3.
+
 ## Erratas
 
 | Fecha | Qué decía | Qué dice | Firmada de nuevo |
 |---|---|---|---|
 | 2026-09-06 | EPIC-07: "hoy el remoto solo tiene `prod`, la jerarquía apunta a una rama que no existe" | `dev` ya existía, atrasada en `b699384`; se sincronizó con `prod` por fast-forward | Sí, bajo la autorización de firma del mantenedor |
+| 2026-09-12 | EPIC-02 y EPIC-03 figuraban en **Sprint 2** en la tabla de épicas y en sus encabezados, y en **Sprint 3** en el plan de releases y en el roadmap | **Sprint 3**, en los cuatro lugares | Pendiente — va con la enmienda 1 |
+
+La errata de sprint estaba en el documento desde la firma del 2026-09-06 y nadie la vio:
+la tabla de épicas y el roadmap son dos vistas de lo mismo y se editaron por separado. Se
+resolvió a favor de **Sprint 3** porque es lo que dicen el plan de releases y el roadmap
+—dos lugares contra dos— y porque Sprint 2 ya está ocupado por EPIC-06 y EPIC-07. Una
+inconsistencia interna en un contrato firmado se corrige volviendo a firmar, no editando
+en silencio.
 
 El error salió de mirar `git branch -r` sobre un clon que no había traído todas las refs
 remotas. Corregir el alcance de una épica del contrato exige volver a firmar, y por eso la
