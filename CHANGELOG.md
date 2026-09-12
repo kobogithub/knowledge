@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-09-12
+
+### ⚠️ If you are on v0.12.0 or older, `kn update` cannot bring you here
+
+`kn update` derived the asset name from `target_arch`, which spells Apple Silicon
+`aarch64`, so it asked GitHub for `kn-macos-aarch64.tar.gz`. That file has never been
+built — `install.sh` and `Formula/kn.rb` both hardcode `kn-macos-arm64.tar.gz`. Self-update
+returned 404 on every machine `kn` supports, for every release so far.
+
+The fix ships *in* this release, which is exactly why it cannot deliver itself. Upgrade
+with:
+
+```bash
+brew upgrade kn
+# or
+curl -fsSL https://raw.githubusercontent.com/kobogithub/knowledge/prod/install.sh | bash
+```
+
+From v0.12.1 onwards `kn update` works.
+
+### Fixed
+
+- **`kn update` asks for the asset that is actually published.** The name is now a
+  constant guarded by a `cfg` check instead of being derived, with a test locking it to
+  the published artifact. `kn update` also refuses to touch a Homebrew-managed copy:
+  `/opt/homebrew/bin/kn` is a symlink into the keg, and replacing it with a raw binary
+  would leave Homebrew's record of the installed version permanently wrong — it points at
+  `brew upgrade kn` instead.
+- **`kn mcp search` searches the whole registry.** It used to request one page of
+  `/v0/servers?limit=N` and filter locally. The registry returns the first N in
+  alphabetical order, so the search only ever saw ~20 servers starting with `a`:
+  `kn mcp search filesystem` and `kn mcp search github` both returned nothing, with a
+  message implying the registry did not have them. The query now goes to the registry's
+  own `?search=` parameter and follows pagination cursors. The "no results" message says
+  the match is by name, instead of asserting something false about the registry
+  (issue #31).
+- **`anyhow` 1.0.102 → 1.0.104**, closing RUSTSEC-2026-0190 (unsoundness in
+  `Error::downcast_mut`). It was the only finding in the `cargo audit` baseline.
+
 ### Security
 
 `kn` is distributed as a Homebrew tap and an `install.sh` invoked with `curl | bash`, so
@@ -31,10 +70,18 @@ supply-chain side of that (issue #4).
 - **`SECURITY.md`** documents how to report a vulnerability privately, what is in scope,
   and how to verify an installed binary.
 
-### Fixed
+### Changed
 
-- **`anyhow` 1.0.102 → 1.0.104**, closing RUSTSEC-2026-0190 (unsoundness in
-  `Error::downcast_mut`). It was the only finding in the `cargo audit` baseline.
+- **Release candidates are possible for the first time.** The project's own rule — `dev`
+  carries `vX.Y.Z-rc.N`, `prod` only stable `vX.Y.Z` — was written in three documents and
+  never followed once, because following it caused harm: `release.yml` hardcoded
+  `prerelease: false` and published the formula on every `v*` tag, so an rc would have
+  shipped a release candidate to everyone running `brew install kn`. The workflow now
+  derives the condition from the tag (a hyphen means prerelease, per semver), marks the
+  GitHub Release accordingly, and skips the Homebrew tap entirely for prereleases. It also
+  rejects tags that are not semver before anything is built. `tap-drift-check.yml`
+  compares against the newest *stable* release, so a tap that correctly lags an rc is not
+  reported as drift (issue #34).
 
 ## [0.12.0] - 2026-09-12
 
@@ -851,7 +898,8 @@ kn skills list
 
 ---
 
-[Unreleased]: https://github.com/kobogithub/knowledge/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/kobogithub/knowledge/compare/v0.12.1...HEAD
+[0.12.1]: https://github.com/kobogithub/knowledge/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/kobogithub/knowledge/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/kobogithub/knowledge/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/kobogithub/knowledge/compare/v0.9.0...v0.10.0
