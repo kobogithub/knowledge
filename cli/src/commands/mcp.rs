@@ -628,7 +628,71 @@ impl McpHandler {
         Ok(())
     }
 
+    /// Query the registry for servers matching `query`, following pagination cursors
+    /// until `limit` matches are collected or the result set is exhausted.
+    fn fetch_registry_matches(&self, query: &str, limit: usize) -> Result<Vec<ServerEntry>> {
+        // The registry caps `limit` at 100 per page.
+        const PAGE_SIZE: usize = 100;
+        // Bound the cursor walk so a pathological query can't loop forever.
+        const MAX_PAGES: usize = 10;
+
+        let client = reqwest::blocking::Client::new();
+        let page_size = limit.clamp(1, PAGE_SIZE).to_string();
+
+        let mut collected: Vec<ServerEntry> = Vec::new();
+        let mut cursor: Option<String> = None;
+
+        for _ in 0..MAX_PAGES {
+            let mut params: Vec<(&str, &str)> = vec![
+                ("search", query),
+                ("version", "latest"),
+                ("limit", page_size.as_str()),
+            ];
+            if let Some(c) = cursor.as_deref() {
+                params.push(("cursor", c));
+            }
+
+            let response = client
+                .get("https://registry.modelcontextprotocol.io/v0/servers")
+                .query(&params)
+                .timeout(std::time::Duration::from_secs(10))
+                .send()
+                .context("Failed to connect to MCP Registry")?;
+
+            if !response.status().is_success() {
+                anyhow::bail!(
+                    "Registry API returned error: {} {}",
+                    response.status(),
+                    response.text().unwrap_or_default()
+                );
+            }
+
+            let page: RegistryResponse = response
+                .json()
+                .context("Failed to parse registry response")?;
+
+            let next_cursor = page.metadata.next_cursor.clone();
+            collected.extend(page.servers);
+
+            if collected.len() >= limit {
+                break;
+            }
+
+            match next_cursor {
+                Some(c) if !c.is_empty() => cursor = Some(c),
+                _ => break,
+            }
+        }
+
+        collected.truncate(limit);
+        Ok(collected)
+    }
+
     /// Search for MCP servers in the official registry
+    ///
+    /// The registry supports server-side search (`?search=`, substring match on the
+    /// server name), so the query is pushed to the API instead of filtering a single
+    /// page locally — the latter only ever saw the first alphabetical page.
     fn search_registry(&self, query: &str, limit: usize, interactive_install: bool) -> Result<()> {
         println!(
             "{}",
@@ -638,54 +702,7 @@ impl McpHandler {
         );
         println!();
 
-        // Fetch servers from registry
-        let url = format!(
-            "https://registry.modelcontextprotocol.io/v0/servers?limit={}",
-            limit * 2 // Fetch more to account for filtering
-        );
-
-        let client = reqwest::blocking::Client::new();
-        let response = client
-            .get(&url)
-            .timeout(std::time::Duration::from_secs(10))
-            .send()
-            .context("Failed to connect to MCP Registry")?;
-
-        if !response.status().is_success() {
-            anyhow::bail!(
-                "Registry API returned error: {} {}",
-                response.status(),
-                response.text().unwrap_or_default()
-            );
-        }
-
-        let registry_data: RegistryResponse = response
-            .json()
-            .context("Failed to parse registry response")?;
-
-        // Filter results by query (case-insensitive search in name and description)
-        let query_lower = query.to_lowercase();
-        let results: Vec<&ServerEntry> = registry_data
-            .servers
-            .iter()
-            .filter(|entry| {
-                let name_match = entry.server.name.to_lowercase().contains(&query_lower);
-                let desc_match = entry
-                    .server
-                    .description
-                    .to_lowercase()
-                    .contains(&query_lower);
-                let title_match = entry
-                    .server
-                    .title
-                    .as_ref()
-                    .map(|t| t.to_lowercase().contains(&query_lower))
-                    .unwrap_or(false);
-
-                name_match || desc_match || title_match
-            })
-            .take(limit)
-            .collect();
+        let results = self.fetch_registry_matches(query, limit)?;
 
         if results.is_empty() {
             println!(
@@ -693,8 +710,12 @@ impl McpHandler {
                 format!("No MCP servers found matching '{}'", query).yellow()
             );
             println!();
+            println!(
+                "{}",
+                "Note: the registry matches this query against server names only.".dimmed()
+            );
             println!("{}", "Try:".bright_white());
-            println!("  • A different search term");
+            println!("  • A shorter or different search term");
             println!("  • kn mcp presets  (for built-in presets)");
             println!("  • Browse https://github.com/mcp");
             return Ok(());
@@ -765,7 +786,7 @@ impl McpHandler {
                 .interact_opt()?;
 
             if let Some(idx) = selection {
-                let selected = results[idx];
+                let selected = &results[idx];
                 self.install_from_registry(selected)?;
             } else {
                 println!("{}", "Installation cancelled.".yellow());
