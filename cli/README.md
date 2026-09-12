@@ -210,37 +210,12 @@ kn doctor --verbose
 - ✅ Rust (1.70+) - Required for building kn
 - ✅ Cargo - Rust package manager
 - ✅ Git - Version control
-- ✅ bd (beads) - Issue tracking system
-- ⚪ Dolt - Optional, for Beads database
 - ✅ Node.js (18.0+) - Required for MCP servers
 - ✅ npm - Node package manager
 
 Exit codes:
 - `0` - All required dependencies met
 - `1` - One or more critical dependencies missing
-
-### Beads Templates
-
-Generate issue templates for Beads workflow:
-
-Print to stdout:
-```bash
-kn beads template task
-kn beads template epic
-kn beads template bug
-kn beads template feature
-kn beads template chore
-```
-
-Save to file:
-```bash
-kn beads template epic -o .beads/templates/epic.md
-```
-
-Force overwrite existing file:
-```bash
-kn beads template task -o task.md --force
-```
 
 ### MCP Servers
 
@@ -362,7 +337,6 @@ cli/
 │   │   ├── agents.rs            # kn agents install/list
 │   │   ├── skills.rs            # kn skills install/list
 │   │   ├── sync.rs              # kn sync (update symlinks)
-│   │   ├── beads.rs             # kn beads template
 │   │   ├── mcp.rs               # kn mcp add/list/remove
 │   │   └── doctor.rs            # kn doctor (dependency check)
 │   ├── config/

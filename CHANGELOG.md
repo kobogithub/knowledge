@@ -7,6 +7,98 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-09-12
+
+### ⚠️ BREAKING — `kn beads` is gone, and `bd` is no longer installed
+
+[ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md) replaced Beads with spec-kit as
+the workflow nine weeks ago but left it in the product. `kn` kept shipping the subcommand,
+`kn doctor` kept requiring `bd`, and `install.sh` installed it via cargo — **aborting the
+installation if it could not**. So installing `kn` obliged you to install a tool this
+project had stopped using. [ADR-009](./docs/adr/009-remove-beads-from-the-product.md)
+closes that.
+
+- **Removed `kn beads template`.** If you script it, it disappears in this release;
+  v0.11.0 stays downloadable. The templates remain in git history.
+- **`kn doctor` no longer checks `bd` or Dolt.** The count goes from 7 dependencies to 5,
+  and a clean machine no longer reports a missing required dependency.
+- **`install.sh` no longer installs `bd`**, and no longer installs Rust on your behalf to
+  do it. Installing `kn` needs Git and Node.js; the binary is pre-compiled.
+
+Using Beads independently? Install `bd` yourself — `kn` never made it work, it only
+insisted on its presence.
+
+The same release finishes the job on everything the subcommand left behind. `kn init` and
+`kn sync` were still creating a `.beads/formulas/` directory in **every** project they
+touched, copying `*.formula.json` files into it — a Beads concept (`bd formula`, `bd cook`)
+that no longer ships anywhere, so the step printed "no formulas found" and created an empty
+directory named after a removed tool. Flagged for cleanup back in v0.10.0 and now done.
+
+- **`kn init` and `kn sync` no longer create `.beads/`.** The formula step is gone, along
+  with `~/.kn/formulas/` and the `formulas_dir()` / `list_installed_formulas()` helpers.
+  Nothing read them: no formula has shipped since ADR-006.
+- **The `AGENTS.md` that `kn init` generates no longer teaches `bd`.** It opened with
+  "This project uses **bd** (beads) for issue tracking" and its Quick Reference was twelve
+  `bd` commands — `bd ready`, `bd update --claim`, `bd agent state`, `bd sync`. Every
+  project scaffolded since ADR-006 got instructions for a tool `kn` does not install. It
+  now mirrors this repo's own `AGENTS.md`: the spec-kit cycle, `tasks.md` checkboxes and
+  PR comments.
+- **Removed the `.beads/` entries from `.gitignore`, and `.gitattributes` with them** — the
+  file held nothing but the `merge=beads` driver for `.beads/issues.jsonl`.
+- **`cli/README.md`** no longer documents `kn beads template`, and no longer lists `bd` and
+  Dolt among the dependencies `kn doctor` checks. **`Formula/kn.rb`** drops the caveat that
+  `kn doctor` "still treats `bd` as a required dependency" — as of this release it does not.
+
+### Security
+
+- **Bumped `reqwest` 0.11 → 0.12**, closing three Dependabot advisories against
+  `rustls-webpki` 0.101.7 (`cli/Cargo.lock`): a high-severity denial of service via panic
+  on a malformed CRL BIT STRING ([GHSA-82j2-j2ch-gfr8](https://github.com/advisories/GHSA-82j2-j2ch-gfr8)),
+  plus two low-severity name-constraint bypasses
+  ([GHSA-xgp8-3hg3-c2mh](https://github.com/advisories/GHSA-xgp8-3hg3-c2mh),
+  [GHSA-965h-392x-2mh5](https://github.com/advisories/GHSA-965h-392x-2mh5)).
+
+  All three needed `rustls-webpki` >= 0.103.13, and no lockfile bump could reach it:
+  `reqwest` 0.11 pins `rustls` 0.21, which pins `rustls-webpki` 0.101.x. Getting the patch
+  meant the major bump to `reqwest` 0.12 → `rustls` 0.23.44 → `rustls-webpki` **0.103.15**.
+
+  `kn` calls `reqwest` in two places — downloading a skill from a URL and querying the MCP
+  registry — both on the `blocking` API, unchanged across the bump. Since the dependency is
+  declared `default-features = false` with only `rustls-tls`, there is no native-tls
+  fallback to mask a broken rustls: `kn mcp search` was run against the live registry and
+  completed the handshake, which is the part a compile cannot prove.
+### Added
+
+- **Product layer above spec-kit** ([ADR-008](./docs/adr/008-product-layer-over-speckit.md)):
+  `docs/product/` holds the brief (`PROJECT.md`), the scope contract (`PRD.md`) and user
+  stories with Gherkin, each with a signature header the agents verify before deriving the
+  next artifact.
+- **`analyst` role** (`knowledge-an1`): owns discovery, and only discovery. Its rule is
+  that whatever the input does not say goes to open questions rather than into the brief.
+- **Four commands**, shipped as skills: `/product-discovery`, `/product-prd`,
+  `/product-stories` and `/product-gate`.
+- **Signature gates on spec-kit**: `.specify/extensions.yml` hooks `before_specify` and
+  `before_plan` through `/product-gate`, without touching the generated `speckit-*` skills.
+- **Client approval, separate from the maintainer's signature**, on the brief and the PRD.
+- **QA validates PRs against the story's Gherkin**, one line per scenario; a failing
+  scenario blocks the merge.
+
+### Fixed
+
+- **`CLAUDE.md` imported a file that only exists after `kn sync`.** Both the repo's own and
+  the one the CLI generates now import `@agents/planner/AGENTS.md`, which is tracked, so a
+  fresh clone resolves it. A test asserts no import targets `.claude/agents/` again.
+- **Six agent definitions required skills removed from the catalog** by ADR-007 —
+  `notion-reporting-standard` in biz, plus terraform, aws and kubernetes across devops and
+  backend. `docs/reports/README.md` pointed at the removed reporting skill too; the
+  three-section standard is now written out there.
+- **`.agent/README.md` listed 10 skills and three that no longer exist.** Regenerated from
+  `skills/`: 21.
+- **The ADR index was missing ADR-007**, which has existed since August.
+- **`install.sh` tried to copy formulas from `.beads/`**, deleted by ADR-006, warning on
+  every install.
+
+
 ## [0.11.0] - 2026-08-17
 
 ### ⚠️ BREAKING — `kn` now supports Apple Silicon macOS only
@@ -730,7 +822,12 @@ kn skills list
 
 ---
 
-[Unreleased]: https://github.com/kobogithub/knowledge/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/kobogithub/knowledge/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/kobogithub/knowledge/compare/v0.11.0...v0.12.0
+[0.11.0]: https://github.com/kobogithub/knowledge/compare/v0.10.0...v0.11.0
+[0.10.0]: https://github.com/kobogithub/knowledge/compare/v0.9.0...v0.10.0
+[0.9.0]: https://github.com/kobogithub/knowledge/compare/v0.8.1...v0.9.0
+[0.8.1]: https://github.com/kobogithub/knowledge/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/kobogithub/knowledge/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/kobogithub/knowledge/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/kobogithub/knowledge/compare/v0.6.0...v0.7.0

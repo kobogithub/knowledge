@@ -198,7 +198,8 @@ driven by the `specify-cli` tool via Claude Code skills (`.claude/skills/speckit
 ├── memory/constitution.md   # Project governing principles
 ├── templates/                # spec/plan/tasks/checklist templates
 ├── scripts/                  # bash helpers (create-new-feature.sh, etc.)
-└── workflows/speckit/        # workflow registry
+├── workflows/speckit/        # workflow registry
+└── extensions.yml            # before_specify / before_plan hooks -> /product-gate
 
 specs/
 └── NNN-feature-name/
@@ -210,9 +211,42 @@ specs/
 **Why Spec-Kit?**
 - Plain markdown, git-diffable, no companion database or binary required
 - Portable across AI coding agents (Claude, Copilot, Codex, etc.) via `--integration`
-- Cycle enforced by convention (`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` →
-  `/speckit-implement`), not by a CLI-enforced gate — see `AGENTS.md` for how the 11 agent
-  roles use it
+- Cycle ordered by convention (`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` →
+  `/speckit-implement`) — see `AGENTS.md` for how the 12 agent roles use it
+
+### 4.6. Product Layer
+
+**Location**: `docs/product/` and `.claude/skills/product-*`
+
+**Purpose**: what comes *before* a spec. spec-kit solves everything from the spec down; a
+spec still has to derive from something a client agreed to. See
+[ADR-008](./adr/008-product-layer-over-speckit.md).
+
+```
+docs/product/
+├── discovery/<fecha>-<tema>.md   # immutable input: transcript, brief, notes
+├── PROJECT.md                    # stage 1 — the brief          (Analyst)
+├── PRD.md                        # stage 2 — the scope contract (Planner)
+├── stories/EPIC-xx/US-NN.md      # stage 3 — Gherkin            (Planner)
+└── templates/                    # PROJECT, PRD, US
+```
+
+An epic in the PRD maps 1:1 to a `specs/NNN-*/` folder. A spec's "User Story N" sections
+carry the same ID and the same Gherkin scenarios as the story; where they diverge, **the
+story wins**, because it is what the maintainer signed and what QA validates against.
+
+**Signature gates**. Every artifact carries `Estado`, `Firmado por` and `Fecha de firma`;
+`PROJECT.md` and `PRD.md` also carry a separate client-approval block. No command derives
+the next artifact from an unsigned one. The rule lives in a single skill, `product-gate`,
+which the `product-*` commands call directly and which spec-kit reaches through the
+`before_specify` and `before_plan` hooks in `.specify/extensions.yml` — declared
+`optional: false`, since that is the flag the `speckit-*` skills branch on to wait for a
+result. The `speckit-*` skills themselves are never edited: `specify-cli` regenerates them.
+
+**Backwards compatibility**. The gate never blocks two cases: a repo with no
+`docs/product/` at all, and an artifact predating the layer (all three header fields
+absent) inside a repo that has it. A *partial* header does stop, since that is a gate
+declared and left half-done. This is what keeps initiatives 001-004 valid.
 
 **Coordination model**: no atomic claiming or locking (unlike the old `bd merge-slot`).
 The Planner agent splits `tasks.md` into sections per role; each agent works its own git

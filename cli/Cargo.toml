@@ -1,6 +1,6 @@
 [package]
 name = "kn"
-version = "0.11.0"
+version = "0.12.0"
 edition = "2021"
 authors = ["Knowledge Framework Contributors"]
 description = "CLI tool for AI-assisted development workflows"
@@ -14,7 +14,7 @@ serde_yaml = "0.9"
 toml = "0.8"
 anyhow = "1.0"
 colored = "2.1"
-reqwest = { version = "0.11", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 url = "2.5"
 dialoguer = "0.11"  # For interactive prompts
 dirs = "5.0"        # For home directory (~/.kn/)

@@ -17,20 +17,37 @@ Skills in this directory follow the **Antigravity standard**:
 - Skills are automatically discovered by Antigravity
 - Skills can include scripts, examples, and resources
 
-### Available Skills (10)
+### Available Skills (21)
 
-All skills are **symlinked** from `../skills/` for compatibility with both OpenCode and Antigravity:
+All skills are **symlinked** from `../skills/` for compatibility with both OpenCode and
+Antigravity. `../skills/` is the source of truth: this list mirrors it, so update it when
+a skill is added or removed from the catalog.
 
 - `astro-best-practices` - Astro framework development best practices
-- `aws-best-practices` - AWS cloud infrastructure patterns
 - `bash-best-practices` - Shell scripting standards
-- `bd-best-practices` - Beads issue tracking workflow
 - `docker-best-practices` - Container best practices
+- `documentation-guide` - Technical writing, ADRs and documentation structure
+- `fastapi-best-practices` - FastAPI service design and patterns
 - `github-actions-best-practices` - CI/CD with GitHub Actions
+- `go-best-practices` - Go development standards
+- `htmx-best-practices` - htmx interaction patterns
 - `python-best-practices` - Python development standards
-- `rust-best-practices` - Rust development standards  
+- `railway-best-practices` - Deploying and operating services on Railway
+- `rust-best-practices` - Rust development standards
+- `security-gitleaks` - Secret detection with gitleaks
+- `security-owasp-zap` - Dynamic application security testing with OWASP ZAP
+- `security-semgrep` - Static analysis with Semgrep
+- `security-trivy` - Vulnerability and misconfiguration scanning with Trivy
+- `standard-commits` - Conventional commits and the branching strategy
 - `supabase-postgres-best-practices` - Supabase/PostgreSQL patterns
-- `terraform-best-practices` - Infrastructure as Code with Terraform
+- `uiux-axe-core` - Accessibility testing with axe-core (WCAG)
+- `uiux-pixelmatch` - Visual regression with pixelmatch
+- `uiux-playwright` - Browser interaction testing with Playwright
+- `uiux-viewport-testing` - Responsive testing across viewports
+
+The catalog is deliberately curated — see
+[ADR-007](../docs/adr/007-personal-stacks-and-curated-catalog.md) for what was removed and
+why. Presets that bundle these skills per stack live in `../stacks/`.
 
 ## Adding Skills
 
@@ -47,8 +64,8 @@ kn skills install <skill-name>
 
 ## Project Information
 
-**Name:** Knowledge Framework  
-**Type:** Rust CLI  
+**Name:** Knowledge Framework
+**Type:** Rust CLI
 **Description:** Meta-framework for AI-assisted development workflows
 
 ## Workspace Standards

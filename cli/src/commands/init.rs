@@ -306,45 +306,7 @@ impl InitCommand {
 
         println!("  {} Symlinks created", "✓".green());
 
-        // 8.5. Copy formulas from ~/.kn/formulas/ to .beads/formulas/
-        println!("\n{}", "📜 Installing formulas...".bright_cyan());
-        let formulas_source = kn_home::formulas_dir()?;
-        let formulas_target = current_dir.join(".beads/formulas");
-        if formulas_source.exists() {
-            fs::create_dir_all(&formulas_target)?;
-            let mut count = 0;
-            for entry in fs::read_dir(&formulas_source)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.extension().and_then(|e| e.to_str()) == Some("json")
-                    && path
-                        .file_name()
-                        .and_then(|n| n.to_str())
-                        .is_some_and(|n| n.ends_with(".formula.json"))
-                {
-                    let dest = formulas_target.join(path.file_name().unwrap());
-                    if !dest.exists() {
-                        fs::copy(&path, &dest)?;
-                        count += 1;
-                    }
-                }
-            }
-            if count > 0 {
-                println!("  {} Installed {} formula(s)", "✓".green(), count);
-            } else {
-                println!(
-                    "  {} Formulas already installed or none available",
-                    "ℹ".bright_blue()
-                );
-            }
-        } else {
-            println!(
-                "  {} No formulas found in ~/.kn/formulas/",
-                "ℹ".bright_blue()
-            );
-        }
-
-        // 8.6. Create dev branch if it doesn't exist
+        // 8.5. Create dev branch if it doesn't exist
         println!("\n{}", "🌿 Setting up branching strategy...".bright_cyan());
 
         let is_git = Command::new("git")
@@ -585,7 +547,9 @@ impl InitCommand {
         format!(
             r#"# Agent Instructions
 
-This project uses **bd** (beads) for issue tracking with the Knowledge Framework.
+This project uses **spec-kit** for spec-driven development with a multi-agent workflow.
+Every initiative lives in a `specs/NNN-feature-name/` folder (`spec.md`, `plan.md`,
+`tasks.md`).
 
 ## Project: {}
 
@@ -596,36 +560,35 @@ This project uses **bd** (beads) for issue tracking with the Knowledge Framework
 ## Quick Reference
 
 ```bash
-# Find your work
-bd ready -l <your-label>
-bd list --assignee <agent-id>
+# New initiative (the Planner runs these)
+/speckit-specify <feature description>   # creates specs/NNN-feature-name/spec.md
+/speckit-clarify                          # optional, resolves ambiguity before planning
+/speckit-plan                             # creates plan.md
+/speckit-tasks                            # creates tasks.md (dependency-ordered checkboxes)
 
-# Claim and start work
-bd update <task-id> --claim
-bd agent state <agent-id> working
+# Find your work
+# The Planner assigns you a section of specs/NNN-feature-name/tasks.md, by role,
+# via PR comment or inline note. There is no task-claiming or locking mechanism:
+# each agent works its own branch and collisions are avoided by branch isolation.
+
+# Implement your assigned tasks
+/speckit-implement                        # executes tasks.md items in order
 
 # Report progress
-bd comments add <task-id> "[Agent Name] Progress update..."
+# Mark your checkboxes [x] in tasks.md as you complete them, and leave progress
+# notes as PR comments.
 
-# Complete your work
-bd comments add <task-id> "[Agent Name] ✓ Completed: details..."
-bd close <task-id>
-bd agent state <agent-id> done
-
-# Sync with git
-bd sync
-git add .beads/issues.jsonl
-git commit -m "<Agent>: description"
+# Push your work
 git push
 ```
 
 ## Workflow Principles
 
-1. **Autonomy**: Each agent closes their own tasks when complete
-2. **Transparency**: Report progress through comments
-3. **Coordination**: Use issue references to coordinate with other agents
-4. **Ownership**: You own your tasks from claim to completion
-5. **Honesty**: Only close when actually complete and tested
+1. **Autonomy**: Each agent marks its own checkboxes done in `tasks.md` when complete
+2. **Transparency**: Report progress through PR comments
+3. **Coordination**: Reference the spec folder (`specs/NNN-feature-name/`) to coordinate
+4. **Ownership**: You own your assigned `tasks.md` section from assignment to completion
+5. **Honesty**: Only check off a task when actually complete and tested
 
 ## Git Branching Strategy
 
@@ -653,13 +616,12 @@ All commit messages MUST use: `<type>(<scope>): <message>`
 
 **When ending a work session**, you MUST complete ALL steps:
 
-1. **File issues for remaining work** - Create issues for anything incomplete
+1. **Note remaining work** - Add unchecked items to `tasks.md`, or leave a PR comment
 2. **Run quality gates** - Tests, linters, builds
-3. **Update issue status** - Close finished work
+3. **Update tasks.md** - Check off finished items, leave in-progress ones unchecked
 4. **PUSH TO REMOTE**:
    ```bash
    git pull --rebase
-   bd sync
    git push
    git status  # MUST show "up to date with origin"
    ```

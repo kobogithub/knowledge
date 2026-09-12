@@ -180,7 +180,27 @@ hooks:
       description: Exige spec.md aprobado antes de planificar
 ```
 
-(Forma exacta a validar contra cómo `speckit-*` construye el slash command: `.` → `-`.)
+**Verificado el 2026-09-06** contra `.claude/skills/speckit-plan/SKILL.md` y
+`speckit-specify/SKILL.md`. Dos hallazgos que cambian la forma respecto de lo previsto:
+
+1. **`optional: false` va explícito.** El skill ramifica sobre ese flag y solo la rama
+   "Mandatory hook" emite `EXECUTE_COMMAND` y espera el resultado antes de seguir. Un hook
+   sin el campo no cae en esa rama, así que **no bloquea**. La forma de arriba lo omitía;
+   el archivo final lo declara en los dos hooks.
+
+2. **El hook no transporta argumentos.** Emite `EXECUTE_COMMAND: product-gate` a secas, sin
+   la ruta del artefacto. Con el `product-gate` original —que respondía "SE DETIENE:
+   necesita la ruta"— la compuerta habría frenado **todo** `/speckit-plan` sin importar el
+   estado del spec. Una compuerta que frena siempre se desactiva sola, y entonces no
+   protege nada.
+
+   Solución: `product-gate` infiere el objetivo cuando lo invocan sin argumentos —
+   `before_plan` verifica el `spec.md` de `feature_directory` en `.specify/feature.json`;
+   `before_specify` verifica `docs/product/PRD.md`. Sin feature activa informa y deja
+   avanzar.
+
+El nombre del comando se traduce a slash command reemplazando `.` por `-`, así que
+`product-gate` se invoca como `/product-gate`.
 
 ## Quickstart (verificación)
 
@@ -188,8 +208,8 @@ hooks:
 |---|---|---|
 | V1 | Clon fresco carga `CLAUDE.md` | `git clone` a un dir temporal; cada `@ruta` de `CLAUDE.md` existe |
 | V2 | CLI no genera import roto | `cd cli && cargo test claude_md` |
-| V3 | Biz sin skill inexistente | script: cada `required_skills` de `agents/*/AGENTS.md` existe en `skills/` |
-| V4 | READMEs limpios | `grep -rn "beads\|bd-best-practices\|aws-best-practices" README*.md .agent/README.md` → vacío |
+| V3 | Ningún agente con skill inexistente | script: cada `required_skills` y `recommended_skills` de `agents/*/AGENTS.md` existe en `skills/` |
+| V4 | READMEs limpios | `grep -rn "beads\|bd-best-practices\|aws-best-practices" README*.md .agent/README.md` → solo links a `docs/adr/` |
 | V5 | Analyst instalable | `agents/analyst/AGENTS.md` con frontmatter; fila en `AGENTS.md`; `[agents.analyst]` en `kn.toml` |
 | V6 | Compuerta detiene | poner `PROJECT.md` en Borrador y correr `/product-prd` → no escribe |
 | V7 | Compuerta avanza | aprobar y repetir → escribe |

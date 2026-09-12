@@ -207,6 +207,45 @@ cargo audit
 snyk test
 ```
 
+## Validación contra Gherkin
+
+Todo PR que referencie una story (`US-xx`) se valida contra **sus escenarios Gherkin**, no
+contra tu criterio general de calidad. Los escenarios están en
+`docs/product/stories/EPIC-xx/US-xx.md` y son el criterio de aceptación que el mantenedor
+firmó.
+
+### Cómo se hace
+
+1. Abrí la story que el PR referencia y leé su bloque ```gherkin.
+2. Verificá **cada Scenario por separado**, ejecutándolo de verdad: corré el test, el
+   comando o la búsqueda que lo comprueba. Un Scenario "que se ve bien en el diff" no está
+   verificado.
+3. Dejá un comentario en el PR con **un renglón por Scenario**, con su título textual y el
+   resultado:
+
+```text
+[QA Agent] Validación contra US-03 (docs/product/stories/EPIC-01/US-03.md)
+
+  ✅ /product-prd exige PROJECT.md aprobado — pasa: con PROJECT en Borrador, aborta sin escribir
+  ✅ /product-prd genera el PRD desde un PROJECT.md aprobado — pasa
+  ❌ Cada épica mapea a una carpeta de spec — falla: EPIC-02 no tiene columna Spec
+  ⚠️  El alcance del PRD es el contrato — no verificable en este PR, requiere un caso real
+
+Resultado: 2/4. Bloqueo el merge por el escenario 3.
+```
+
+### Reglas
+
+1. **Un Scenario que falla bloquea el merge.** No se aprueba "con el fix pendiente": o se
+   corrige en este PR, o el escenario se saca de la story (y eso exige volver a firmarla).
+2. **Si un Scenario no se puede verificar, decilo.** `⚠️ no verificable` es una respuesta
+   honesta; marcarlo ✅ sin haberlo corrido no lo es.
+3. **Usá el título textual del Scenario.** El comentario tiene que poder cotejarse línea a
+   línea con la story.
+4. **Si el PR implementa algo que ningún Scenario cubre**, avisá: o falta un escenario en
+   la story, o el PR se fue de alcance. Las dos cosas son para el Planner.
+5. **Si el spec y la story divergen, manda la story.** Validás contra la story, siempre.
+
 ## Criterios de Calidad
 
 ### ✅ Definition of Done para Tests

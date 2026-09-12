@@ -99,8 +99,6 @@ Options:
 Dependencies installed (if not present):
     - Git
     - Node.js (via package manager or manual instructions)
-    - Rust/Cargo (for bd installation)
-    - bd (beads) - via cargo install
 
 Note: This script downloads pre-compiled binaries from GitHub releases.
 No Rust toolchain is required for kn itself.
@@ -401,29 +399,6 @@ download_kn() {
     return 0
 }
 
-# Install Rust via rustup (only needed for bd)
-install_rust() {
-    header "Installing Rust (required for bd)"
-    
-    if command_exists rustc && command_exists cargo; then
-        success "Rust is already installed"
-        return 0
-    fi
-    
-    info "Installing Rust via rustup..."
-    if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; then
-        # Source cargo env
-        # shellcheck disable=SC1090,SC1091
-        source "$HOME/.cargo/env" 2>/dev/null || true
-        export PATH="$HOME/.cargo/bin:$PATH"
-        success "Rust installed successfully"
-        return 0
-    else
-        error "Failed to install Rust"
-        return 1
-    fi
-}
-
 # Install Git
 install_git() {
     header "Installing Git"
@@ -539,34 +514,6 @@ install_nodejs() {
     fi
 }
 
-# Install bd (beads)
-install_bd() {
-    header "Installing bd (beads)"
-    
-    if check_dependency "bd" "bd" 2>/dev/null; then
-        info "bd is already installed"
-        return 0
-    fi
-    
-    # Ensure Rust is installed first
-    if ! command_exists cargo; then
-        if ! install_rust; then
-            error "Cannot install bd without Rust/Cargo"
-            return 1
-        fi
-    fi
-    
-    info "Installing bd via cargo..."
-    if cargo install bd; then
-        success "bd installed successfully"
-        return 0
-    else
-        error "Failed to install bd"
-        error "You may need to install it manually from: https://github.com/beadlabs/beads"
-        return 1
-    fi
-}
-
 # Install kn binary
 install_kn() {
     header "Installing kn binary"
@@ -644,7 +591,7 @@ setup_kn_resources() {
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
     info "Creating ~/.kn directory structure..."
-    mkdir -p "$kn_home"/{agents,skills,mcps,formulas,stacks}
+    mkdir -p "$kn_home"/{agents,skills,mcps,stacks}
     
     # Copy agents
     if [[ -d "$script_dir/agents" ]]; then
@@ -696,22 +643,6 @@ setup_kn_resources() {
         warn "Skills will need to be installed manually"
     fi
     
-    # Copy formulas
-    if [[ -d "$script_dir/.beads/formulas" ]]; then
-        info "Installing formulas to ~/.kn/formulas/..."
-        
-        for formula_file in "$script_dir/.beads/formulas"/*.formula.json; do
-            if [[ -f "$formula_file" ]]; then
-                local formula_name
-                formula_name=$(basename "$formula_file")
-                cp "$formula_file" "$kn_home/formulas/$formula_name"
-                success "Installed formula: $formula_name"
-            fi
-        done
-    else
-        warn "formulas/ directory not found - skipping formula installation"
-    fi
-    
     # Copy stack-presets
     if [[ -d "$script_dir/stacks" ]]; then
         info "Installing stack-presets to ~/.kn/stacks/..."
@@ -738,7 +669,6 @@ setup_kn_resources() {
     echo "  - Agents:    ~/.kn/agents/"
     echo "  - Skills:    ~/.kn/skills/"
     echo "  - Stacks:    ~/.kn/stacks/"
-    echo "  - Formulas:  ~/.kn/formulas/"
     echo "  - MCPs:      ~/.kn/mcps/ (installed on-demand)"
     echo ""
     
@@ -895,14 +825,6 @@ main() {
             if ! install_nodejs; then
                 warn "Node.js installation skipped or failed"
                 warn "You'll need to install Node.js manually for MCP servers"
-            fi
-        fi
-        
-        # bd (required) - will auto-install Rust if needed
-        if ! check_dependency "bd" "bd" 2>/dev/null; then
-            if ! install_bd; then
-                error "bd installation failed"
-                deps_ok=false
             fi
         fi
         

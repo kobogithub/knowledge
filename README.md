@@ -64,7 +64,7 @@ chmod +x install.sh
 ```bash
 ./install.sh --help              # Show all options
 ./install.sh --version v0.2.0    # Install specific version
-./install.sh --skip-deps         # Skip dependency installation (Git, Node.js, bd)
+./install.sh --skip-deps         # Skip dependency installation (Git, Node.js)
 ./install.sh --no-confirm        # Non-interactive mode
 ./install.sh --no-modify-path    # Don't modify shell config files
 ```
@@ -102,7 +102,6 @@ If you prefer to build from source or need to customize the installation:
 ```bash
 # 1. Install dependencies
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh  # Rust
-cargo install bd                                                  # Beads
 # Install Node.js from https://nodejs.org/ or your package manager
 
 # 2. Clone and build
@@ -141,12 +140,10 @@ kn doctor
 ✓ Rust         1.93.1
 ✓ Cargo        1.93.1
 ✓ Git          2.53.0
-✓ bd           0.49.6
-○ Dolt         (optional - not found)
 ✓ Node.js      25.6.0
 ✓ npm          11.8.0
 
-✓ Overall: 7/7 dependencies met
+✓ Overall: 5/5 dependencies met
 
 🎉 Ready to use!
 ```
@@ -155,8 +152,6 @@ kn doctor
 - ✅ **Rust** (1.70+) - For building kn
 - ✅ **Cargo** - Rust package manager
 - ✅ **Git** - Version control
-- ✅ **bd** (beads) - Issue tracking
-- ⚪ **Dolt** - Optional, for Beads database
 - ✅ **Node.js** (18.0+) - For MCP servers
 - ✅ **npm** - Node package manager
 
@@ -206,7 +201,7 @@ Remove everything including all global resources:
 - ✅ Shell configuration entries (`.bashrc`, `.zshrc`, etc.)
 - ⚠️ `~/.kn/` directory (only with `--remove-data`)
 - ⚠️ Project configurations (only with `--remove-config`)
-- ❌ Dependencies (Git, Node.js, bd) are NOT removed
+- ❌ Dependencies (Git, Node.js) are NOT removed
 
 **Note:** The uninstall script creates backups of shell configuration files before modifying them.
 
@@ -249,20 +244,6 @@ kn skills install <skill-name>
 # Install from URL or local path
 kn skills install https://example.com/skill/SKILL.md
 kn skills install ./local/skill/SKILL.md
-```
-
-### Generate Issue Templates
-
-```bash
-# Create templates directory
-mkdir -p .beads/templates
-
-# Generate all templates
-kn beads template epic -o .beads/templates/epic.md
-kn beads template task -o .beads/templates/task.md
-kn beads template bug -o .beads/templates/bug.md
-kn beads template feature -o .beads/templates/feature.md
-kn beads template chore -o .beads/templates/chore.md
 ```
 
 ---
@@ -345,15 +326,6 @@ kn agents install ./agents/rust     # Or from a local path
 kn agents install rust --force      # Reinstall over an existing agent
 ```
 
-### 📋 Beads Templates
-```bash
-kn beads template epic -o epic.md   # Generate structured issue templates
-kn beads template task              # Print to stdout for piping
-kn beads template bug --force       # Overwrite existing files
-```
-
-> **Status**: this project's own workflow uses spec-kit, not Beads — see [ADR-006](./docs/adr/006-adopt-speckit-remove-beads.md). The `kn beads` commands still ship and are supported for projects that use Beads independently.
-
 ### 🔌 MCP Server Management
 ```bash
 kn mcp add filesystem               # Add preset MCP servers
@@ -373,7 +345,6 @@ knowledge/
 │   │   └── commands/
 │   │       ├── init.rs       # Project initialization
 │   │       ├── skills.rs     # Skills management
-│   │       ├── beads.rs      # Issue templates
 │   │       ├── mcp.rs        # MCP server management
 │   │       ├── doctor.rs     # Dependency verification
 │   │       ├── update.rs     # Self-update
@@ -393,23 +364,15 @@ knowledge/
 │   └── finanzas/AGENTS.md    # Finanzas — cost tracking, budget controls
 ├── .opencode/skills/         # Installed AI agent skills (21 skills)
 │   ├── bash-best-practices/
-│   ├── bd-best-practices/    # 5-phase workflow manual
 │   ├── docker-best-practices/
 │   ├── github-actions-best-practices/
-│   ├── jsonnet-best-practices/
 │   ├── python-best-practices/
 │   ├── rust-best-practices/
 │   ├── security-gitleaks/
 │   ├── security-owasp-zap/
 │   ├── security-semgrep/
 │   └── security-trivy/
-├── .beads/                   # Issue tracking (Beads)
-│   ├── issues.jsonl          # Issue database
-│   └── formulas/             # Workflow templates
-│       ├── mol-feature.formula.json
-│       ├── mol-bugfix.formula.json
-│       ├── mol-spike.formula.json
-│       └── mol-release.formula.json
+├── specs/                    # spec-kit initiatives (spec.md, plan.md, tasks.md)
 ├── docs/                     # Documentation
 │   ├── GETTING_STARTED.md
 │   ├── ARCHITECTURE.md
@@ -478,7 +441,6 @@ Each initiative lives in its own `specs/NNN-feature-name/` folder (`spec.md`, `p
 ### Phase 1: Core CLI (Completed)
 - [x] `kn init` - Project initialization with auto-detection
 - [x] `kn skills install/list` - Skills management
-- [x] `kn beads template` - Issue template generation
 - [x] `kn mcp add/list/remove` - MCP server configuration
 - [x] `kn doctor` - Dependency verification
 - [x] `kn update` - Self-update mechanism
@@ -493,7 +455,6 @@ Each initiative lives in its own `specs/NNN-feature-name/` folder (`spec.md`, `p
 - [x] 5-phase workflow framework (Exploration through Verification)
 - [x] 4 workflow formula templates (feature, bugfix, spike, release)
 - [x] Merge-slot for serialized push coordination
-- [x] `bd-best-practices` skill as comprehensive 5-phase manual
 
 ### Phase 4: Advanced Features
 - [ ] `kn agent create` - Custom agent generation
@@ -534,13 +495,7 @@ kn skills install company-standards
 # → All projects follow same patterns
 ```
 
-### 3. Issue Planning
-```bash
-kn beads template epic > planning/mvp.md
-# → Structured planning templates
-```
-
-### 4. Documentation Access
+### 3. Documentation Access
 ```bash
 kn mcp add rust-docs mdn-web-docs
 # → AI agents have instant doc access
@@ -590,7 +545,7 @@ and open a PR against it before implementing.
 
 **Version**: 0.5.1
 
-**CLI**: All core commands implemented (`init`, `skills`, `beads`, `mcp`, `doctor`, `update`, `sync`, `agents`)
+**CLI**: All core commands implemented (`init`, `skills`, `mcp`, `doctor`, `update`, `sync`, `agents`)
 
 **Agents**: 9 specialized agents operational with per-agent MCP scoping
 
@@ -608,8 +563,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## 🙏 Acknowledgments
 
-- **[Beads](https://github.com/beadlist/beads)** by Steve Yegge - Issue tracking framework
-- **[Dolt](https://doltdb.com)** - Git-like version control for data
 - **[agentskills.io](https://agentskills.io)** - Skills repository standard
 - **Rust Community** - Amazing tooling and ecosystem
 

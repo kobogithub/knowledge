@@ -67,7 +67,6 @@ class Kn < Formula
 
       Optional dependencies (checked by `kn doctor`, not required for the CLI itself):
       - Node.js: for skills that assume a JS/TS toolchain
-      - bd (beads): legacy, only used by the `kn beads template` subcommand
 
       For more information:
         https://github.com/kobogithub/knowledge
@@ -104,9 +103,8 @@ class Kn < Formula
 
     # Deliberately does NOT run `kn doctor`. It exits non-zero when optional
     # third-party tools are absent, and its output varies with the environment —
-    # inside Homebrew's sandboxed test env even Rust and Cargo are missing. It also
-    # still treats `bd` (beads) as a required dependency although ADR-006 removed
-    # beads from the workflow. A formula test must assert on what this formula
-    # installs, not on what the machine running it happens to have.
+    # inside Homebrew's sandboxed test env even Rust and Cargo are missing. A
+    # formula test must assert on what this formula installs, not on what the
+    # machine running it happens to have.
   end
 end

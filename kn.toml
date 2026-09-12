@@ -49,6 +49,13 @@ required_skills = [
     "rust-best-practices",
 ]
 
+[agents.analyst]
+id = "knowledge-an1"
+role = "analyst"
+required_skills = [
+    "documentation-guide",
+]
+
 [agents.planner]
 id = "knowledge-x6e"
 role = "planner"

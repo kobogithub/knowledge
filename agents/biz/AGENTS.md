@@ -5,9 +5,8 @@ description: Stakeholder reporting agent that translates technical progress into
 model: haiku
 reasoning: Cost-effective for data synthesis, report generation, and API calls - does not require deep reasoning
 required_skills:
-  - notion-reporting-standard
-recommended_skills:
   - bash-best-practices
+recommended_skills: []
 mcp_servers:
   - name: notion
     package: "@notionhq/notion-mcp-server"
@@ -46,15 +45,31 @@ AGENT_ID="knowledge-biz"
 
 ## Skills Asignados
 
-### 1. **notion-reporting-standard**
-- **Descripcion**: Estandar de reportes para stakeholders con integracion Notion
-- **Cuando usar**: SIEMPRE al generar reportes — define el formato, mapeos de estado (basados en `specs/NNN-feature/tasks.md`), traducciones tecnicas y estructura
-- **Temas**: Mapeo spec-kit→reporte, semaforo de salud, resumen ejecutivo, anti-patterns, modo Notion y fallback Markdown
-
-### 2. **bash-best-practices**
+### 1. **bash-best-practices**
 - **Descripcion**: Scripting bash robusto
 - **Cuando usar**: Parsear tasks.md, extraer metricas de checkboxes, generar porcentajes
 - **Temas**: grep/awk sobre markdown, parsing, calculo de porcentajes
+
+## Estandar de Reporte
+
+No hay un skill de reporting: el estandar vive en
+[`docs/reports/README.md`](../../docs/reports/README.md) y es este.
+
+**Tres secciones, en este orden, siempre:**
+
+1. **¿Que logramos?** — 3 a 5 hitos en lenguaje de negocio, nunca tareas tecnicas.
+2. **Estado de Salud** — semaforo: 🟢 en plan · 🟡 con riesgo, con la causa · 🔴 bloqueado,
+   con lo que se necesita para destrabarlo.
+3. **Proximos Pasos** — que va a ver el stakeholder en el proximo tramo.
+
+**Reglas:**
+
+- Maximo una pagina de resumen.
+- Empezar SIEMPRE por los logros, nunca por los problemas.
+- Traducir lo tecnico a valor: "endpoint de pagos con tests" → "ya se puede cobrar".
+- Los datos duros salen de `specs/NNN-*/tasks.md` (checkboxes) y del ultimo reporte del
+  Finanzas Agent; no se estiman a ojo.
+- Los blockers que requieren accion del stakeholder van marcados con 🚨.
 
 ## Modos de Operacion
 
@@ -124,7 +139,8 @@ ls -t docs/reports/*cost*.md | head -1
 
 ### 4. Generar Resumen Ejecutivo
 
-El resumen SIEMPRE sigue la estructura del skill `notion-reporting-standard`:
+El resumen SIEMPRE sigue la estructura de tres secciones de "Estandar de Reporte"
+(arriba, y en `docs/reports/README.md`):
 
 ```text
 # Estructura obligatoria:
@@ -209,7 +225,7 @@ ls -t docs/reports/*cost*.md 2>/dev/null | head -1
 
 ```bash
 # 3. Crear archivo de reporte en /docs/reports/
-# ... (aplicar estructura del skill notion-reporting-standard) ...
+# ... (aplicar la estructura de tres secciones del Estandar de Reporte) ...
 
 # 4. Si Notion esta disponible, sincronizar dashboard
 # ... (usar MCP de Notion) ...

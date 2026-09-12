@@ -40,7 +40,22 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Nombrar, para cada principio de `.specify/memory/constitution.md`, si aplica y por qué
+pasa. "No aplica" es una respuesta válida; "pasa por vacuidad" no.
+
+- [ ] **I. La story manda** — cada User Story del spec referencia el ID de su
+      `docs/product/stories/EPIC-xx/US-NN.md` y copia sus escenarios Gherkin.
+- [ ] **II. Una épica, una carpeta de spec** — esta carpeta `specs/NNN-*/` corresponde a
+      exactamente una épica de un PRD aprobado.
+- [ ] **III. Todo artefacto vive en git** — el plan no depende de nada que viva solo en un
+      chat o en una herramienta externa.
+- [ ] **IV. El agente propone, el humano firma** — el `spec.md` del que se deriva este plan
+      está `Aprobado` y firmado.
+- [ ] **V. spec-kit es la única capa de specs** — el plan no introduce una segunda
+      herramienta de specs o de tracking.
+
+Una violación se justifica abajo, en "Complexity Tracking". Sin justificación, el plan no
+avanza.
 
 ## Project Structure
 
