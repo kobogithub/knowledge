@@ -35,6 +35,12 @@ Two things parse this name and break if it changes:
 Renaming it is a breaking change for existing users even though only one artifact is
 built. Leave it alone.
 
+> **`kn update` was broken up to and including v0.12.0.** It derived the name from
+> `target_arch` and asked for `kn-macos-aarch64.tar.gz`, which is never published, so
+> self-update 404'd on every Apple Silicon machine. Any copy at **v0.12.0 or older must
+> be upgraded with `brew upgrade kn` or `install.sh`** — `kn update` cannot reach a newer
+> version by itself. Fixed for v0.13.0 onwards.
+
 ---
 
 ## Versioning
