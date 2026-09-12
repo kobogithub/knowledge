@@ -1,7 +1,7 @@
 # STATUS
 
 **Generado**: 2026-09-06 (a mano, por el Planner; EPIC-02 lo automatiza con `/product-status`)
-**Última edición**: 2026-09-12 — release v0.12.0 a `prod` sin rc (excepción registrada); constitución ratificada (v1.0.0, T040 cerrada); story US-01 de EPIC-02 en Borrador
+**Última edición**: 2026-09-12 — `release.yml` ya distingue prereleases, la regla del rc queda ejecutable (#34 cerrada); release v0.12.0 a `prod` sin rc (excepción registrada y no repetible); constitución ratificada (v1.0.0, T040 cerrada); story US-01 de EPIC-02 en Borrador
 **Sprint**: 1 — EPIC-01 en curso. Los ocho artefactos de la cadena están firmados y
 `/speckit-implement` está habilitado desde el 2026-09-06.
 **PRD**: [`docs/product/PRD.md`](./product/PRD.md) — **Aprobado** (incluye la decisión 9), Kevin Barroso, 2026-09-06
@@ -108,9 +108,10 @@ compuertas se salteen. Mitigación: US-05 hace que la verifique el agente, no la
    **Alcance**: solo v0.12.0. La regla sigue vigente y no se enmendó.
 
    **Qué la destraba**: hacer que `release.yml` distinga prereleases — `prerelease: true`
-   para tags con guión y saltear `publish-formula` en esos casos. Registrado como deuda
-   abajo. Hasta que eso exista, cada release va a enfrentar esta misma excepción, y la
-   regla es letra muerta en tres documentos.
+   para tags con guión y saltear `publish-formula` en esos casos.
+
+   **Destrabado el 2026-09-12** (issue #34): `release.yml` ya deriva la condición del tag.
+   La excepción no se repite — v0.13.0 sale con `v0.13.0-rc.1` en `dev` primero.
 
    Precedente: la excepción de compuerta del 2026-09-06, registrada y cerrada el mismo día.
 
@@ -147,11 +148,13 @@ constancia en Drive (decisión 8). Se hace a mano hasta que EPIC-02 lo automatic
 
 ## Deuda técnica registrada
 
-- **`release.yml` no distingue prereleases (2026-09-12)**: dispara con cualquier tag `v*`,
-  fija `prerelease: false` y publica al tap de Homebrew sin condición. Por eso la regla del
-  rc (decisión 7 del PRD, restricción de la constitución) **no se puede cumplir**: taggear
-  `vX.Y.Z-rc.N` publicaría un candidato como release estable. Mientras no se arregle, cada
-  release necesita una excepción registrada como la de v0.12.0. Issue #34.
+- ~~`release.yml` no distingue prereleases (2026-09-12)~~ — **CERRADA el 2026-09-12**.
+  `release.yml` deriva la condición del propio tag: un guión lo marca como prerelease
+  (semver), el release se publica con `prerelease: true` y `publish-formula` no corre, así
+  que el tap nunca sirve un candidato. El job también rechaza tags que no sean semver, y
+  `tap-drift-check.yml` compara contra el último release **estable** para no reportar drift
+  de un tap que está donde corresponde. **La regla del rc pasa a ser ejecutable**: desde el
+  próximo release no hace falta excepción. Issue #34.
 
 - ~~Excepción de compuerta de la primera corrida (2026-09-06)~~ — **CERRADA el mismo día**
   (T035, V10). Los ocho artefactos quedaron Aprobados y firmados, así que la cadena
