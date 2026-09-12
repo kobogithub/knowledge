@@ -42,6 +42,31 @@ entonces el campo lo registra (`Kevin Barroso (firma transcrita por el Planner�
 ningún agente hace es decidir que un artefacto está listo, ni firmar algo que el mantenedor
 no leyó: la compuerta vale porque el registro es cierto.
 
+### La compuerta blanda y la dura
+
+`/product-gate` es la compuerta **blanda**: la corre un agente antes de derivar el
+artefacto siguiente. Sirve, pero depende de que el agente la corra, y un agente se deja
+convencer.
+
+`.github/scripts/chain-check.sh` es la **dura**: corre en CI sobre cada PR, como el job
+`chain-check`, y no se puede saltear. Verifica dos cosas:
+
+1. **Firmas coherentes** — todo artefacto con Estado `Aprobado` tiene `Firmado por` y
+   `Fecha de firma` con contenido, y la fecha en formato `YYYY-MM-DD`. Un "Aprobado" sin
+   firmante afirma que pasó algo que no pasó.
+2. **Trazabilidad story ↔ spec** — todo `US-NN` que un `spec.md` referencia existe como
+   archivo, y toda story de la épica del spec aparece referenciada en él. El segundo
+   sentido es el que atrapa el caso caro: una story firmada que el spec no bajó, y que por
+   lo tanto nadie va a implementar ni QA va a validar.
+
+`/speckit-analyze` cubre parte del punto 2, pero lo corre el agente a pedido. Esto es lo
+mismo, sin la parte de acordarse.
+
+Corre igual en local: `bash .github/scripts/chain-check.sh`.
+
+Faltan las otras dos verificaciones del plan —derivación válida entre etapas, y que el
+cuerpo del PR referencie una story— que entran con EPIC-02.
+
 ### Dos aprobaciones sobre el brief y el PRD
 
 `PROJECT.md` (el **brief**) y `PRD.md` (el **contrato de alcance**) llevan además un
