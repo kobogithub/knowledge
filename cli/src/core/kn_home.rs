@@ -32,11 +32,6 @@ pub fn mcps_dir() -> Result<PathBuf> {
     Ok(kn_home()?.join("mcps"))
 }
 
-/// Get the global formulas directory (~/.kn/formulas/)
-pub fn formulas_dir() -> Result<PathBuf> {
-    Ok(kn_home()?.join("formulas"))
-}
-
 /// Get the global stacks directory (~/.kn/stacks/)
 pub fn stacks_dir() -> Result<PathBuf> {
     Ok(kn_home()?.join("stacks"))
@@ -48,7 +43,6 @@ pub fn ensure_kn_home() -> Result<()> {
     let skills = skills_dir()?;
     let agents = agents_dir()?;
     let mcps = mcps_dir()?;
-    let formulas = formulas_dir()?;
     let stacks = stacks_dir()?;
 
     fs::create_dir_all(&kn_home)
@@ -62,9 +56,6 @@ pub fn ensure_kn_home() -> Result<()> {
 
     fs::create_dir_all(&mcps)
         .with_context(|| format!("Failed to create directory: {}", mcps.display()))?;
-
-    fs::create_dir_all(&formulas)
-        .with_context(|| format!("Failed to create directory: {}", formulas.display()))?;
 
     fs::create_dir_all(&stacks)
         .with_context(|| format!("Failed to create directory: {}", stacks.display()))?;
@@ -98,33 +89,6 @@ pub fn list_installed_skills() -> Result<Vec<String>> {
 
     skill_names.sort();
     Ok(skill_names)
-}
-
-/// List all installed formulas in ~/.kn/formulas/ (returns filenames of .formula.json files)
-pub fn list_installed_formulas() -> Result<Vec<String>> {
-    let formulas = formulas_dir()?;
-
-    if !formulas.exists() {
-        return Ok(Vec::new());
-    }
-
-    let mut formula_names = Vec::new();
-
-    for entry in fs::read_dir(&formulas)? {
-        let entry = entry?;
-        let path = entry.path();
-
-        if path.is_file() {
-            if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                if name.ends_with(".formula.json") {
-                    formula_names.push(name.to_string());
-                }
-            }
-        }
-    }
-
-    formula_names.sort();
-    Ok(formula_names)
 }
 
 /// List all installed agents in ~/.kn/agents/ (returns just names)
@@ -273,12 +237,6 @@ mod tests {
     fn test_mcps_dir_path() {
         let mcps = mcps_dir().unwrap();
         assert!(mcps.ends_with(".kn/mcps"));
-    }
-
-    #[test]
-    fn test_formulas_dir_path() {
-        let formulas = formulas_dir().unwrap();
-        assert!(formulas.ends_with(".kn/formulas"));
     }
 
     #[test]

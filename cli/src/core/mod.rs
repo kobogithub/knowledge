@@ -5,7 +5,7 @@ pub mod symlinks;
 
 pub use claude_md::write_claude_md_if_missing;
 pub use kn_home::{
-    agents_dir, ensure_kn_home, formulas_dir, kn_home, list_installed_agents,
-    list_installed_formulas, list_installed_skills, skills_dir, stacks_dir,
+    agents_dir, ensure_kn_home, kn_home, list_installed_agents, list_installed_skills, skills_dir,
+    stacks_dir,
 };
 pub use stack::{list_preset_names, list_presets, load_preset, load_preset_for_use, StackPreset};
