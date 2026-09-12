@@ -158,50 +158,6 @@ impl SyncCommand {
             println!("\n{}", "No agents enabled in kn.toml".dimmed());
         }
 
-        // Sync formulas
-        println!("\n{}", "Formulas:".bright_white().bold());
-        let formulas_source = kn_home::formulas_dir()?;
-        let formulas_target = project_root.join(".beads/formulas");
-
-        if formulas_source.exists() {
-            fs::create_dir_all(&formulas_target)?;
-            let mut formula_count = 0;
-
-            for entry in fs::read_dir(&formulas_source)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.extension().and_then(|e| e.to_str()) == Some("json")
-                    && path
-                        .file_name()
-                        .and_then(|n| n.to_str())
-                        .is_some_and(|n| n.ends_with(".formula.json"))
-                {
-                    let name = path.file_name().unwrap().to_string_lossy().to_string();
-                    let dest = formulas_target.join(&name);
-                    if !dest.exists() {
-                        fs::copy(&path, &dest)?;
-                        println!("  {} {} {}", "✓".green(), name, "(new)".dimmed());
-                        formula_count += 1;
-                    } else {
-                        println!("  {} {}", "✓".green(), name);
-                    }
-                }
-            }
-
-            if formula_count > 0 {
-                println!(
-                    "{}",
-                    format!("  ✓ Installed {} new formula(s)", formula_count).green()
-                );
-            }
-        } else {
-            println!(
-                "  {} {}",
-                "ℹ".bright_blue(),
-                "No formulas in ~/.kn/formulas/ (install with: kn update)".dimmed()
-            );
-        }
-
         // Sync MCPs (generate .opencode/opencode.json)
         if let Some(mcp_config) = &config.mcp {
             if !mcp_config.enabled.is_empty() {

@@ -72,12 +72,6 @@ build/
 *.out
 go.work
 
-# Beads (keep database but ignore temp files)
-.beads/*.db-shm
-.beads/*.db-wal
-.beads/tmp/
-.beads/.dolt/query-catalog/
-
 # Environment & Secrets
 .env
 .env.local

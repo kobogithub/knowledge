@@ -26,6 +26,27 @@ closes that.
 Using Beads independently? Install `bd` yourself — `kn` never made it work, it only
 insisted on its presence.
 
+The same release finishes the job on everything the subcommand left behind. `kn init` and
+`kn sync` were still creating a `.beads/formulas/` directory in **every** project they
+touched, copying `*.formula.json` files into it — a Beads concept (`bd formula`, `bd cook`)
+that no longer ships anywhere, so the step printed "no formulas found" and created an empty
+directory named after a removed tool. Flagged for cleanup back in v0.10.0 and now done.
+
+- **`kn init` and `kn sync` no longer create `.beads/`.** The formula step is gone, along
+  with `~/.kn/formulas/` and the `formulas_dir()` / `list_installed_formulas()` helpers.
+  Nothing read them: no formula has shipped since ADR-006.
+- **The `AGENTS.md` that `kn init` generates no longer teaches `bd`.** It opened with
+  "This project uses **bd** (beads) for issue tracking" and its Quick Reference was twelve
+  `bd` commands — `bd ready`, `bd update --claim`, `bd agent state`, `bd sync`. Every
+  project scaffolded since ADR-006 got instructions for a tool `kn` does not install. It
+  now mirrors this repo's own `AGENTS.md`: the spec-kit cycle, `tasks.md` checkboxes and
+  PR comments.
+- **Removed the `.beads/` entries from `.gitignore`, and `.gitattributes` with them** — the
+  file held nothing but the `merge=beads` driver for `.beads/issues.jsonl`.
+- **`cli/README.md`** no longer documents `kn beads template`, and no longer lists `bd` and
+  Dolt among the dependencies `kn doctor` checks. **`Formula/kn.rb`** drops the caveat that
+  `kn doctor` "still treats `bd` as a required dependency" — as of this release it does not.
+
 ### Added
 
 - **Product layer above spec-kit** ([ADR-008](./docs/adr/008-product-layer-over-speckit.md)):

@@ -591,7 +591,7 @@ setup_kn_resources() {
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
     info "Creating ~/.kn directory structure..."
-    mkdir -p "$kn_home"/{agents,skills,mcps,formulas,stacks}
+    mkdir -p "$kn_home"/{agents,skills,mcps,stacks}
     
     # Copy agents
     if [[ -d "$script_dir/agents" ]]; then
@@ -669,7 +669,6 @@ setup_kn_resources() {
     echo "  - Agents:    ~/.kn/agents/"
     echo "  - Skills:    ~/.kn/skills/"
     echo "  - Stacks:    ~/.kn/stacks/"
-    echo "  - Formulas:  ~/.kn/formulas/"
     echo "  - MCPs:      ~/.kn/mcps/ (installed on-demand)"
     echo ""
     
